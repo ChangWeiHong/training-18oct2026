@@ -95,3 +95,26 @@ export function niceTicks(lo, hi, target = 6) {
   for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(Math.round(v / step) * step);
   return out;
 }
+
+/** Split decimated sample indexes at the cursor: the cursor sample ends the past and starts the future. */
+export function splitAtCursor(idx, cursor) {
+  if (!idx.length) return { past: [], future: [] };
+  const past = [];
+  const future = [];
+  for (const i of idx) {
+    if (i <= cursor) past.push(i);
+    if (i >= cursor) future.push(i);
+  }
+  if (past[past.length - 1] !== cursor) past.push(cursor);
+  if (future[0] !== cursor) future.unshift(cursor);
+  return { past, future };
+}
+
+/** Indexes of the [from, to] angle intervals the cursor has just moved into (was outside, is inside). */
+export function enteredIntervals(prevAngle, angle, intervals) {
+  if (prevAngle == null || angle == null) return [];
+  const inside = (a, [lo, hi]) => a >= lo && a <= hi;
+  const out = [];
+  intervals.forEach((iv, k) => { if (!inside(prevAngle, iv) && inside(angle, iv)) out.push(k); });
+  return out;
+}

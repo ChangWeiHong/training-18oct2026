@@ -63,3 +63,27 @@ test('decimateExtrema keeps a one-sample drop that uniform decimation would skip
 test('decimateExtrema returns every index for short curves', () => {
   assert.deepEqual(decimateExtrema([3, 1, 2], 100), [0, 1, 2]);
 });
+
+import { splitAtCursor, enteredIntervals } from '../src/graph.js';
+
+test('splitAtCursor puts the cursor sample at the end of the past and the start of the future', () => {
+  const idx = [0, 2, 4, 6, 8];
+  assert.deepEqual(splitAtCursor(idx, 4), { past: [0, 2, 4], future: [4, 6, 8] });
+  assert.deepEqual(splitAtCursor(idx, 5), { past: [0, 2, 4, 5], future: [5, 6, 8] });
+  assert.deepEqual(splitAtCursor(idx, 0), { past: [0], future: [0, 2, 4, 6, 8] });
+  assert.deepEqual(splitAtCursor(idx, 8), { past: [0, 2, 4, 6, 8], future: [8] });
+  assert.deepEqual(splitAtCursor([], 0), { past: [], future: [] });
+});
+
+test('enteredIntervals reports intervals the cursor moved into', () => {
+  const iv = [[10, 20], [30, 40]];
+  assert.deepEqual(enteredIntervals(5, 12, iv), [0]);
+  assert.deepEqual(enteredIntervals(12, 15, iv), []);
+  assert.deepEqual(enteredIntervals(25, 35, iv), [1]);
+  assert.deepEqual(enteredIntervals(5, 35, iv), [1]);
+  assert.deepEqual(enteredIntervals(null, 12, iv), []);
+});
+
+test('enteredIntervals fires again after the loop restarts', () => {
+  assert.deepEqual(enteredIntervals(50, 0, [[0, 20]]), [0]);
+});

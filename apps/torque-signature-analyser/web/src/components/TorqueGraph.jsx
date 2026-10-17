@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { makeScales, nearestSampleIndex, decimateExtrema, bandRuns, lineRuns, niceTicks } from '../graph.js';
+import { makeScales, nearestSampleIndex, decimateExtrema, bandRuns, lineRuns, niceTicks, splitAtCursor, enteredIntervals } from '../graph.js';
 
 const NO_SNUG_NOTE = 'No snug point: shown in absolute view only';
 const MARGIN = { l: 46, r: 12, t: 10, b: 34 };
@@ -43,13 +43,16 @@ function curvePath(curve, idx, shift, sx, sy) {
   return idx.map((i, k) => `${k ? 'L' : 'M'}${sx(curve.angle[i] - shift).toFixed(1)} ${sy(curve.torque[i]).toFixed(1)}`).join('');
 }
 
-export default function TorqueGraph({ result, selected, cursor, mode, onMode, onCursor }) {
+export default function TorqueGraph({ result, selected, cursor, mode, onMode, onCursor, playing = false }) {
   const wrap = useRef(null);
   const svgRef = useRef(null);
   const dragging = useRef(false);
   const width = useWidth(wrap);
   const [showAll, setShowAll] = useState(false);
   const [hover, setHover] = useState(null);
+  const [hits, setHits] = useState({});
+  const prevAngle = useRef(null);
+  const hitFor = useRef(null);
 
   const aligned = mode === 'aligned';
   const snug = selected?.features?.snug_angle ?? null;
@@ -110,6 +113,19 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
     return { shift, bands, medians, domain, angleLines, faint };
   }, [result, selected, aligned, snug, spec, showAll]);
 
+  // Each evidence strip lights once as the cursor moves into its interval. A counter in the key restarts the CSS animation.
+  useEffect(() => {
+    const c = selected?.curve;
+    if (!c) { prevAngle.current = null; return; }
+    const i = Math.min(Math.max(cursor, 0), c.angle.length - 1);
+    const angle = c.angle[i];
+    if (hitFor.current !== selected.id) { hitFor.current = selected.id; prevAngle.current = null; setHits({}); }
+    const ivs = (selected.evidence ?? []).filter((ev) => ev.interval);
+    const entered = enteredIntervals(prevAngle.current, angle, ivs.map((ev) => ev.interval));
+    prevAngle.current = angle;
+    if (entered.length) setHits((h) => { const nx = { ...h }; for (const k of entered) nx[ivs[k].feature] = (nx[ivs[k].feature] ?? 0) + 1; return nx; });
+  }, [cursor, selected]);
+
   if (!selected || !result) {
     return <div className="graph" ref={wrap}><p className="slot-empty">Load a pack to see its curves.</p></div>;
   }
@@ -139,9 +155,11 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
   const sc = makeScales(domain, { width, height, margin });
   const { plot } = sc;
   const curve = selected.curve;
+  const drawIdx = decimateExtrema(curve.torque, 2000);
   const n = curve.angle.length;
   const ci = Math.min(Math.max(cursor, 0), n - 1);
-  const sigClass = `curve-${selected.signature}`;
+  const split = splitAtCursor(drawIdx, ci);
+  const sigClass = selected.spec_result === 'outside' ? 'curve-outside' : `curve-${selected.signature}`;
   const xTicks = niceTicks(domain.x0, domain.x1, Math.max(3, Math.floor(width / 90)));
   const yTicks = niceTicks(domain.y0, domain.y1, 5);
 
@@ -243,7 +261,8 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
             {medians.map((runs, k) => <path key={`m${k}`} className="g-median" d={linePath(runs, sc.x, sc.y)} />)}
 
             {faint.map((f) => <path key={f.id} className="g-faint" d={curvePath(f.curve, f.idx, f.shift, sc.x, sc.y)} />)}
-            <path className={`g-curve ${sigClass}`} d={curvePath(curve, decimateExtrema(curve.torque, 2000), shift, sc.x, sc.y)} />
+            <path className="g-curve-future" d={curvePath(curve, split.future, shift, sc.x, sc.y)} />
+            <path className={`g-curve ${sigClass}`} d={curvePath(curve, split.past, shift, sc.x, sc.y)} />
           </g>
 
           {spec && [
@@ -272,14 +291,15 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
             const y = MARGIN.t + k * STRIP_H;
             return (
               <g key={`s${ev.feature}`}>
-                <rect className="g-interval" x={x0} y={y} width={Math.max(2, x1 - x0)} height={STRIP_H - 3} />
+                <rect key={hits[ev.feature] ?? 0} className={hits[ev.feature] ? 'g-interval is-hit' : 'g-interval'} x={x0} y={y} width={Math.max(2, x1 - x0)} height={STRIP_H - 3} />
                 <text className="g-interval-label" x={x0 + 4} y={y + 9}>{ev.label}</text>
               </g>
             );
           })}
 
           <line className="g-cursor" x1={cx} x2={cx} y1={plot.top} y2={plot.bottom} />
-          <circle className="g-cursor-dot" cx={cx} cy={cy} r="4" />
+          {playing && <circle className="g-cursor-halo" cx={cx} cy={cy} r="11" />}
+          <circle className={playing ? 'g-cursor-dot is-playing' : 'g-cursor-dot'} cx={cx} cy={cy} r="4" />
           <rect className="g-plot-frame" x={plot.left} y={plot.top} width={plot.right - plot.left} height={plot.bottom - plot.top} />
 
           {hi != null && (
