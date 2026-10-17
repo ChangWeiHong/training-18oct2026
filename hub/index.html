@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Awantec Apps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Hallmark · macrostructure: Index List · tone: utilitarian · anchor hue: 45 (signal orange)
+ * nav: none (single destination list) · footer: one-line note · enrichment: none (typography only)
+ */
+:root {
+  --color-paper: oklch(97% 0.008 85);
+  --color-ink: oklch(22% 0.01 60);
+  --color-ink-2: oklch(45% 0.012 60);
+  --color-rule: oklch(86% 0.01 80);
+  --color-hover: oklch(93% 0.015 80);
+  --color-accent: oklch(62% 0.17 45);
+  --color-focus: oklch(55% 0.17 45);
+  --font-display: "Instrument Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --space-xs: 4px; --space-sm: 8px; --space-md: 16px; --space-lg: 24px; --space-xl: 48px; --space-2xl: 96px;
+  --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.375rem; --text-display: clamp(2.25rem, 6vw, 4rem);
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast: 140ms;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-paper: oklch(18% 0.008 60);
+    --color-ink: oklch(94% 0.008 85);
+    --color-ink-2: oklch(70% 0.01 80);
+    --color-rule: oklch(32% 0.01 60);
+    --color-hover: oklch(23% 0.012 60);
+    --color-accent: oklch(72% 0.16 50);
+    --color-focus: oklch(72% 0.16 50);
+  }
+}
+* { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  line-height: 1.5;
+}
+main { max-width: 960px; margin: 0 auto; padding: var(--space-2xl) var(--space-md) var(--space-xl); }
+h1 {
+  font-size: var(--text-display);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin: 0 0 var(--space-md);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.lede { color: var(--color-ink-2); max-width: 56ch; margin: 0 0 var(--space-xl); }
+.lede code, .notice code, footer code { font-family: var(--font-mono); font-size: 0.9em; color: var(--color-ink); }
+.notice {
+  border-left: 3px solid var(--color-accent);
+  padding: var(--space-sm) var(--space-md);
+  margin: 0 0 var(--space-lg);
+}
+ol { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--color-rule); }
+li { border-bottom: 1px solid var(--color-rule); }
+li a {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-xs) var(--space-lg);
+  align-items: baseline;
+  padding: var(--space-lg) var(--space-sm);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+li a:hover { background: var(--color-hover); }
+li a:active { background: var(--color-rule); }
+li a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.name { font-size: var(--text-lg); font-weight: 600; letter-spacing: -0.01em; }
+.path {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+.arrow { display: inline-block; transition: transform var(--dur-fast) var(--ease-out); }
+li a:hover .arrow { transform: translateX(4px); }
+.summary { grid-column: 1 / -1; color: var(--color-ink-2); max-width: 64ch; }
+footer { margin-top: var(--space-xl); color: var(--color-ink-2); font-size: var(--text-sm); }
+@media (max-width: 480px) {
+  main { padding-top: var(--space-xl); }
+  li a { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  li a, .arrow { transition: none; }
+  li a:hover .arrow { transform: none; }
+}
+</style>
+</head>
+<body>
+<main>
+  <h1>Awantec training apps</h1>
+  <p class="lede" id="lede">Open an app below.</p>
+  <p class="notice" id="notice" hidden></p>
+  <ol id="apps"></ol>
+  <footer>To add an app, edit <code>apps.json</code> and redeploy.</footer>
+</main>
+<script>
+(async () => {
+  const apps = await fetch("/apps.json", { cache: "no-cache" }).then(r => r.json());
+  const slug = location.pathname.replace(/^\/+|\/+$/g, "").toLowerCase();
+
+  if (slug && slug !== "index.html") {
+    const hit = apps.find(a => a.slug === slug);
+    if (hit) { location.replace(hit.url + location.search + location.hash); return; }
+    const notice = document.getElementById("notice");
+    notice.innerHTML = "No app at <code></code>. Pick one below.";
+    notice.querySelector("code").textContent = "/" + slug;
+    notice.hidden = false;
+  }
+
+  const links = apps.map(a => "/" + a.slug);
+  document.getElementById("lede").textContent =
+    `Open an app below, or go straight to one at ${links.join(", ")}.`;
+
+  const list = document.getElementById("apps");
+  for (const a of apps) {
+    const li = document.createElement("li");
+    li.innerHTML = '<a><span class="name"></span><span class="path"></span><span class="summary"></span></a>';
+    li.querySelector("a").href = a.url;
+    li.querySelector(".name").textContent = a.name;
+    li.querySelector(".path").innerHTML = '<span></span> <span class="arrow" aria-hidden="true">→</span>';
+    li.querySelector(".path span").textContent = "/" + a.slug;
+    li.querySelector(".summary").textContent = a.summary;
+    list.append(li);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "cheatsheet",
+    "name": "AI Ideation Cheatsheet",
+    "summary": "Write a build prompt for an AI tool. Fill in the notepad, then copy the prompt it builds.",
+    "url": "https://ai-ideation-cheatsheet-271836949821.asia-southeast1.run.app"
+  },
+  {
+    "slug": "twin",
+    "name": "FORGE / Smart Factory Digital Twin",
+    "summary": "Run a nine-station car assembly line in 3D. Find the bottleneck and test fixes.",
+    "url": "https://smart-factory-twin-271836949821.asia-southeast1.run.app"
+  },
+  {
+    "slug": "paint",
+    "name": "Automotive Paint Bench",
+    "summary": "Light the same car under two daylight conditions and compare the paint side by side.",
+    "url": "https://automotive-paint-bench-271836949821.asia-southeast1.run.app"
+  }
+]

@@ -1,10 +1,15 @@
 # awantec
 
-Two training apps for manufacturing engineers. Both run in the browser, use synthetic data only, and deploy to Google Cloud Run as static sites behind Nginx.
+Training apps for manufacturing engineers, plus a hub page that links to every deployed one.
+
+Hub: https://awantec-hub-271836949821.asia-southeast1.run.app (short links: `/cheatsheet`, `/twin`, `/paint`)
+
+The apps run in the browser, use synthetic data only, and deploy to Google Cloud Run as static sites behind Nginx.
 
 | App | Folder | What it does | Stack |
 |---|---|---|---|
 | [FORGE / Smart Factory Digital Twin](apps/smart-factory-twin-3d/) | `apps/smart-factory-twin-3d` | Simulates a nine-station car assembly line in 3D so you can find the bottleneck and test fixes | React, Vite, three.js, Recharts |
+| [Hub](hub/) | `hub` | Lists the deployed apps and redirects short links like `/twin`. Add an app in `hub/apps.json` | One HTML file + JSON |
 | [AI Ideation Cheatsheet](training-cheatsheet/) | `training-cheatsheet` | Walks you through writing a build prompt for an AI tool, with a worked example | One HTML file |
 
 ## FORGE / Smart Factory Digital Twin
@@ -38,6 +43,7 @@ Details: [`training-cheatsheet/README.md`](training-cheatsheet/README.md)
 ```
 apps/
   smart-factory-twin-3d/   React + three.js digital twin
+hub/                       index page and short-link redirects
 training-cheatsheet/       single-page prompt worksheet
 ```
 
