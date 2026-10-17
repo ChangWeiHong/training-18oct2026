@@ -1,0 +1,6 @@
+{
+  "name": "Asset Maintenance Priority Triage",
+  "description": "Rule-based triage console for maintenance engineers to rank equipment intervention priority across inspection datasets.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

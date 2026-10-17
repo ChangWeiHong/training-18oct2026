@@ -16,5 +16,11 @@
     "name": "Automotive Paint Bench",
     "summary": "Light the same car under two daylight conditions and compare the paint side by side.",
     "url": "https://automotive-paint-bench-271836949821.asia-southeast1.run.app"
+  },
+  {
+    "slug": "triage",
+    "name": "Asset Maintenance Priority Triage",
+    "summary": "Switch between sample inspection datasets and see which machines need maintenance first, with the rule behind each rank.",
+    "url": "https://air-compressor-argon.ai.studio/"
   }
 ]

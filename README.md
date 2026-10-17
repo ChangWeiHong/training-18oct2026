@@ -2,13 +2,14 @@
 
 Training apps for manufacturing engineers, plus a hub page that links to every deployed one.
 
-Hub: https://awantec-hub-271836949821.asia-southeast1.run.app (short links: `/cheatsheet`, `/twin`, `/paint`)
+Hub: https://awantec-hub-271836949821.asia-southeast1.run.app (short links: `/cheatsheet`, `/twin`, `/paint`, `/triage`)
 
-The apps run in the browser, use synthetic data only, and deploy to Google Cloud Run as static sites behind Nginx.
+The apps run in the browser and use synthetic data only. Most deploy to Google Cloud Run as static sites behind Nginx; the triage console runs on Google AI Studio.
 
 | App | Folder | What it does | Stack |
 |---|---|---|---|
 | [FORGE / Smart Factory Digital Twin](apps/smart-factory-twin-3d/) | `apps/smart-factory-twin-3d` | Simulates a nine-station car assembly line in 3D so you can find the bottleneck and test fixes | React, Vite, three.js, Recharts |
+| [Asset Maintenance Priority Triage](apps/asset-maintenance-priority-triage/) | `apps/asset-maintenance-priority-triage` | Ranks fictional equipment by maintenance priority with fixed rule checks. Built from the cheatsheet prompt | React, Vite, Tailwind |
 | [Hub](hub/) | `hub` | Lists the deployed apps and redirects short links like `/twin`. Add an app in `hub/apps.json` | One HTML file + JSON |
 | [AI Ideation Cheatsheet](training-cheatsheet/) | `training-cheatsheet` | Walks you through writing a build prompt for an AI tool, with a worked example | One HTML file |
 
@@ -26,6 +27,22 @@ npm run dev
 
 Details: [`apps/smart-factory-twin-3d/README.md`](apps/smart-factory-twin-3d/README.md)
 
+## Asset Maintenance Priority Triage
+
+You pick one of three fictional inspection datasets from a dropdown. The app checks vibration, bearing temperature, overhaul hours and lubricant condition for each machine, ranks them 1 to 4, and flags incomplete or uncertain records instead of guessing. It is the kind of app the cheatsheet prompt asks an AI tool to build.
+
+Live: https://air-compressor-argon.ai.studio/
+
+![Asset Maintenance Priority Triage](apps/asset-maintenance-priority-triage/docs/screenshots/overview.png)
+
+```bash
+cd apps/asset-maintenance-priority-triage
+npm install
+npm run dev
+```
+
+Details: [`apps/asset-maintenance-priority-triage/README.md`](apps/asset-maintenance-priority-triage/README.md)
+
 ## AI Ideation Cheatsheet
 
 You fill in a notepad (user, goal, input, sample cases, output, reviewer) and copy the prompt it builds. The page also gives a sample prompt, three user stories and four fix prompts for when the first build misses. The example app is an air compressor health monitor.
@@ -42,12 +59,13 @@ Details: [`training-cheatsheet/README.md`](training-cheatsheet/README.md)
 
 ```
 apps/
+  asset-maintenance-priority-triage/  React rule-based triage console (AI Studio)
   smart-factory-twin-3d/   React + three.js digital twin
 hub/                       index page and short-link redirects
 training-cheatsheet/       single-page prompt worksheet
 ```
 
-Each app has its own Dockerfile and deploys on its own with `gcloud run deploy --source .` from its folder. Full steps: [`DEPLOY.md`](DEPLOY.md).
+Each Cloud Run app has its own Dockerfile and deploys on its own with `gcloud run deploy --source .` from its folder. Full steps: [`DEPLOY.md`](DEPLOY.md).
 
 ## Design references
 
