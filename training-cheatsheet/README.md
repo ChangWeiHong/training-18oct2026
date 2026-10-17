@@ -1,10 +1,10 @@
 # AI Ideation Cheatsheet
 
-A one-page worksheet for a training session. You fill in a notepad, the page assembles a build prompt, and you paste it into your AI tool. The worked example is an air compressor health monitor for plant maintenance technicians.
+A one-page worksheet for a training session. You write one user story card, the page turns it into a RACE build prompt (Role, Action, Context, Expectation), and you paste it into your AI tool. It follows slides 43–48 of the *AI Ideation & Prototyping* deck. The worked example is an air compressor health monitor for plant maintenance technicians.
 
 The page is one self-contained `index.html`: no build step, no backend, no external scripts or fonts.
 
-![Notepad with the compressor example filled in](docs/screenshots/notepad.png)
+![Story card fields grouped by RACE letter, with the compressor example filled in](docs/screenshots/notepad.png)
 
 ## Run it
 
@@ -16,10 +16,10 @@ python3 -m http.server 8080
 
 ## The four sections
 
-1. **Notepad.** Each field maps to one `[bracket]` in the prompt template. The prompt on the right updates as you type, and empty fields stay as `[brackets]` so you can see the gaps. A second pad builds a user story (`As a … I want to … so that …`).
-2. **Sample prompt.** A finished prompt for the compressor monitor. Click to copy.
-3. **User stories.** Three stories for the same app. Copy one or all three.
-4. **Fix prompts.** Four follow-ups for when the first build misses: change one thing, cut scope, fix a wrong claim, show the rules.
+1. **Story card to RACE prompt.** The fields are grouped by letter: As a → Role, I want to → Action, So that + Given + samples → Context, Done when + review step → Expectation. The RACE prompt and the story card on the right update as you type. Empty fields stay as `[brackets]`, and the R A C E badges stay dashed until each letter has an answer ("check before you build").
+2. **Sample prompt.** The compressor monitor as a finished RACE prompt. Click to copy.
+3. **User stories.** Three story cards (As a / Given / Done when) for the same app. "Turn into prompt" loads a card into step 1; copy one or all three.
+4. **Fix prompts.** Five one-change follow-ups (including "what I see vs expected"), plus the slide's Do / Avoid golden rules.
 
 ![Sample prompt ending in a Do NOT block](docs/screenshots/sample-prompt.png)
 
