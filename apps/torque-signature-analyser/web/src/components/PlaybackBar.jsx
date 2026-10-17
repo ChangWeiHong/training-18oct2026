@@ -18,7 +18,7 @@ export default function PlaybackBar({ selected, cursor, playing, speed, loop, to
           className="btn btn-play"
           disabled={!ready}
           aria-pressed={playing}
-          onClick={() => dispatch({ type: playing ? 'PAUSE' : 'PLAY' })}
+          onClick={() => { dispatch({ type: 'USER_ACTION' }); dispatch({ type: playing ? 'PAUSE' : 'PLAY' }); }}
         >
           {playing ? <Pause size={14} aria-hidden="true" /> : <Play size={14} aria-hidden="true" />}
           <span>{playing ? 'Pause' : 'Play'}</span>
@@ -30,7 +30,7 @@ export default function PlaybackBar({ selected, cursor, playing, speed, loop, to
           <button type="button" className="btn btn-icon" disabled={!ready} aria-label="Forward 10 samples" title="Forward 10 samples (Shift+Right)" onClick={() => dispatch({ type: 'STEP', delta: 10 })}><SkipForward size={14} aria-hidden="true" /></button>
         </div>
         <div className="btn-group playback-modes" role="group" aria-label="Repeat and tour">
-          <button type="button" className="btn btn-small btn-toggle" aria-pressed={loop} title="Hold the final pose for 1 second, then play again" onClick={() => dispatch({ type: 'SET_LOOP', on: !loop })}>
+          <button type="button" className="btn btn-small btn-toggle" aria-pressed={loop} title="Hold the final pose for 1 second, then play again" onClick={() => { dispatch({ type: 'USER_ACTION' }); dispatch({ type: 'SET_LOOP', on: !loop }); }}>
             <Repeat size={13} aria-hidden="true" /><span>Loop</span>
           </button>
           <button
@@ -46,7 +46,7 @@ export default function PlaybackBar({ selected, cursor, playing, speed, loop, to
         </div>
         <div className="btn-group playback-speeds" role="group" aria-label="Speed">
           {SPEEDS.map((x) => (
-            <button key={x} type="button" className="btn btn-small" aria-pressed={speed === x} onClick={() => dispatch({ type: 'SET_SPEED', x })}>{x}x</button>
+            <button key={x} type="button" className="btn btn-small" aria-pressed={speed === x} onClick={() => { dispatch({ type: 'USER_ACTION' }); dispatch({ type: 'SET_SPEED', x }); }}>{x}x</button>
           ))}
         </div>
       </div>

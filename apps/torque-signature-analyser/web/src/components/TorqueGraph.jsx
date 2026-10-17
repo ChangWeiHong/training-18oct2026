@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { makeScales, nearestSampleIndex, decimateExtrema, bandRuns, lineRuns, niceTicks, splitAtCursor, enteredIntervals } from '../graph.js';
+import { makeScales, nearestSampleIndex, decimateExtrema, bandRuns, lineRuns, niceTicks, splitAtCursor, enteredIntervals, pulseTargets } from '../graph.js';
 
 const NO_SNUG_NOTE = 'No snug point: shown in absolute view only';
 const MARGIN = { l: 46, r: 12, t: 10, b: 34 };
@@ -43,7 +43,7 @@ function curvePath(curve, idx, shift, sx, sy) {
   return idx.map((i, k) => `${k ? 'L' : 'M'}${sx(curve.angle[i] - shift).toFixed(1)} ${sy(curve.torque[i]).toFixed(1)}`).join('');
 }
 
-export default function TorqueGraph({ result, selected, cursor, mode, onMode, onCursor, playing = false }) {
+export default function TorqueGraph({ result, selected, cursor, mode, onMode, onCursor, onInteract, playing = false }) {
   const wrap = useRef(null);
   const svgRef = useRef(null);
   const dragging = useRef(false);
@@ -53,11 +53,16 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
   const [hits, setHits] = useState({});
   const prevAngle = useRef(null);
   const hitFor = useRef(null);
+  const hitResult = useRef(null);
+  const pulsed = useRef(new Set());
 
   const aligned = mode === 'aligned';
   const snug = selected?.features?.snug_angle ?? null;
   const spec = result?.spec ?? null;
   const height = Math.round(Math.min(400, Math.max(250, width * 0.58)));
+
+  const curveRef = selected?.curve;
+  const drawIdx = useMemo(() => (curveRef ? decimateExtrema(curveRef.torque, 2000) : []), [curveRef]);
 
   const model = useMemo(() => {
     if (!result || !selected) return null;
@@ -119,12 +124,14 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
     if (!c) { prevAngle.current = null; return; }
     const i = Math.min(Math.max(cursor, 0), c.angle.length - 1);
     const angle = c.angle[i];
-    if (hitFor.current !== selected.id) { hitFor.current = selected.id; prevAngle.current = null; setHits({}); }
+    if (hitFor.current !== selected.id || hitResult.current !== result) { hitFor.current = selected.id; hitResult.current = result; prevAngle.current = null; pulsed.current = new Set(); setHits({}); }
     const ivs = (selected.evidence ?? []).filter((ev) => ev.interval);
     const entered = enteredIntervals(prevAngle.current, angle, ivs.map((ev) => ev.interval));
     prevAngle.current = angle;
-    if (entered.length) setHits((h) => { const nx = { ...h }; for (const k of entered) nx[ivs[k].feature] = (nx[ivs[k].feature] ?? 0) + 1; return nx; });
-  }, [cursor, selected]);
+    // Once per selection: a loop restart walks back into the same intervals without lighting them again.
+    const fresh = pulseTargets(pulsed.current, entered.map((k) => ivs[k].feature));
+    if (fresh.length) setHits((h) => { const nx = { ...h }; for (const f of fresh) nx[f] = (nx[f] ?? 0) + 1; return nx; });
+  }, [cursor, selected, result]);
 
   if (!selected || !result) {
     return <div className="graph" ref={wrap}><p className="slot-empty">Load a pack to see its curves.</p></div>;
@@ -133,10 +140,10 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
   const controls = (
     <div className="graph-controls">
       <div className="btn-group" role="group" aria-label="Graph x axis">
-        <button type="button" className="btn btn-small" aria-pressed={!aligned} onClick={() => onMode('absolute')}>Absolute angle</button>
-        <button type="button" className="btn btn-small" aria-pressed={aligned} onClick={() => onMode('aligned')}>Aligned at snug</button>
+        <button type="button" className="btn btn-small" aria-pressed={!aligned} onClick={() => { onInteract?.(); onMode('absolute'); }}>Absolute angle</button>
+        <button type="button" className="btn btn-small" aria-pressed={aligned} onClick={() => { onInteract?.(); onMode('aligned'); }}>Aligned at snug</button>
       </div>
-      <button type="button" className="btn btn-small" aria-pressed={showAll} onClick={() => setShowAll((v) => !v)}>Show all rundowns</button>
+      <button type="button" className="btn btn-small" aria-pressed={showAll} onClick={() => { onInteract?.(); setShowAll((v) => !v); }}>Show all rundowns</button>
     </div>
   );
 
@@ -155,7 +162,6 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
   const sc = makeScales(domain, { width, height, margin });
   const { plot } = sc;
   const curve = selected.curve;
-  const drawIdx = decimateExtrema(curve.torque, 2000);
   const n = curve.angle.length;
   const ci = Math.min(Math.max(cursor, 0), n - 1);
   const split = splitAtCursor(drawIdx, ci);
@@ -169,6 +175,7 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
     return nearestSampleIndex(curve, sc.invertX(px) + shift);
   };
   const onDown = (e) => {
+    onInteract?.();
     dragging.current = true;
     e.currentTarget.setPointerCapture?.(e.pointerId);
     const i = indexFromEvent(e);
@@ -185,6 +192,7 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
     e.currentTarget.releasePointerCapture?.(e.pointerId);
   };
   const onKey = (e) => {
+    if (e.key.startsWith('Arrow')) onInteract?.();
     const d = e.shiftKey ? 10 : 1;
     if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); onCursor(Math.min(n - 1, ci + d)); }
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); onCursor(Math.max(0, ci - d)); }

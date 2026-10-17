@@ -85,7 +85,7 @@
     "joint_name": "Brake caliper bracket M14x1.5",
     "bolts": 2,
     "name": "Mixed shift",
-    "description": "30 x 2 with cross-thread and stripped-thread rundowns. Illustrative spec, not an OEM value.",
+    "description": "30 x 2 with seeded cross-thread and stripped-thread traces. Training challenge mix, not a production rate. Illustrative spec, not an OEM value.",
     "rundowns": 60,
     "spec": {
       "torque_min_nm": 126,
@@ -101,7 +101,7 @@
     "joint_name": "Subframe to body M14",
     "bolts": 4,
     "name": "Mixed shift",
-    "description": "30 x 4 with soft-joint and missing-washer rundowns. Illustrative spec, not an OEM value.",
+    "description": "30 x 4 with seeded soft-joint and missing-washer traces. Training challenge mix, not a production rate. Illustrative spec, not an OEM value.",
     "rundowns": 120,
     "spec": {
       "torque_min_nm": 144,
@@ -117,7 +117,7 @@
     "joint_name": "Subframe to body M14",
     "bolts": 4,
     "name": "Washer stock drift",
-    "description": "30 x 4. The post-snug slope falls across the shift as washer stock changes. Illustrative spec, not an OEM value.",
+    "description": "30 x 4. Seeded scenario: the post-snug slope falls across the shift. Training challenge mix, not a production rate. Illustrative spec, not an OEM value.",
     "rundowns": 120,
     "spec": {
       "torque_min_nm": 144,
@@ -133,7 +133,7 @@
     "joint_name": "Seat-belt anchor M10",
     "bolts": 1,
     "name": "Mixed shift",
-    "description": "40 single-bolt assemblies with rehit and double-hit operator issues. Illustrative spec, not an OEM value.",
+    "description": "40 single-bolt assemblies with seeded rehit and double-hit traces. Training challenge mix, not a production rate. Illustrative spec, not an OEM value.",
     "rundowns": 40,
     "spec": {
       "torque_min_nm": 45,
@@ -149,7 +149,7 @@
     "joint_name": "Engine mount M10",
     "bolts": 3,
     "name": "Mixed shift",
-    "description": "30 x 3 with early-shutoff and hard-joint rundowns. Illustrative spec, not an OEM value.",
+    "description": "30 x 3 with seeded early-shutoff and hard-joint traces. Training challenge mix, not a production rate. Illustrative spec, not an OEM value.",
     "rundowns": 90,
     "spec": {
       "torque_min_nm": 49,

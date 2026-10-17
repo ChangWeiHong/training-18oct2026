@@ -7,7 +7,7 @@ import { presetPose, orbitStep, ORBIT } from './camera.js';
 /** Bounded orbit (no pan, no auto-rotate) with preset moves. Orbiting never touches the cursor. */
 const STEP = { rotate: 0.2, tilt: 0.12, zoom: 0.85 };
 
-export default function CameraRig({ preset, focus, count = 6, reducedMotion, apiRef }) {
+export default function CameraRig({ preset, focus, count = 6, reducedMotion, apiRef, onOrbitStart }) {
   const { camera, invalidate, size } = useThree();
   const aspect = size.width / Math.max(1, size.height);
   const lastAspect = useRef(aspect);
@@ -96,6 +96,7 @@ export default function CameraRig({ preset, focus, count = 6, reducedMotion, api
     <OrbitControls
       ref={controls}
       makeDefault
+      onStart={onOrbitStart}
       enablePan={false}
       enableDamping={false}
       autoRotate={false}

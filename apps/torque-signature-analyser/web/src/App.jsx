@@ -35,18 +35,22 @@ export default function App() {
   const autoplayRef = useRef(autoplay);
   autoplayRef.current = autoplay;
   const select = useCallback((id) => dispatch({ type: 'SELECT', rundownId: id, autoplay }), [autoplay]);
+  const touch = useCallback(() => dispatch({ type: 'USER_ACTION' }), []);
+
+  // Reduced motion switched on mid-session: clear the tour and stop playback.
+  useEffect(() => { dispatch({ type: 'REDUCED_MOTION', on: reducedMotion }); }, [reducedMotion]);
 
   usePlayback(state, dispatch);
 
   // `snap` records which inputs the result is computed from.
-  const run = useCallback(async (job, snap) => {
+  const run = useCallback(async (job, snap, source = 'sample') => {
     const mine = ++ticket.current;
     setBusy(true);
     setError(null);
     try {
       const result = await job();
       if (mine === ticket.current) {
-        dispatch({ type: 'LOAD_RESULT', result, autoplay: autoplayRef.current });
+        dispatch({ type: 'LOAD_RESULT', result, autoplay: autoplayRef.current, source });
         setComputedFrom(snap);
       }
     } catch (e) {
@@ -86,10 +90,11 @@ export default function App() {
 
   const runUpload = (readings, reference, spec, inputs = specInputs) => {
     run(() => analyseUpload(readings, reference, spec),
-      inputsSnapshot({ sampleId: null, readingsFile: readings, referenceFile: reference, specInputs: inputs }));
+      inputsSnapshot({ sampleId: null, readingsFile: readings, referenceFile: reference, specInputs: inputs }), 'upload');
   };
 
   const onReadings = (f) => {
+    touch();
     // Chips filled by a sample pack belong to that pack. A fresh upload starts without a spec.
     const fromSample = sampleId != null;
     setReadingsFile(f);
@@ -99,10 +104,12 @@ export default function App() {
     if (spec !== 'partial') runUpload(f, referenceFile, spec, fromSample ? { ...EMPTY_SPEC } : specInputs);
   };
   const onReference = (f) => {
+    touch();
     setReferenceFile(f);
     if (readingsFile && parsed !== 'partial') runUpload(readingsFile, f, parsed);
   };
   const onRerun = () => {
+    touch();
     if (parsed === 'partial') return;
     if (readingsFile) runUpload(readingsFile, referenceFile, parsed);
     else if (sampleId) run(() => analyseSample(sampleId, parsed), snapFor({}));
@@ -132,14 +139,14 @@ export default function App() {
       <Toolbar
         samples={samples}
         sampleId={sampleId}
-        onPickSample={(id) => loadSample(id, samples.find((s) => s.id === id))}
+        onPickSample={(id) => { touch(); loadSample(id, samples.find((s) => s.id === id)); }}
         readingsFile={readingsFile}
         referenceFile={referenceFile}
         onReadings={onReadings}
         onReference={onReference}
         specInputs={specInputs}
-        onSpecChange={(k, v) => setSpecInputs((s) => ({ ...s, [k]: v }))}
-        onUseSampleSpec={() => setSpecInputs(specToInputs(packSpec ?? SAMPLE_SPEC))}
+        onSpecChange={(k, v) => { touch(); setSpecInputs((s) => ({ ...s, [k]: v })); }}
+        onUseSampleSpec={() => { touch(); setSpecInputs(specToInputs(packSpec ?? SAMPLE_SPEC)); }}
         showUpload={showUpload}
         onRerun={onRerun}
         canRerun={canRerun}
@@ -147,7 +154,8 @@ export default function App() {
         error={error}
         specNote={specNote}
         referenceNote={referenceNote}
-        onAbout={() => setAboutOpen(true)}
+        onAbout={() => { touch(); setAboutOpen(true); }}
+        source={state.source}
       />
       <About open={aboutOpen} onClose={() => setAboutOpen(false)} />
 
@@ -168,7 +176,8 @@ export default function App() {
                 selected={selected}
                 cursor={state.cursor}
                 mode={mode}
-                onMode={setMode}
+                onMode={(m) => { touch(); setMode(m); }}
+                onInteract={touch}
                 playing={state.playing}
                 onCursor={(i) => dispatch({ type: 'SET_CURSOR', i })}
               />
@@ -185,6 +194,7 @@ export default function App() {
                 selected={selected}
                 cursor={state.cursor}
                 onSelect={select}
+                onInteract={touch}
                 bolts={packBolts(pack)}
               />
             </Suspense>
@@ -196,7 +206,7 @@ export default function App() {
         </section>
 
         {rundowns.length > 0 && (
-          <Ledger rundowns={rundowns} selectedId={state.selectedId} onSelect={select} />
+          <Ledger rundowns={rundowns} selectedId={state.selectedId} onSelect={select} onInteract={touch} />
         )}
         </div>
       </main>

@@ -6,9 +6,9 @@ All data is synthetic. The app ships ten sample packs across five joints (wheel 
 
 ## Demo mode
 
-The header carries a "Synthetic demo data" badge. The upload, reference and template controls are hidden. Add `?upload=1` to the URL to show them; the API endpoints stay on either way.
+The header carries a "Synthetic demo data" badge; it reads "Your upload" when the result on screen came from an upload. The upload, reference and template controls are hidden. Add `?upload=1` to the URL to show them; the API endpoints stay on either way.
 
-On load and on every selection the cursor plays the rundown and loops, holding the last pose for one second. **Loop** turns that off. **Tour** (off by default) moves to the next flagged rundown after each loop, by rank, and wraps. Any click, drag, key press or pause turns Tour off. With `prefers-reduced-motion`, nothing starts by itself and Tour is disabled; Play and Loop still work. Playback starts at 0.25x because a real rundown lasts under a second.
+On load and on every selection the cursor plays the rundown and loops, holding the last pose for one second. **Loop** turns that off. **Tour** (off by default) moves to the next flagged rundown after each loop, by rank, and wraps. Any manual control (chips, speed, graph, ledger, 3D view, About, pause) turns Tour off. With `prefers-reduced-motion`, nothing starts by itself and Tour is disabled; Play and Loop still work. Playback starts at 0.25x because a real rundown lasts under a second.
 
 ## Sample packs
 
@@ -70,6 +70,9 @@ The API finds the snug point on each curve, extracts features (post-snug slope, 
 
 - The data is synthetic. Real traces from your tool will differ.
 - Checked on 3 held-out synthetic seeds with 3-5 in-spec abnormal rundowns each. That is too few to quote a detection rate.
+- The four non-wheel-hub joints reuse the wheel-hub curve shapes, rescaled to each joint. Their recall shows that the shapes carry over, not independent validation.
+- The reference RNG key was changed once, after seeing held-out numbers.
+- The fault mixes in the new packs are training challenges, not production rates.
 - A flag means "worth checking". It is not a confirmed fault.
 - "Typical" means statistically similar to the reference. It does not approve quality.
 - An uploaded reference is assumed good. A shift that moves the whole batch can disappear into the reference.

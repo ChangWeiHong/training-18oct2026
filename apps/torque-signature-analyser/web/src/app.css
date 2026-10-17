@@ -355,3 +355,6 @@ button, input, select { font: inherit; color: inherit; }
   100% { fill-opacity: 0.35; stroke-width: 1; }
 }
 .g-interval.is-hit { animation: strip-hit 900ms var(--ease-out) 1; }
+
+.pack-note { align-self: end; padding-bottom: 0.35rem; color: var(--color-muted); font-size: var(--text-xs); }
+.demo-badge.is-upload { border-style: solid; }

@@ -226,3 +226,33 @@ test('STOP pauses without touching the tour', () => {
   assert.equal(s.playing, false);
   assert.equal(s.tour, true);
 });
+
+test('USER_ACTION turns the tour off and nothing else', () => {
+  const s0 = selectionReducer(initialState, { type: 'LOAD_RESULT', result, autoplay: true });
+  const s1 = selectionReducer({ ...s0, tour: true }, { type: 'USER_ACTION' });
+  assert.equal(s1.tour, false);
+  assert.deepEqual({ ...s1, tour: true }, { ...s0, tour: true });
+});
+
+test('REDUCED_MOTION on clears the tour and stops playback', () => {
+  const s = selectionReducer({ ...initialState, result, selectedId: 'A01-1', tour: true, playing: true }, { type: 'REDUCED_MOTION', on: true });
+  assert.equal(s.tour, false);
+  assert.equal(s.playing, false);
+  assert.equal(s.reducedMotion, true);
+});
+
+test('LOOP_END never advances the tour under reduced motion', () => {
+  const flagged = { rundowns: [{ ...rd('a', 5), rank: 1, spec_result: 'outside' }, { ...rd('b', 5), rank: 2, spec_result: 'outside' }] };
+  let s = selectionReducer(initialState, { type: 'LOAD_RESULT', result: flagged, autoplay: true });
+  s = selectionReducer(s, { type: 'REDUCED_MOTION', on: true });
+  s = { ...s, tour: true, playing: true }; // a stale tour flag must still be ignored
+  s = selectionReducer(s, { type: 'LOOP_END' });
+  assert.equal(s.selectedId, 'a');
+  assert.equal(selectionReducer({ ...s, tour: false }, { type: 'SET_TOUR', on: true }).tour, false);
+  assert.equal(selectionReducer(s, { type: 'REDUCED_MOTION', on: false }).reducedMotion, false);
+});
+
+test('LOAD_RESULT records where the displayed result came from', () => {
+  assert.equal(selectionReducer(initialState, { type: 'LOAD_RESULT', result, source: 'upload' }).source, 'upload');
+  assert.equal(selectionReducer(initialState, { type: 'LOAD_RESULT', result }).source, 'sample');
+});

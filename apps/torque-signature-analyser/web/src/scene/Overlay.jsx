@@ -40,6 +40,7 @@ export function JointStrip() {
         ))}
       </ul>
       <p className="joint-caption">Rotation: measured. Travel and compression: illustrative.</p>
+      <p className="joint-caption">Generic flange for all joints, not real part geometry.</p>
       <p className="joint-caption">Other bolts: final state. Selected bolt: at the cursor.</p>
     </div>
   );

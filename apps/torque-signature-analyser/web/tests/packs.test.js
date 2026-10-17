@@ -38,3 +38,9 @@ test('packBolts reads the pack, defaulting to six', () => {
   assert.equal(packBolts({ bolts: 9 }), 6);
   assert.equal(packBolts({ bolts: 0 }), 6);
 });
+
+import { packOptionLabel } from '../src/packs.js';
+test('option text names the joint and the pack', () => {
+  assert.equal(packOptionLabel({ joint_name: 'Brake caliper', name: 'Mixed shift' }), 'Brake caliper · Mixed shift');
+  assert.equal(packOptionLabel({ name: 'Mixed shift' }), 'Mixed shift');
+});

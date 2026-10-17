@@ -2,18 +2,21 @@ import { useRef } from 'react';
 import { Upload, RotateCw, Download, Info, FlaskConical } from 'lucide-react';
 import { SPEC_FIELDS } from '../state.js';
 import { TEMPLATE_URL } from '../api.js';
-import { groupPacks } from '../packs.js';
+import { groupPacks, packOptionLabel } from '../packs.js';
+import { provenance } from '../format.js';
 
+export const UPLOAD_BADGE_TIP = 'Results come from the file you uploaded.';
 export const DEMO_BADGE_TIP = 'Generated curves for training. Not from a real line.';
 
 export default function Toolbar({
   samples, sampleId, onPickSample,
   readingsFile, referenceFile, onReadings, onReference,
   specInputs, onSpecChange, onUseSampleSpec,
-  onRerun, canRerun, busy, error, specNote, referenceNote, onAbout, showUpload = false,
+  onRerun, canRerun, busy, error, specNote, referenceNote, onAbout, showUpload = false, source,
 }) {
   const readingsRef = useRef(null);
   const referenceRef = useRef(null);
+  const badge = provenance(source);
 
   const pick = (handler) => (e) => {
     const f = e.target.files?.[0];
@@ -27,9 +30,9 @@ export default function Toolbar({
         <div className="brand">
           <span className="brand-name">Torque Signature</span>
           <span className="brand-sub">Analyser</span>
-          <span className="demo-badge" role="note" tabIndex={0} title={DEMO_BADGE_TIP} aria-label={`Synthetic demo data. ${DEMO_BADGE_TIP}`}>
+          <span className={badge.upload ? 'demo-badge is-upload' : 'demo-badge'} role="note" tabIndex={0} title={badge.upload ? UPLOAD_BADGE_TIP : DEMO_BADGE_TIP} aria-label={`${badge.text}. ${badge.upload ? UPLOAD_BADGE_TIP : DEMO_BADGE_TIP}`}>
             <FlaskConical size={12} aria-hidden="true" />
-            <span>Synthetic demo data</span>
+            <span>{badge.text}</span>
           </span>
         </div>
 
@@ -46,12 +49,13 @@ export default function Toolbar({
             {groupPacks(samples).map((g) => (
               <optgroup key={g.joint} label={`${g.label} (illustrative spec)`}>
                 {g.packs.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
+                  <option key={s.id} value={s.id}>{packOptionLabel(s)}</option>
                 ))}
               </optgroup>
             ))}
           </select>
         </label>
+        <span className="pack-note">Illustrative spec, not an OEM value.</span>
 
         <div className="btn-group">
           {showUpload && (
