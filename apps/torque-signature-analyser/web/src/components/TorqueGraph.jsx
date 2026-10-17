@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { makeScales, alignAtSnug, nearestSampleIndex, decimateIndexes, bandRuns, lineRuns, niceTicks } from '../graph.js';
+import { makeScales, nearestSampleIndex, decimateIndexes, bandRuns, lineRuns, niceTicks } from '../graph.js';
 
 const NO_SNUG_NOTE = 'No snug point: shown in absolute view only';
-const MARGIN = { l: 46, r: 12, t: 14, b: 34 };
+const MARGIN = { l: 46, r: 12, t: 10, b: 34 };
+const STRIP_H = 14;
 const MAX_FAINT = 5;
 const MAX_ALL_POINTS = 150;
 
@@ -131,7 +132,9 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
   }
 
   const { shift, bands, medians, domain, angleLines, faint } = model;
-  const sc = makeScales(domain, { width, height, margin: MARGIN });
+  const intervals = (selected.evidence ?? []).filter((ev) => ev.interval);
+  const margin = { ...MARGIN, t: MARGIN.t + intervals.length * STRIP_H };
+  const sc = makeScales(domain, { width, height, margin });
   const { plot } = sc;
   const curve = selected.curve;
   const n = curve.angle.length;
@@ -143,7 +146,7 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
   const indexFromEvent = (e) => {
     const rect = svgRef.current.getBoundingClientRect();
     const px = ((e.clientX - rect.left) / rect.width) * width;
-    return nearestSampleIndex(alignAtSnug(curve, shift), sc.invertX(px));
+    return nearestSampleIndex(curve, sc.invertX(px) + shift);
   };
   const onDown = (e) => {
     dragging.current = true;
@@ -176,7 +179,6 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
   const tipW = tipText.length * 6.6 + 12;
   const tipX = Math.min(Math.max(hx + 10, plot.left), plot.right - tipW);
   const tipY = hy - 34 < plot.top ? hy + 12 : hy - 34;
-  const intervals = (selected.evidence ?? []).filter((ev) => ev.interval);
 
   return (
     <div className="graph" ref={wrap}>
@@ -191,8 +193,12 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
           viewBox={`0 0 ${width} ${height}`}
           width="100%"
           height={height}
-          role="img"
-          aria-label={`Torque against angle for ${selected.id}. Arrow keys move the sample cursor.`}
+          role="slider"
+          aria-label={`Sample cursor on the torque-angle graph for ${selected.id}`}
+          aria-valuemin={0}
+          aria-valuemax={n - 1}
+          aria-valuenow={ci}
+          aria-valuetext={`Sample ${ci}, angle ${fmt(curve.angle[ci])}°, torque ${fmt(curve.torque[ci])} Nm`}
           tabIndex={0}
           onPointerDown={onDown}
           onPointerMove={onMove}
@@ -223,14 +229,13 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
           <text className="g-axis" transform={`translate(11 ${(plot.top + plot.bottom) / 2}) rotate(-90)`} textAnchor="middle">Torque (Nm)</text>
 
           <g clipPath="url(#plot-clip)">
+            {intervals.map((ev) => {
+              const x0 = Math.max(plot.left, sc.x(ev.interval[0] - shift));
+              const x1 = Math.min(plot.right, sc.x(ev.interval[1] - shift));
+              return <rect key={`f${ev.feature}`} className="g-interval-fill" x={x0} y={plot.top} width={Math.max(2, x1 - x0)} height={plot.bottom - plot.top} />;
+            })}
             {bands.map((runs, k) => <path key={`b${k}`} className="g-band" d={bandPath(runs, sc.x, sc.y)} />)}
             {medians.map((runs, k) => <path key={`m${k}`} className="g-median" d={linePath(runs, sc.x, sc.y)} />)}
-
-            {intervals.map((ev) => {
-              const a = ev.interval[0] - shift;
-              const b = ev.interval[1] - shift;
-              return <rect key={ev.feature} className="g-interval" x={sc.x(a)} y={plot.top} width={Math.max(2, sc.x(b) - sc.x(a))} height={plot.bottom - plot.top} />;
-            })}
 
             {faint.map((f) => <path key={f.id} className="g-faint" d={curvePath(f.curve, f.idx, f.shift, sc.x, sc.y)} />)}
             <path className={`g-curve ${sigClass}`} d={curvePath(curve, decimateIndexes(n, 2000), shift, sc.x, sc.y)} />
@@ -251,7 +256,19 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
             return (
               <g key={l.key}>
                 <line className="g-limit" x1={x} x2={x} y1={plot.top} y2={plot.bottom} />
-                <text className="g-limit-label" x={flip ? x - 4 : x + 4} y={plot.top + 12 + l.row * 14} textAnchor={flip ? 'end' : 'start'}>{l.label}</text>
+                <text className="g-limit-label" x={flip ? x - 4 : x + 4} y={plot.bottom - 6 - l.row * 14} textAnchor={flip ? 'end' : 'start'}>{l.label}</text>
+              </g>
+            );
+          })}
+
+          {intervals.map((ev, k) => {
+            const x0 = Math.max(plot.left, sc.x(ev.interval[0] - shift));
+            const x1 = Math.min(plot.right, sc.x(ev.interval[1] - shift));
+            const y = MARGIN.t + k * STRIP_H;
+            return (
+              <g key={`s${ev.feature}`}>
+                <rect className="g-interval" x={x0} y={y} width={Math.max(2, x1 - x0)} height={STRIP_H - 3} />
+                <text className="g-interval-label" x={x0 + 4} y={y + 9}>{ev.label}</text>
               </g>
             );
           })}

@@ -168,7 +168,9 @@ button, input, select { font: inherit; color: inherit; }
 .g-axis { font-family: var(--font-ui); letter-spacing: 0.02em; }
 .g-band { fill: var(--color-steel); fill-opacity: 0.18; stroke: none; }
 .g-median { fill: none; stroke: var(--color-steel); stroke-width: 1.25; stroke-dasharray: 5 4; }
-.g-interval { fill: var(--color-amber); fill-opacity: 0.14; stroke: var(--color-amber); stroke-opacity: 0.5; stroke-width: 1; }
+.g-interval { fill: var(--color-amber); fill-opacity: 0.35; stroke: var(--color-amber); stroke-width: 1; }
+.g-interval-fill { fill: var(--color-amber); fill-opacity: 0.05; }
+.g-interval-label { fill: var(--color-text); font-size: 10px; paint-order: stroke; stroke: var(--color-paper); stroke-width: 2.5px; stroke-linejoin: round; }
 .g-faint { fill: none; stroke: var(--color-faint); stroke-opacity: 0.4; stroke-width: 1; }
 .g-curve { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
 .curve-typical { stroke: var(--color-steel); background: var(--color-steel); }
@@ -186,7 +188,7 @@ button, input, select { font: inherit; color: inherit; }
 .key { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--color-muted); }
 .key-curve { height: 3px; border-top: 0; }
 .key-band { height: 10px; border-top: 0; background: var(--color-steel); opacity: 0.35; }
-.key-interval { height: 10px; border-top: 0; background: var(--color-amber); opacity: 0.45; }
+.key-interval { height: 6px; border-top: 0; background: var(--color-amber); opacity: 0.6; }
 .key-faint { border-top-color: var(--color-faint); }
 
 .evidence { display: grid; gap: var(--space-xs); align-content: start; }
