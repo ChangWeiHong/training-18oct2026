@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 
 from api.parsing import parse_readings
-from api.synth import (PATTERNS, SAMPLE_SPEC, make_pack, make_reference,
-                       make_rundown, write_samples)
+from api.synth import (JOINTS, PACKS, PATTERNS, SAMPLE_SPEC, make_pack, make_reference,
+                       make_rundown, pack_spec, write_samples)
 
 SNUG = SAMPLE_SPEC["snug_torque_nm"]
 
@@ -155,9 +155,12 @@ def test_double_hit_has_pause_in_time():
 def test_written_csv_round_trips(tmp_path):
     write_samples(tmp_path)
     packs = json.loads((tmp_path / "packs.json").read_text())
-    assert [p["id"] for p in packs] == ["clean", "mixed", "drift", "hard"]
+    assert [p["id"] for p in packs] == list(PACKS)
+    assert [p["id"] for p in packs][:4] == ["clean", "mixed", "drift", "hard"]
     for p in packs:
-        assert p["spec"] == SAMPLE_SPEC
+        assert p["spec"] == pack_spec(p["id"])
+        assert p["joint"] in JOINTS and p["bolts"] == JOINTS[p["joint"]].bolts
+        assert "Illustrative spec" in p["description"]
         for name in (f"{p['id']}.csv", f"{p['id']}-reference.csv"):
             f = tmp_path / name
             assert f.stat().st_size < 2_000_000
@@ -167,3 +170,15 @@ def test_written_csv_round_trips(tmp_path):
         assert main["rundown_id"].nunique() == p["rundowns"]
     ref = parse_readings((tmp_path / "clean-reference.csv").read_bytes())
     assert ref["rundown_id"].nunique() == 120
+
+
+def test_wheel_hub_csvs_match_the_generator():
+    """The four original packs and their reference must not drift when the generator changes."""
+    import pathlib
+    import tempfile
+    samples = pathlib.Path(__file__).resolve().parents[1] / "samples"
+    with tempfile.TemporaryDirectory() as d:
+        write_samples(pathlib.Path(d))
+        for pid in ("clean", "mixed", "drift", "hard"):
+            for name in (f"{pid}.csv", f"{pid}-reference.csv"):
+                assert (pathlib.Path(d) / name).read_bytes() == (samples / name).read_bytes(), name
