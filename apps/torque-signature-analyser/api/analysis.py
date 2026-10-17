@@ -213,7 +213,7 @@ def _overlap(r: Run, p50: np.ndarray, covered=None) -> float:
     """Share of the candidate's full post-snug span (snug to final angle) that the envelope covers."""
     if r.k is None or r.fi < r.k:
         return 0.0
-    n, cov = covered or _covered(r, p50)
+    n, cov = covered if covered is not None else _covered(r, p50)
     return float(cov.sum() / n)
 
 
@@ -225,7 +225,7 @@ def _past_reference(r: Run, p50: np.ndarray, covered=None) -> tuple[float, float
     """
     if r.k is None or r.fi < r.k:
         return None
-    n, cov = covered or _covered(r, p50)
+    n, cov = covered if covered is not None else _covered(r, p50)
     if not cov.any():
         return None
     last = int(np.flatnonzero(cov)[-1])
@@ -307,6 +307,8 @@ def _score(runs: list[Run], ref: Ref, spec: dict | None) -> list[dict]:
             reason = "No snug point or slope."
         elif not ref_ok:
             reason = "Reference too small to compare."
+        elif r.k is None:
+            reason = "No snug point or slope."
         elif _overlap(r, p50, cov := _covered(r, p50)) < MIN_OVERLAP:
             past = _past_reference(r, p50, cov)
             if past is None:
