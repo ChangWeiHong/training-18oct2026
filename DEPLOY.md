@@ -23,6 +23,7 @@ gcloud services enable run.googleapis.com cloudbuild.googleapis.com
 | FORGE / Smart Factory Digital Twin | `apps/smart-factory-twin-3d` | `smart-factory-twin` | https://smart-factory-twin-271836949821.asia-southeast1.run.app |
 | Automotive Paint Bench | `~/Code/automotive-paint-bench` (other repo) | `automotive-paint-bench` | https://automotive-paint-bench-271836949821.asia-southeast1.run.app |
 | Torque Signature Analyser | `apps/torque-signature-analyser` | `torque-signature-analyser` | https://torque-signature-analyser-271836949821.asia-southeast1.run.app |
+| ADAS 360° Threat Detection Simulator | `apps/adas-360-simulator` | `adas-360-simulator` | https://adas-360-simulator-271836949821.asia-southeast1.run.app |
 | Asset Maintenance Priority Triage | `apps/asset-maintenance-priority-triage` | none (hosted on Google AI Studio) | https://air-compressor-argon.ai.studio/ |
 
 ## Deploy an app
