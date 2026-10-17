@@ -166,10 +166,10 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
 
 <header class="top">
   <h1>AI Ideation Cheatsheet</h1>
-  <p class="lede">Write one story card. Each line of the card fills one part of a RACE prompt: Role, Action, Context, Expectation. Copy the prompt and paste it into your AI tool. Training exercise: air compressor health monitor.</p>
+  <p class="lede">Write one story card. Each line of the card fills one part of a RACE prompt: Role, Action, Context, Expectation. Copy the prompt and paste it into your AI tool. Training exercise: robot arm maintenance viewer.</p>
   <nav class="jump" aria-label="Sections">
     <a href="#notepad">1 Story card to prompt</a>
-    <a href="#sample">2 Sample prompts</a>
+    <a href="#sample">2 Sample prompt</a>
     <a href="#stories">3 User stories</a>
     <a href="#fix">4 Fix prompts</a>
   </nav>
@@ -195,7 +195,7 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
         <div class="field">
           <label for="f-user">As a [user]</label>
           <span class="hint">Tells the AI who it is building for. Write one job title, not "everyone".</span>
-          <input type="text" id="f-user" placeholder="maintenance technician">
+          <input type="text" id="f-user" placeholder="maintenance engineer">
         </div>
       </fieldset>
 
@@ -204,7 +204,7 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
         <div class="field">
           <label for="f-want">I want to [action]</label>
           <span class="hint">The one thing they do on the screen. Start with a verb. One story, one action.</span>
-          <input type="text" id="f-want" placeholder="see air compressors ranked by risk level">
+          <input type="text" id="f-want" placeholder="click an arm to see its records">
         </div>
       </fieldset>
 
@@ -213,22 +213,17 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
         <div class="field">
           <label for="f-so">So that [benefit]</label>
           <span class="hint">Why it matters to them. The AI uses it to decide what to put first; you test the build against it.</span>
-          <input type="text" id="f-so" placeholder="I can prioritise inspections before a breakdown">
+          <input type="text" id="f-so" placeholder="I know its history">
         </div>
         <div class="field">
           <label for="f-given">Given [data]</label>
-          <span class="hint">What the app works on. Name the readings or records and their columns, not a file type.</span>
-          <input type="text" id="f-given" placeholder="weekly readings per compressor: ID, week, temperature, vibration, pressure">
-        </div>
-        <div class="field">
-          <label for="f-cases">Fictional samples</label>
-          <span class="hint">The app builds these in, with a dropdown to switch, so nobody has to prepare a file. Write 3 lines: a name, then what you would see in the data (symptoms, not a label).</span>
-          <textarea id="f-cases" rows="3" placeholder="Normal Operation: temperature, vibration and pressure stay flat for all compressors&#10;Early Warning: ...&#10;Critical Condition: ..."></textarea>
+          <span class="hint">The files you give the app. Name them and their columns, so the AI does not make up its own data.</span>
+          <input type="text" id="f-given" placeholder="the baseline CSV file: date, robot_id, maintenance_type, technician, description, downtime_hours">
         </div>
         <div class="field">
           <label for="f-rules">Layout or rules <span class="from">optional</span></label>
-          <span class="hint">Fixed reference info the AI must not make up, such as limits or how to classify.</span>
-          <input type="text" id="f-rules" placeholder="Classify with demonstration thresholds kept in one labelled block">
+          <span class="hint">Fixed reference info the AI must not make up, such as the model link, the layout or names.</span>
+          <input type="text" id="f-rules" placeholder="Six arms, R-01 to R-06, in 3 columns by 2 rows">
         </div>
       </fieldset>
 
@@ -237,33 +232,33 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
         <div class="two">
           <div class="field">
             <label for="f-result">Show [result]</label>
-            <span class="hint">Name the columns or fields on screen.</span>
-            <input type="text" id="f-result" placeholder="compressor ID, readings, risk level, reason">
+            <span class="hint">Name what is on screen and the fields it shows.</span>
+            <input type="text" id="f-result" placeholder="the robot ID and its maintenance records">
           </div>
           <div class="field">
             <label for="f-fmt">as [layout]</label>
-            <span class="hint">Tables suit comparing, cards suit a quick status check.</span>
-            <select id="f-fmt"><option>table and cards</option><option>table</option><option>cards</option><option>list</option></select>
+            <span class="hint">Where it shows up on the screen.</span>
+            <select id="f-fmt"><option>a 3D scene with a records panel</option><option>table and cards</option><option>table</option><option>cards</option><option>list</option></select>
           </div>
         </div>
         <div class="field">
           <label for="f-done">Done when…</label>
           <span class="hint">2 or 3 checks you can see on screen. You read them aloud to test the build. One per line.</span>
-          <textarea id="f-done" rows="3" placeholder="Compressors are sorted with Critical first&#10;Each abnormal reading has a one-line reason&#10;A missing reading shows &quot;Needs checking&quot;"></textarea>
+          <textarea id="f-done" rows="3" placeholder="A panel shows the robot ID and its maintenance records&#10;Records are listed with the newest first&#10;The panel stays open until the user closes it"></textarea>
         </div>
         <div class="two">
           <div class="field">
             <label for="f-role">A [role] must review this</label>
             <span class="hint">The person who checks the output.</span>
-            <input type="text" id="f-role" placeholder="maintenance technician">
+            <input type="text" id="f-role" placeholder="maintenance engineer">
           </div>
           <div class="field">
             <label for="f-action">before [action]</label>
             <span class="hint">What needs a human check before it happens.</span>
-            <input type="text" id="f-action" placeholder="scheduling maintenance">
+            <input type="text" id="f-action" placeholder="planning maintenance">
           </div>
         </div>
-        <p class="dod">Definition of Done, already in every prompt: works with the sample data, shows the review note, shows the "Prototype – sample data only" label.</p>
+        <p class="dod">Definition of Done, already in every prompt: works with the provided files, shows the review note, shows the "Prototype – sample data only" label.</p>
         <div class="field">
           <label for="f-donts">Do NOT list</label>
           <span class="hint">What the AI must leave out, so the first build stays small and quick to check. One per line.</span>
@@ -272,7 +267,7 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
       </fieldset>
 
       <div class="row">
-        <button class="btn" id="btn-sample" type="button">Fill with compressor example</button>
+        <button class="btn" id="btn-sample" type="button">Fill with robot arm example</button>
         <button class="btn" id="btn-clear" type="button">Clear</button>
       </div>
     </div>
@@ -304,8 +299,8 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
 <!-- 2 SAMPLE PROMPT -->
 <section id="sample">
   <span class="step">STEP 2</span>
-  <h2>Sample prompts: ready to paste</h2>
-  <p class="sub">Two use cases as RACE prompts. Click a box to copy. The compressor prompt ends with a Do NOT block that keeps the build small. The robot arm prompt uses the three maintenance CSV files from your trainer, so it asks for a CSV upload and no sample data.</p>
+  <h2>Sample prompt: ready to paste</h2>
+  <p class="sub">The robot arm viewer from the live demo, as one RACE prompt that covers all four story cards. Click the box to copy. It loads the robot arm model from a link and uses the three maintenance CSV files from your trainer, so it asks for a CSV upload and no sample data.</p>
   <div class="stack" id="sample-prompt"></div>
 </section>
 
@@ -313,9 +308,9 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
 <section id="stories">
   <span class="step">STEP 3</span>
   <h2>User stories</h2>
-  <p class="sub">Three story cards for the same app. Build one story per prompt: pick one, click "Turn into prompt" and step 1 fills in for you.</p>
+  <p class="sub">Four story cards for the robot arm viewer. Build one story per prompt: pick one, click "Turn into prompt" and step 1 fills in for you.</p>
   <div class="row" style="margin-bottom: var(--space-md)">
-    <button class="btn primary" id="btn-copy-all" type="button">Copy all 3</button>
+    <button class="btn primary" id="btn-copy-all" type="button">Copy all 4</button>
   </div>
   <div class="stories" id="story-list"></div>
 </section>
@@ -351,34 +346,34 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
   </div>
 </section>
 
-<footer>Prototype – sample data only. All compressor data, thresholds and ratings are fictional. Robot arm maintenance records come from the CSV files your trainer provides.</footer>
+<footer>Prototype – sample data only. Robot arm maintenance records come from the CSV files your trainer provides. All values are fictional, for this workshop only.</footer>
 </div>
 
 <script>
-const DONTS = `add file upload, login, database, backend or file saving. Everything runs in the browser.
-call the results "predictions" or "AI". They are rule-based checks.
-invent values for missing data.
+const DONTS = `add login, database or backend. Everything runs in the browser.
+generate sample data or invent values for missing data. Use only the provided files.
+replace the provided model with shapes you generate yourself.
 add features that are not in this prompt: no extra pages, settings, export, alerts or emails.
-add charts. Cards and a table only.
-use real company or equipment data.
-add libraries. One HTML file.`;
+add libraries other than three.js.`;
 
+const MODEL = 'https://storage.googleapis.com/3d-model-sample/industrial-robot-arm.glb';
+
+// Slide 30 sample answer: the click story with its done when checks
 const EXAMPLE = {
-  user: 'maintenance technician',
-  want: 'see air compressors ranked by risk level from their temperature, vibration and pressure readings',
-  so: 'I can prioritise inspections and fix compressors before they break down',
-  given: 'weekly readings per compressor: compressor ID, week, temperature, vibration and pressure',
-  cases: 'Normal Operation: temperature, vibration and pressure stay flat across all weeks for every compressor. No readings are missing.\nEarly Warning: 2 to 3 compressors show temperature creeping up week after week, vibration slowly rising, and occasional pressure dips. Nothing has crossed a limit yet.\nCritical Condition: several compressors run well above normal temperature with high, fast-rising vibration and repeated pressure drops. They need inspection now.',
-  rules: 'Classify with simple demonstration thresholds (Healthy, Warning, Critical). Keep the thresholds in one clearly labelled block so they are easy to edit.',
-  result: 'summary cards (Total, Healthy, Warning, Critical) and a risk ranking with compressor ID, readings, risk level, reason and recommended inspection',
-  fmt: 'table and cards',
-  done: 'Compressors are sorted with Critical first\nEach abnormal reading is highlighted with a one-line reason\nA missing reading shows "Needs checking", not a guessed value',
-  role: 'maintenance technician',
-  action: 'scheduling maintenance or shutting down equipment',
+  user: 'maintenance engineer',
+  want: 'click an arm to see its records',
+  so: 'I know its history',
+  given: 'the baseline CSV file of maintenance records, with columns date, robot_id, maintenance_type, technician, description and downtime_hours',
+  rules: `Load the robot arm model once from ${MODEL} with the three.js GLTFLoader and clone it for six arms, R-01 to R-06, in 3 columns by 2 rows, 6 units apart, with the area name under each arm: Stamping Shop, Body Shop, Paint Shop, Assembly Hall, Engine Plant, Warehouse.`,
+  result: 'the six arms and the clicked arm\'s ID and maintenance records',
+  fmt: 'a 3D scene with a records panel',
+  done: 'A panel shows the robot ID and its maintenance records\nRecords are listed with the newest first\nThe panel stays open until the user closes it',
+  role: 'maintenance engineer',
+  action: 'planning maintenance from these records',
   donts: DONTS
 };
 
-// Use case 2: copied as written, not built with buildPrompt(). It works on provided CSV files (slide 47), so it has no samples dropdown.
+// Slide 52 live demo prompt, copied as written, not built with buildPrompt(). It covers all four story cards.
 const ROBOT_ARM = `Role: You are a front-end developer building a prototype web app for maintenance engineers and managers at an automotive plant.
 
 Action: Build a one-screen three.js app: load a robot arm model (.glb) from a public URL and show six arms, R-01 to R-06, in one 3D scene. Clicking an arm selects it and shows its maintenance records; uploading a CSV adds rows to its history.
@@ -388,25 +383,30 @@ Context: Load the robot arm model from this URL using the three.js GLTFLoader: h
 Expectation: Show a "Loading model..." message while the model downloads. If it fails to load, show a clear error message with the reason instead of an empty scene. Each arm has an ID label, and the user can rotate and zoom. Clicking an arm highlights it and opens a panel with all the arm's records, newest first. The panel stays open when the pointer moves away; it closes only with the close button, a click on an empty area, or a click on a different arm, which replaces the content. A drag to rotate or pan must not count as a click. Load the model and build the scene once at startup; selecting an arm, zooming, panning and CSV updates must never reload the model or rebuild the scene. New CSV rows join the right arm without duplicates, and each arm shows its record count.`;
 
 const STORIES = [
-  { id: 'US-01', user: 'maintenance technician',
-    want: 'switch between sample sensor datasets from a dropdown',
-    so: 'I can see healthy, warning and critical compressors without preparing a file',
-    given: '3 fictional datasets: normal operation, early warning and critical condition',
-    done: 'The dropdown lists the 3 datasets and the first one loads on open\nPicking a dataset updates the cards and the table\nThere is no file upload anywhere on the page' },
-  { id: 'US-02', user: EXAMPLE.user, want: EXAMPLE.want, so: EXAMPLE.so, given: EXAMPLE.given, done: EXAMPLE.done },
-  { id: 'US-03', user: 'maintenance technician',
-    want: 'see why each compressor has been flagged',
-    so: 'I can check the reading behind each rating before I act on it',
-    given: 'demonstration thresholds for temperature, vibration and pressure in one labelled block',
-    done: 'Each Warning or Critical row has a one-line reason\nThe reading that crossed a threshold is highlighted\nThe thresholds show in a small box so I can check them' }
+  { id: 'US-01', user: 'maintenance engineer',
+    want: 'see all robot arms in one 3D scene',
+    so: 'I see the equipment, not a list of files',
+    given: 'a .glb model link and a 3 by 2 layout',
+    done: 'Six arms, R-01 to R-06, show in 3 columns by 2 rows\nEach arm has an ID label and its area name\nI can rotate and zoom the scene' },
+  { id: 'US-02', user: EXAMPLE.user, want: EXAMPLE.want, so: EXAMPLE.so, given: 'the baseline CSV file', done: EXAMPLE.done },
+  { id: 'US-03', user: 'maintenance engineer',
+    want: 'upload a CSV',
+    so: 'new records join each arm\'s history',
+    given: 'update files 1 and 2',
+    done: 'New rows join the right arm by robot_id\nUploading the same file twice adds no duplicates\nThe model does not reload after an upload' },
+  { id: 'US-04', user: 'manager',
+    want: 'see a record count on each arm',
+    so: 'I see which arms have most work',
+    given: 'the records in all three CSV files',
+    done: 'A count shows above each arm\nThe count goes up after a CSV upload' }
 ];
 
 const FIXES = [
-  ['Change one thing', 'Change only the risk table: add a Reason column. Do not change anything else.'],
+  ['Change one thing', 'Change only the records panel: add a Downtime column. Do not change anything else.'],
   ['What I see vs expected', 'I see [what happens now]. I expected [what should happen]. Fix only that.'],
   ['Not on my backlog', 'Remove everything not in my original prompt. Keep one screen.'],
-  ['Wrong claim', 'Replace any wording like prediction, AI or forecast with rule-based check.'],
-  ['Show your rules', 'Show the thresholds you used in a small box at the bottom, so I can check them.']
+  ['Model does not show', `The robot arm model does not show. Load it from ${MODEL} with the three.js GLTFLoader and show the load error on screen if it fails. Do not replace it with shapes you generate yourself.`],
+  ['Records on the wrong arm', 'Records from [file name] joined the wrong arm. Match each row to an arm by robot_id only, and skip rows that are already in its history.']
 ];
 
 /* copy helper */
@@ -469,19 +469,17 @@ function buildPrompt(d) {
   const so = val('so', 'benefit', 'C'), given = val('given', 'data', 'C');
   const result = val('result', 'result', 'E');
   const role = val('role', 'role', 'E'), action = val('action', 'action before review', 'E');
-  const cases = lines(d.cases), done = lines(d.done), donts = lines(d.donts);
-  if (!cases.length) { missing.add('samples'); letters.C = false; }
+  const done = lines(d.done), donts = lines(d.donts);
   if (!done.length) { missing.add('done when'); letters.E = false; }
-  const caseTxt = cases.length ? cases.map((c, i) => `${i + 1}. ${c}`).join('\n') : '[describe each sample]';
   const doneTxt = done.length ? done.map(c => '- ' + c).join('\n') : '- [check you can see on screen]';
   const rules = (d.rules || '').trim();
 
   let t = `Role: You are a developer building a prototype for ${article(user)}.\n\n` +
     `Action: Build a one-screen web app where ${article(user)} can ${want}.\n\n` +
     `Context: The user story is "As ${article(user)}, I want to ${want} so that ${so}." ` +
-    `Given: ${given}. Build in ${cases.length || 3} fictional sample datasets and a dropdown at the top to switch between them, instead of a file upload. Load the first one when the page opens:\n${caseTxt}` +
-    (rules ? `\n${rules}` : '') + `\n\n` +
-    `Expectation: Show ${result} as ${d.fmt || 'table and cards'}. It is done when:\n${doneTxt}\n` +
+    `Given: ${given}. This data is provided, so do not generate sample data.` +
+    (rules ? ` ${rules}` : '') + `\n\n` +
+    `Expectation: Show ${result} as ${d.fmt || 'a 3D scene with a records panel'}. It is done when:\n${doneTxt}\n` +
     `If the data is incomplete, list what is missing instead of guessing. Mark anything uncertain as "Needs checking". ` +
     `Add the note "A ${role} must review this before ${action}." Label it "Prototype – sample data only".`;
   if (donts.length) t += `\n\nDo NOT:\n${donts.map(s => '- ' + s).join('\n')}`;
@@ -498,12 +496,11 @@ function buildStory(d) {
 
 /* 2 sample */
 document.getElementById('sample-prompt').append(
-  copyBlock(buildPrompt(EXAMPLE).text, 'Use case 1 · Air compressor health monitor'),
-  copyBlock(ROBOT_ARM, 'Use case 2 · Robot arm maintenance viewer (3D)'));
+  copyBlock(ROBOT_ARM, 'Robot arm maintenance viewer (3D) · live demo prompt'));
 
 /* 1 notepad */
 const $ = id => document.getElementById(id);
-const ids = ['user', 'want', 'so', 'given', 'cases', 'rules', 'result', 'fmt', 'done', 'role', 'action', 'donts'];
+const ids = ['user', 'want', 'so', 'given', 'rules', 'result', 'fmt', 'done', 'role', 'action', 'donts'];
 const F = Object.fromEntries(ids.map(i => [i, $('f-' + i)]));
 const out = $('out-prompt'), so = $('out-story');
 const read = () => Object.fromEntries(ids.map(i => [i, F[i].value]));
@@ -545,9 +542,9 @@ STORIES.forEach(s => {
     `<div class="row"><button class="btn small primary" type="button" data-act="use">Turn into prompt ↑</button>` +
     `<button class="btn small" type="button" data-act="copy">Copy card</button></div>`;
   card.querySelector('[data-act="use"]').addEventListener('click', () => {
-    // swap in this card's lines; app-wide boxes keep what is typed, empty ones take the compressor example
+    // swap in this card's lines; app-wide boxes keep what is typed, empty ones take the robot arm example
     const keep = {};
-    ['cases', 'rules', 'result', 'role', 'action'].forEach(k => { if (!F[k].value.trim()) keep[k] = EXAMPLE[k]; });
+    ['rules', 'result', 'role', 'action'].forEach(k => { if (!F[k].value.trim()) keep[k] = EXAMPLE[k]; });
     fill({ ...keep, user: s.user, want: s.want, so: s.so, given: s.given, done: s.done });
     $('notepad').scrollIntoView({ behavior: 'smooth', block: 'start' });
     F.want.focus({ preventScroll: true });
