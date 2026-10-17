@@ -14,6 +14,7 @@ RESET_TOLERANCE_DEG = 2.0
 ANGLE_MIN_DEG = -10.0
 ANGLE_MAX_DEG = 3600.0
 
+NA_WORDS = {"na", "n/a", "nan", "null", "none", "#n/a"}
 REQUIRED = ["rundown_id", "angle_deg", "torque_nm"]
 OUTPUT_COLUMNS = [
     "rundown_id", "i", "angle_deg", "torque_nm", "time_ms",
@@ -34,7 +35,11 @@ class ParseError(Exception):
 def _numeric(df: pd.DataFrame, col: str, required: bool) -> pd.Series:
     raw = df[col]
     num = pd.to_numeric(raw, errors="coerce")
-    bad = num.isna() if required else (num.isna() & raw.notna())
+    if required:
+        bad = num.isna()
+    else:
+        missing = raw.isna() | raw.str.strip().str.lower().isin(NA_WORDS)
+        bad = num.isna() & ~missing
     bad = bad | np.isinf(num.to_numpy(float))
     if bad.any():
         pos = int(np.flatnonzero(bad.to_numpy())[0])
@@ -61,12 +66,19 @@ def parse_readings(data: bytes) -> pd.DataFrame:
     except csv.Error:
         sep = ","
     try:
-        df = pd.read_csv(io.StringIO(text), sep=sep, dtype=str, skipinitialspace=True)
+        df = pd.read_csv(io.StringIO(text), sep=sep, dtype=str, skipinitialspace=True,
+                         keep_default_na=False, na_values=[""])
     except Exception as exc:  # malformed CSV
         raise ParseError(f"Could not read CSV: {exc}", fix="Check the file is a valid CSV.")
 
+    # pandas renames repeated headers (a, a.1), so check the raw header line.
+    try:
+        raw_header = next(csv.reader(io.StringIO(text), delimiter=sep, skipinitialspace=True))
+    except (StopIteration, csv.Error):
+        raw_header = []
+    names = [h.strip().lower() for h in raw_header]
+    dupes = [c for c in dict.fromkeys(names) if names.count(c) > 1]
     df.columns = [str(c).strip().lower() for c in df.columns]
-    dupes = [c for c in dict.fromkeys(df.columns) if list(df.columns).count(c) > 1]
     if dupes:
         raise ParseError(
             f"Column '{dupes[0]}' appears more than once.", column=dupes[0],

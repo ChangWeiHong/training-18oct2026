@@ -10,3 +10,6 @@ export function evidenceLine(ev) {
 
 export const IF_ONLY_TEXT = 'Isolation Forest flagged an unusual combination of features. No single feature passed the z-score limit.';
 export const AREA_ONLY_TEXT = 'The curve sits further from the reference median than 99 % of reference rundowns.';
+
+export const CANT_ASSESS_FALLBACK = 'Not enough of the curve to compare.';
+export const cantAssessText = (r) => r.cant_assess_reason || CANT_ASSESS_FALLBACK;

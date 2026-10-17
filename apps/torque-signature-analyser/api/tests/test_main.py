@@ -175,4 +175,22 @@ def test_oversize_reference_400():
         "readings": ("a.csv", good, "text/csv"),
         "reference": ("r.csv", b"x" * 6_000_000, "text/csv")})
     assert r.status_code == 400
-    assert "Reference file" in r.json()["error"] or "larger" in r.json()["error"]
+    assert r.json()["error"] == "Reference file is larger than 5 MB."
+
+
+def test_bad_reference_file_prefix_via_values():
+    good = (SAMPLES / "clean.csv").read_bytes()
+    r = client.post("/api/analyse", files={
+        "readings": ("a.csv", good, "text/csv"),
+        "reference": ("r.csv", b"rundown_id,angle_deg,torque_nm\nA,1,inf\n", "text/csv")})
+    assert r.status_code == 400
+    j = r.json()
+    assert j["error"].startswith("Reference file: ") and j["column"] == "torque_nm"
+
+
+def test_content_length_rejected_before_form_parse():
+    r = client.post("/api/analyse", content=b"x",
+                    headers={"content-type": "multipart/form-data; boundary=x",
+                             "content-length": str(2 * 5_000_000 + 65537)})
+    assert r.status_code == 400
+    assert set(r.json()) == {"error", "row", "column", "fix"}
