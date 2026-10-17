@@ -324,3 +324,34 @@ button, input, select { font: inherit; color: inherit; }
 .about-steps, .about-limits { margin: 0; padding-left: 1.25rem; display: grid; gap: var(--space-xs); }
 .about-keys { color: var(--color-muted); }
 .about-steps, .about-limits, .about-keys { max-width: 68ch; }
+
+/* Demo mode */
+.demo-badge {
+  display: inline-flex; align-items: center; gap: var(--space-2xs);
+  align-self: center; margin-left: var(--space-xs);
+  padding: 0.15rem 0.55rem;
+  border: 1px dashed var(--color-rule-strong); border-radius: var(--radius-sm);
+  background: var(--color-surface-2); color: var(--color-muted);
+  font-size: var(--text-xs); letter-spacing: 0.02em; white-space: nowrap; cursor: help;
+}
+.demo-badge svg { flex: none; }
+@media (max-width: 480px) { .demo-badge { margin-left: 0; } }
+.brand { flex-wrap: wrap; }
+
+.playback-modes .btn-small { gap: var(--space-2xs); }
+.btn-toggle[aria-pressed="true"] { background: var(--color-surface-3); color: var(--color-motion); border-color: var(--color-motion); }
+.btn-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* The curve draws itself in with the cursor: bold behind it, faint and dashed ahead of it. */
+.g-curve-future { fill: none; stroke: var(--color-faint); stroke-width: 1.5; stroke-opacity: 0.55; stroke-dasharray: 4 4; stroke-linecap: round; }
+.curve-outside { stroke: var(--color-outside); background: var(--color-outside); }
+.g-cursor-dot.is-playing { fill: var(--color-motion); stroke: var(--color-motion); }
+.g-cursor-halo { fill: var(--color-motion); fill-opacity: 0.22; pointer-events: none; }
+
+/* One-shot highlight as the cursor enters an evidence interval. No loop. */
+@keyframes strip-hit {
+  0% { fill-opacity: 0.35; stroke-width: 1; }
+  25% { fill-opacity: 0.85; stroke-width: 2.5; }
+  100% { fill-opacity: 0.35; stroke-width: 1; }
+}
+.g-interval.is-hit { animation: strip-hit 900ms var(--ease-out) 1; }
