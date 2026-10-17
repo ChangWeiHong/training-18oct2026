@@ -1,0 +1,54 @@
+[
+  {
+    "id": "clean",
+    "name": "Clean shift",
+    "description": "40 assemblies x 6 bolts, all normal with realistic scatter.",
+    "rundowns": 240,
+    "spec": {
+      "torque_min_nm": 99,
+      "torque_max_nm": 121,
+      "angle_min_deg": 20,
+      "angle_max_deg": 60,
+      "snug_torque_nm": 30
+    }
+  },
+  {
+    "id": "mixed",
+    "name": "Mixed shift",
+    "description": "40 x 6 with about 8% seeded abnormal rundowns across the eight patterns.",
+    "rundowns": 240,
+    "spec": {
+      "torque_min_nm": 99,
+      "torque_max_nm": 121,
+      "angle_min_deg": 20,
+      "angle_max_deg": 60,
+      "snug_torque_nm": 30
+    }
+  },
+  {
+    "id": "drift",
+    "name": "Gradual drift",
+    "description": "Post-snug slope falls across the shift (worn washer stock).",
+    "rundowns": 240,
+    "spec": {
+      "torque_min_nm": 99,
+      "torque_max_nm": 121,
+      "angle_min_deg": 20,
+      "angle_max_deg": 60,
+      "snug_torque_nm": 30
+    }
+  },
+  {
+    "id": "hard",
+    "name": "Hard cases",
+    "description": "Truncated traces, no snug crossing, repeated angles and an ambiguous missing-washer case.",
+    "rundowns": 24,
+    "spec": {
+      "torque_min_nm": 99,
+      "torque_max_nm": 121,
+      "angle_min_deg": 20,
+      "angle_max_deg": 60,
+      "snug_torque_nm": 30
+    }
+  }
+]
