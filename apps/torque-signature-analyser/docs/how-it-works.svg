@@ -33,11 +33,11 @@
   <text x="670" y="259">Spec result</text>
 </g>
 <g font-family="ui-monospace, Menlo, monospace" font-size="11" fill="#a7b1bd" text-anchor="middle">
-  <text x="80" y="145">one row per sample</text>
+  <text x="80" y="145">sample rows</text>
   <text x="250" y="145">per rundown</text>
   <text x="460" y="85">5th to 95th pct band</text>
   <text x="460" y="205">unusual combinations</text>
-  <text x="670" y="145">typical / investigate</text>
+  <text x="670" y="145">typical or flagged</text>
   <text x="670" y="277">within / outside</text>
 </g>
 </svg>
