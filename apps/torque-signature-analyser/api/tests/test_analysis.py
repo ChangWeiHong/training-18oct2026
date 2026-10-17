@@ -103,7 +103,7 @@ def test_response_shape():
     r = res["rundowns"][0]
     assert set(r) == {"id", "assembly_id", "bolt_position", "spec_result", "signature", "rank",
                       "features", "evidence", "pattern_hint", "iforest_only", "seeded_pattern",
-                      "curve"}
+                      "curve", "cant_assess_reason"}
     assert r["curve"]["i"][:3] == [0, 1, 2] and len(r["curve"]["t"]) == len(r["curve"]["angle"])
     json.dumps(res, allow_nan=False)
 
