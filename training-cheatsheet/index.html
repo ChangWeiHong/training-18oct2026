@@ -158,25 +158,13 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
         <input type="text" id="f-goal" placeholder="spot air compressors likely to fail, so they can fix them before breakdown">
       </div>
       <div class="field">
-        <label for="f-input">The user uploads [input]</label>
-        <span class="hint">What they bring. "uploads" is fixed in the template.</span>
-        <input type="text" id="f-input" placeholder="a CSV file of weekly sensor readings">
-      </div>
-      <div class="two">
-        <div class="field">
-          <label for="f-n">[3] samples</label>
-          <span class="hint">Keep it at 3.</span>
-          <input type="number" id="f-n" min="1" max="5" value="3">
-        </div>
-        <div class="field">
-          <label for="f-sample">sample [inputs]</label>
-          <span class="hint">Same noun as input.</span>
-          <input type="text" id="f-sample" placeholder="CSV datasets">
-        </div>
+        <label for="f-input">The app works on [input]</label>
+        <span class="hint">The data it shows. No upload: the app ships with samples you pick from a dropdown.</span>
+        <input type="text" id="f-input" placeholder="weekly compressor sensor readings">
       </div>
       <div class="field">
         <label for="f-cases">What are the samples?</label>
-        <span class="hint">One per line: name, then what you would observe in the data (symptoms, not a label). Easy case, in-between case, worst case.</span>
+        <span class="hint">One per line, 3 lines: name, then what you would observe in the data (symptoms, not a label). Easy case, in-between case, worst case. Each line becomes one option in the dropdown.</span>
         <textarea id="f-cases" rows="3" placeholder="Normal Operation: temperature, vibration and pressure stay flat for all compressors&#10;Early Warning: ...&#10;Critical Condition: ..."></textarea>
       </div>
       <div class="two">
@@ -236,7 +224,7 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
         </div>
         <div class="field">
           <label for="s-want">I want to [action]</label>
-          <input type="text" id="s-want" placeholder="upload weekly sensor CSV files">
+          <input type="text" id="s-want" placeholder="switch between sample sensor datasets">
         </div>
         <div class="field">
           <label for="s-so">so that [benefit]</label>
@@ -282,9 +270,7 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
 <script>
 const SAMPLE_PROMPT = `Build a one-screen web app for plant maintenance technicians who need to spot air compressors at risk of failure from temperature, vibration and pressure readings, so they can fix them before they break down.
 
-The user uploads a CSV file of weekly compressor sensor readings.
-
-Include 3 fictional sample CSV datasets the user can load with one click:
+The app works on weekly compressor sensor readings. Build in 3 fictional sample datasets and a dropdown at the top to switch between them, instead of a file upload. Load the first one when the page opens:
 1. Normal Operation: temperature, vibration and pressure stay flat across all weeks for every compressor. No readings are missing.
 2. Early Warning: 2 to 3 compressors show temperature creeping up week after week, vibration slowly rising, and occasional pressure dips. Nothing has crossed a limit yet.
 3. Critical Condition: several compressors run well above normal temperature with high, fast-rising vibration and repeated pressure drops. They need inspection now.
@@ -301,7 +287,7 @@ Show this note: "A maintenance technician must review this before scheduling mai
 Use a clean, simple design with colour-coded risk levels and show the label "Prototype – sample data only".
 
 Do NOT:
-- add login, database, backend or file saving. Everything runs in the browser.
+- add file upload, login, database, backend or file saving. Everything runs in the browser.
 - call the results "predictions" or "AI". They are rule-based checks.
 - invent values for missing data.
 - add extra pages, settings, export, alerts or emails.
@@ -309,7 +295,7 @@ Do NOT:
 - use real company or equipment data.
 - add libraries. One HTML file.`;
 
-const DONTS = `add login, database, backend or file saving. Everything runs in the browser.
+const DONTS = `add file upload, login, database, backend or file saving. Everything runs in the browser.
 call the results "predictions" or "AI". They are rule-based checks.
 invent values for missing data.
 add extra pages, settings, export, alerts or emails.
@@ -318,7 +304,7 @@ use real company or equipment data.
 add libraries. One HTML file.`;
 
 const STORIES = [
-  ["US-01", "As a maintenance technician, I want to upload weekly compressor sensor CSV files so that I can analyse equipment conditions without manually reviewing spreadsheets."],
+  ["US-01", "As a maintenance technician, I want to switch between sample sensor datasets from a dropdown so that I can see healthy, warning and critical compressors without preparing a file."],
   ["US-02", "As a maintenance technician, I want compressors ranked by risk level so that I can prioritise inspections."],
   ["US-03", "As a maintenance technician, I want explanations for abnormal readings so that I can understand why a compressor has been flagged."]
 ];
@@ -385,7 +371,7 @@ wireButton(document.getElementById('btn-copy-all'), () => STORIES.map(s => s[1])
 
 /* notepad */
 const $ = id => document.getElementById(id);
-const ids = ['user','goal','input','n','sample','cases','act','fmt','result','role','action','donts'];
+const ids = ['user','goal','input','cases','act','fmt','result','role','action','donts'];
 const F = Object.fromEntries(ids.map(i => [i, $('f-' + i)]));
 const out = $('out-prompt');
 let missing = [];
@@ -394,15 +380,14 @@ const v = (key, label) => { const s = F[key].value.trim(); if (!s) { missing.pus
 function build() {
   missing = [];
   const user = v('user', 'user'), goal = v('goal', 'goal'), input = v('input', 'input');
-  const sample = v('sample', 'inputs'), result = v('result', 'result');
+  const result = v('result', 'result');
   const role = v('role', 'role'), action = v('action', 'action');
   const cases = F.cases.value.split('\n').map(s => s.trim()).filter(Boolean);
   const caseTxt = cases.length ? cases.map((c, i) => `${i + 1}. ${c}`).join('\n') : '[describe each sample]';
   if (!cases.length) missing.push('samples');
   const donts = F.donts.value.split('\n').map(s => s.trim()).filter(Boolean).map(s => '- ' + s.replace(/^-\s*/, '')).join('\n');
   let t = `Build a one-screen web app for ${user} who need to ${goal}.\n\n` +
-    `The user uploads ${input}.\n\n` +
-    `Include ${F.n.value || '3'} fictional sample ${sample} the user can load with one click:\n${caseTxt}\n\n` +
+    `The app works on ${input}. Build in ${cases.length || 3} fictional sample datasets and a dropdown at the top to switch between them, instead of a file upload. Load the first one when the page opens:\n${caseTxt}\n\n` +
     `The app should ${F.act.value} and show ${result} as ${F.fmt.value}.\n\n` +
     `If the input is incomplete, list what is missing instead of guessing.\n` +
     `Mark anything uncertain as "Needs checking".\n` +
@@ -419,8 +404,7 @@ build();
 $('btn-sample').addEventListener('click', () => {
   F.user.value = 'plant maintenance technicians';
   F.goal.value = 'spot air compressors at risk of failure from temperature, vibration and pressure readings, so they can fix them before they break down';
-  F.input.value = 'a CSV file of weekly compressor sensor readings';
-  F.n.value = 3; F.sample.value = 'CSV datasets';
+  F.input.value = 'weekly compressor sensor readings';
   F.cases.value = 'Normal Operation: temperature, vibration and pressure stay flat across all weeks for every compressor. No readings are missing.\nEarly Warning: 2 to 3 compressors show temperature creeping up week after week, vibration slowly rising, and occasional pressure dips. Nothing has crossed a limit yet.\nCritical Condition: several compressors run well above normal temperature with high, fast-rising vibration and repeated pressure drops. They need inspection now.';
   F.act.value = 'rank and compare'; F.fmt.value = 'table and cards';
   F.result.value = 'summary counts (Healthy, Warning, Critical) and a ranking with compressor ID, readings, risk level, reason and recommended inspection';
@@ -429,7 +413,7 @@ $('btn-sample').addEventListener('click', () => {
 });
 $('btn-clear').addEventListener('click', () => {
   ids.forEach(i => { if (F[i].tagName !== 'SELECT') F[i].value = ''; });
-  F.n.value = 3; build();
+  F.donts.value = DONTS; build();
 });
 wireButton($('btn-copy-prompt'), () => out.value);
 

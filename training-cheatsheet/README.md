@@ -25,7 +25,9 @@ python3 -m http.server 8080
 
 ![User stories and fix prompts](docs/screenshots/stories-and-fixes.png)
 
-Every prompt ends with a `Do NOT:` block. It keeps the generated app small: no login, no backend, no charts, no "AI" or "prediction" wording, no invented data.
+Every prompt asks for fictional sample datasets built into the app, with a dropdown to switch between them. Nobody has to prepare or upload a file to test it.
+
+Every prompt ends with a `Do NOT:` block. It keeps the generated app small: no login, no backend, no charts, no "AI" or "prediction" wording, no invented values for missing data.
 
 ## Deploy to Cloud Run
 
