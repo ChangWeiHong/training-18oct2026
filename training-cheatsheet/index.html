@@ -143,62 +143,62 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
 <section id="notepad">
   <span class="step">STEP 1</span>
   <h2>Notepad: fill in, then copy</h2>
-  <p class="sub">Each box matches one [bracket] in the template. The hint under the label tells you what goes in. The prompt on the right updates as you type, and you can edit it directly too.</p>
+  <p class="sub">Each box fills one [bracket] in the prompt. The grey hint under each label says why the AI needs it, then what to write. The prompt on the right updates as you type, and you can edit it directly too.</p>
 
   <div class="pad">
     <div class="fields">
       <div class="field">
         <label for="f-user">[user]</label>
-        <span class="hint">One job title. Not "everyone".</span>
+        <span class="hint">Tells the AI who it builds for, so it uses their words and shows the detail they need. Write one job title, not "everyone".</span>
         <input type="text" id="f-user" placeholder="plant maintenance technicians">
       </div>
       <div class="field">
         <label for="f-goal">[goal]</label>
-        <span class="hint">Verb first. Include the benefit: "so they can ...".</span>
+        <span class="hint">Tells the AI what problem the screen solves. Every part of the app should serve this. Start with a verb and add the benefit: "so they can ...".</span>
         <input type="text" id="f-goal" placeholder="spot air compressors likely to fail, so they can fix them before breakdown">
       </div>
       <div class="field">
         <label for="f-input">The app works on [input]</label>
-        <span class="hint">The data it shows. No upload: the app ships with samples you pick from a dropdown.</span>
+        <span class="hint">Tells the AI what kind of data to make up for the samples. Name the readings or records, not a file type. The app ships with samples, so nobody uploads a file.</span>
         <input type="text" id="f-input" placeholder="weekly compressor sensor readings">
       </div>
       <div class="field">
         <label for="f-cases">What are the samples?</label>
-        <span class="hint">One per line, 3 lines: name, then what you would observe in the data (symptoms, not a label). Easy case, in-between case, worst case. Each line becomes one option in the dropdown.</span>
+        <span class="hint">Gives the AI test cases to build, and gives you a way to check its rules. Write 3 lines: a name, then what you would see in the data (symptoms, not a label). Easy case, in-between case, worst case. Each line becomes one option in the dropdown.</span>
         <textarea id="f-cases" rows="3" placeholder="Normal Operation: temperature, vibration and pressure stay flat for all compressors&#10;Early Warning: ...&#10;Critical Condition: ..."></textarea>
       </div>
       <div class="two">
         <div class="field">
           <label for="f-act">[summarise / rank / compare / draft]</label>
-          <span class="hint">Pick one or two.</span>
+          <span class="hint">Tells the AI what to do with the data. Pick one or two.</span>
           <select id="f-act"><option>rank</option><option>summarise</option><option>compare</option><option>draft</option><option>rank and compare</option></select>
         </div>
         <div class="field">
           <label for="f-fmt">as [list / table / cards]</label>
-          <span class="hint">How it looks.</span>
+          <span class="hint">Sets the layout. Tables suit comparing, cards suit a quick status check.</span>
           <select id="f-fmt"><option>table and cards</option><option>table</option><option>cards</option><option>list</option></select>
         </div>
       </div>
       <div class="field">
         <label for="f-result">[result]</label>
-        <span class="hint">What the screen shows. Name the columns.</span>
+        <span class="hint">Tells the AI exactly what to put on screen, so it does not guess. Name the columns or fields.</span>
         <input type="text" id="f-result" placeholder="compressor ID, readings, risk level, reason">
       </div>
       <div class="two">
         <div class="field">
           <label for="f-role">[role]</label>
-          <span class="hint">Who checks.</span>
+          <span class="hint">The person who checks the output. The app shows a note asking them to review it.</span>
           <input type="text" id="f-role" placeholder="maintenance technician">
         </div>
         <div class="field">
           <label for="f-action">before [action]</label>
-          <span class="hint">What they must not do blindly.</span>
+          <span class="hint">The real-world decision the app must not make alone. It goes into the review note.</span>
           <input type="text" id="f-action" placeholder="scheduling maintenance">
         </div>
       </div>
       <div class="field">
         <label for="f-donts">Do NOT list</label>
-        <span class="hint">One per line. This keeps the build small. Edit freely.</span>
+        <span class="hint">Stops the AI adding extras you did not ask for, so the first build stays small and quick to check. One per line. Edit freely.</span>
         <textarea id="f-donts" rows="6"></textarea>
       </div>
       <div class="row">
@@ -218,16 +218,20 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
 
       <div class="story-pad">
         <h3>User story</h3>
+        <p class="note">One story is one thing a person does with the app. Use it to check the build, or paste it to ask for one change.</p>
         <div class="field">
           <label for="s-user">As a [user]</label>
+          <span class="hint">Who uses the app. Usually the same person as [user].</span>
           <input type="text" id="s-user" placeholder="maintenance technician">
         </div>
         <div class="field">
           <label for="s-want">I want to [action]</label>
+          <span class="hint">One thing they do on the screen. Start with a verb.</span>
           <input type="text" id="s-want" placeholder="switch between sample sensor datasets">
         </div>
         <div class="field">
           <label for="s-so">so that [benefit]</label>
+          <span class="hint">Why it matters to them. You test the build against this.</span>
           <input type="text" id="s-so" placeholder="I can check equipment without reading spreadsheets">
         </div>
         <textarea id="out-story" aria-label="Generated user story" spellcheck="false"></textarea>
