@@ -4,6 +4,7 @@ export const withUnit = (v, unit) => (unit === '°' ? `${fmt(v)}°` : `${fmt(v)}
 
 /** "Label: value unit. Reference range: lo–hi unit." (no space before °) */
 export function evidenceLine(ev) {
+  if (ev.feature === 'rotation_past_reference') return `${ev.label}: ${withUnit(ev.value, ev.unit)}.`;
   const range = `${fmt(ev.ref_lo)}–${withUnit(ev.ref_hi, ev.unit)}`;
   return `${ev.label}: ${withUnit(ev.value, ev.unit)}. Reference range: ${range}.`;
 }
