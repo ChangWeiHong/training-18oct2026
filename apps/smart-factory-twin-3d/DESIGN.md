@@ -31,6 +31,13 @@ Automotive process, R&D and manufacturing engineers. The main task is to see how
 - Orange marks only the constrained stage. Other stations remain neutral/soft teal. Avoid five competing glowing colors.
 - Animated movement is accelerated for demonstration and does not represent real-time vehicle travel.
 
+## Motion highlight
+
+- Every moving part takes one sea-glass accent (`#3df5d2`) while its station runs: robot arms, press ram, hoist, lift, scanner, EOL rollers, AGVs, operators, the dispatch truck and the bodies on the belt.
+- The glow is a status signal. A station that is down, blocked, starved or paused drops back to plain steel, so a still, unlit machine means "not working".
+- Arrows on the main belt show flow direction and move at body speed. Weld tips flash near-white, never amber.
+- The MOTION button in the camera rail turns all of it off. Under `prefers-reduced-motion` the pulse holds steady and the arrows stop moving.
+
 ## Source skills reviewed
 
 - https://github.com/nutlope/hallmark — hierarchy, workbench structure, removal of common generated-UI patterns.

@@ -169,8 +169,9 @@ export default function App() {
           <div className="factory-legend">
             {['running', 'blocked', 'starved', 'down', 'setup'].map(k => <span key={k}><i className="legend-dot" style={{ background: { running: '#739da8', blocked: '#b9a96c', starved: '#6f8fa8', down: '#d9776a', setup: '#a79ad0' }[k] }} />{STATUS_TEXT[k]}</span>)}
             <span><i className="legend-dot warning" />Constraint</span>
+            <span><i className="legend-dot motion" />Moving part</span>
           </div>
-          <div className="factory-hint">Rows of blocks on the floor show each station's input buffer</div>
+          <div className="factory-hint">Floor blocks show each input buffer. Glowing parts are moving; arrows show belt direction</div>
         </div>
       </Panel>
 

@@ -1,8 +1,8 @@
-import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html, OrbitControls, OrthographicCamera } from '@react-three/drei';
-import { Quaternion, Vector3 } from 'three';
-import { RotateCcw, ScanLine, Move3d } from 'lucide-react';
+import { AdditiveBlending, Color, Object3D, Quaternion, Vector3 } from 'three';
+import { RotateCcw, ScanLine, Move3d, Activity } from 'lucide-react';
 
 /* A procedural 3D manufacturing environment. All meshes, materials, machines and
    layout are authored locally; no models, textures or telemetry are downloaded. */
@@ -26,6 +26,65 @@ const palette = {
   steelLight: '#a0b5b8', steelDark: '#374b55', glass: '#90c5c4', conveyor: '#222b2e',
   orange: '#ee9e56', aqua: '#6ac9c0', electric: '#91e2d1', road: '#303a3f',
 };
+// Motion highlight: one sea-glass accent on every part that moves, so motion reads at a glance.
+// Orange stays reserved for the bottleneck. The pulse holds steady under prefers-reduced-motion.
+const MOTION = { color: '#3df5d2', tint: .45, low: .45, high: 1.25, spark: '#e9fffa' };
+const MOTION_COLOR = new Color(MOTION.color);
+const MotionCtx = createContext({ on: true, calm: false });
+const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
+function useReducedMotion() {
+  const [calm, setCalm] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.(REDUCED_QUERY).matches);
+  useEffect(() => {
+    const mq = window.matchMedia?.(REDUCED_QUERY); if (!mq) return;
+    const on = () => setCalm(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return calm;
+}
+const pulse = (t, phase, calm) => calm ? (MOTION.low + MOTION.high) / 2 : MOTION.low + (MOTION.high - MOTION.low) * (Math.sin(t * 3.2 + phase) * .5 + .5);
+
+// Wraps a moving assembly. While live, its meshes take the accent as emissive and pulse; when the
+// station stops (down, blocked, starved, paused) or highlighting is off, the original look returns.
+function MotionPart({ running, phase = 0, children, ...props }) {
+  const g = useRef();
+  const mats = useRef([]);
+  const { on, calm } = useContext(MotionCtx);
+  const live = on && running;
+  useEffect(() => {
+    const found = new Set();
+    g.current?.traverse(o => {
+      const m = o.isMesh && o.material;
+      if (!m?.emissive) return;
+      found.add(m);
+      if (!m.userData.base) m.userData.base = { c: m.color.clone(), e: m.emissive.clone(), i: m.emissiveIntensity };
+      const b = m.userData.base;
+      if (live) { m.color.copy(b.c).lerp(MOTION_COLOR, MOTION.tint); m.emissive.copy(MOTION_COLOR); }
+      else { m.color.copy(b.c); m.emissive.copy(b.e); m.emissiveIntensity = b.i; }
+    });
+    mats.current = [...found];
+  }, [live]);
+  useFrame(({ clock }) => {
+    if (!live) return;
+    const k = pulse(clock.getElapsedTime(), phase, calm);
+    for (const m of mats.current) m.emissiveIntensity = k;
+  });
+  return <group ref={g} {...props}>{children}</group>;
+}
+// Flickering weld arc at a tool tip.
+function Spark({ position, running, phase = 0 }) {
+  const m = useRef();
+  const { on, calm } = useContext(MotionCtx);
+  useFrame(({ clock }) => {
+    if (!m.current) return;
+    const t = clock.getElapsedTime() * 9 + phase;
+    const s = calm ? .8 : (Math.sin(t) * Math.sin(t * 2.7) > .1 ? .6 + Math.random() * .6 : .15);
+    m.current.scale.setScalar(s);
+  });
+  if (!(on && running)) return null;
+  return <mesh ref={m} position={position}><sphereGeometry args={[.17, 10, 8]} />
+    <meshBasicMaterial color={MOTION.spark} transparent opacity={.9} blending={AdditiveBlending} depthWrite={false} toneMapped={false} /></mesh>;
+}
 
 function Cuboid({ position = [0, 0, 0], size = [1, 1, 1], color = palette.steel, roughness = .64, metalness = .48, emissive, emissiveIntensity = .3, transparent = false, opacity = 1, ...rest }) {
   return <mesh castShadow receiveShadow position={position} {...rest}>
@@ -48,6 +107,49 @@ function Rod({ from, to, radius=.085, color=palette.steelLight, segments=8 }) {
     return [start.clone().add(end).multiplyScalar(.5),new Quaternion().setFromUnitVectors(new Vector3(0,1,0),delta.clone().normalize()),delta.length()];
   },[start,end]);
   return <mesh position={mid} quaternion={quaternion} castShadow><cylinderGeometry args={[radius,radius,length,segments]}/><meshStandardMaterial color={color} metalness={.62} roughness={.36}/></mesh>;
+}
+
+// Vertical light curtain under the inspection gantry; travels with the scanner.
+function ScanBeam({ running }) {
+  const m = useRef();
+  const { on, calm } = useContext(MotionCtx);
+  useFrame(({ clock }) => { if (m.current) m.current.opacity = .08 + .14 * (pulse(clock.getElapsedTime(), 0, calm) - MOTION.low) / (MOTION.high - MOTION.low); });
+  if (!(on && running)) return null;
+  return <mesh position={[0, 2.75, 0]} rotation={[0, PI / 2, 0]}><planeGeometry args={[4.3, 3.5]} />
+    <meshBasicMaterial ref={m} color={MOTION.color} transparent opacity={.15} blending={AdditiveBlending} depthWrite={false} side={2} toneMapped={false} /></mesh>;
+}
+// Chevrons riding the main conveyor at the same speed as the bodies, pointing downstream.
+const CHEVRONS = 54;
+function FlowChevrons({ running, flow }) {
+  const inst = useRef();
+  const offset = useRef(0);
+  const dummy = useMemo(() => new Object3D(), []);
+  const placed = useRef(false);
+  const { on, calm } = useContext(MotionCtx);
+  const live = on && running;
+  useEffect(() => { placed.current = false; }, [live]);
+  useFrame((_, delta) => {
+    const g = inst.current; if (!g) return;
+    // Under reduced motion the arrows hold still and only show direction.
+    if (calm && placed.current) return;
+    if (!calm) offset.current = (offset.current + Math.min(delta, .08) * flow.current * .0027) % 1;
+    for (let i = 0; i < CHEVRONS; i++) {
+      const d = ((i / CHEVRONS + offset.current) % 1) * 3 * SEG, k = Math.min(2, Math.floor(d / SEG)), f = d - k * SEG;
+      const [ax, az] = PATH[k], [bx, bz] = PATH[k + 1];
+      dummy.position.set(ax + (bx - ax) * f / SEG, 1.02, az + (bz - az) * f / SEG);
+      dummy.rotation.set(0, [0, -PI / 2, PI][k], -PI / 2);
+      dummy.scale.set(.22, 1, 1);
+      dummy.updateMatrix();
+      g.setMatrixAt(i, dummy.matrix);
+    }
+    g.instanceMatrix.needsUpdate = true;
+    placed.current = true;
+  });
+  if (!live) return null;
+  return <instancedMesh ref={inst} args={[null, null, CHEVRONS]} frustumCulled={false}>
+    <coneGeometry args={[.7, 1.4, 3]} />
+    <meshBasicMaterial color={MOTION.color} transparent opacity={.8} depthWrite={false} toneMapped={false} />
+  </instancedMesh>;
 }
 
 function Indicator({position,color='#67c9b9'}) {
@@ -174,7 +276,9 @@ function TravelingCar({index,count,running,flow}) {
  });
  useEffect(()=>{place(progress.current);});
  return <group ref={group}>
-   <CarBody paint={['#84b8bf','#9fb1b1','#bdc3b8','#77b4b4','#c3bb9f','#7796a2','#b6c4c2'][index%7]} ghost={index===0}/>
+   <MotionPart running={running} phase={index}>
+     <CarBody paint={['#84b8bf','#9fb1b1','#bdc3b8','#77b4b4','#c3bb9f','#7796a2','#b6c4c2'][index%7]} ghost={index===0}/>
+   </MotionPart>
  </group>;
 }
 function SafetyFence({at=[0,0,0],length=6,rotation=0}) {
@@ -217,7 +321,7 @@ function PalletStack({position=[0,0,0],count=3}) {
   </group>)}
  </group>;
 }
-function RobotArm({position=[0,0,0],color='#d1aa67',phase=0,size=1,mirror=false,running=true}) {
+function RobotArm({position=[0,0,0],color='#d1aa67',phase=0,size=1,mirror=false,running=true,weld=false}) {
  const arm=useRef();
  const wrist=useRef();
  useFrame(({clock})=>{
@@ -229,7 +333,7 @@ function RobotArm({position=[0,0,0],color='#d1aa67',phase=0,size=1,mirror=false,
  return <group position={position} scale={size}>
    <Cylinder position={[0,.27,0]} args={[.62,.72,.55,12]} color="#3e565d"/>
    <Cylinder position={[0,.6,0]} args={[.42,.48,.23,12]} color={color}/>
-   <group ref={arm} position={[0,.62,0]}>
+   <group ref={arm} position={[0,.62,0]}><MotionPart running={running} phase={phase}>
      <Rod from={[0,0,0]} to={[mirror?-.55:.55,1.65,-.10]} radius={.22} color={color}/>
      <mesh position={[mirror?-.55:.55,1.65,-.10]}><sphereGeometry args={[.30,12,10]}/><meshStandardMaterial color="#324951" metalness={.65}/></mesh>
      <group ref={wrist} position={[mirror?-.55:.55,1.65,-.10]}>
@@ -237,8 +341,9 @@ function RobotArm({position=[0,0,0],color='#d1aa67',phase=0,size=1,mirror=false,
        <Cylinder position={[mirror?-.91:.91,.92,.36]} args={[.23,.23,.30,12]} rotation={[0,0,Math.PI/2]} color="#829b9e" />
        <Rod from={[mirror?-.91:.91,.92,.36]} to={[mirror?-1.06:1.06,.65,.50]} radius={.07} color="#bfd0c8"/>
        <Cuboid position={[mirror?-1.06:1.06,.57,.5]} size={[.15,.16,.48]} color="#b9ccc7"/>
+       {weld&&<Spark position={[mirror?-1.06:1.06,.42,.74]} running={running} phase={phase}/>}
      </group>
-   </group>
+   </MotionPart></group>
  </group>;
 }
 function StampingMachine({x,running}) {
@@ -250,10 +355,10 @@ function StampingMachine({x,running}) {
   <Cuboid position={[0,6.23,0]} size={[6.5,1.13,5.9]} color="#6f8991"/>
   <Cuboid position={[0,6.82,0]} size={[6.9,.26,6.1]} color="#9db2b3" />
   <Cuboid position={[0,5.62,0]} size={[2.6,.60,4.05]} color="#364b55"/>
-  <group ref={ram} position={[0,2.55,0]}>
+  <group ref={ram} position={[0,2.55,0]}><MotionPart running={running}>
     <Cuboid position={[0,0,0]} size={[3.85,.56,3.25]} color="#b4c0b7" />
     <Cuboid position={[0,-.46,0]} size={[3.4,.29,2.8]} color="#9a8e70" />
-  </group>
+  </MotionPart></group>
   <Cuboid position={[0,1.18,0]} size={[3.7,.49,3.1]} color="#526d72" />
   <DashboardCabinet position={[3.62,0,-2.2]} />
   <PalletStack position={[-3.66,0,-4.5]} count={3} />
@@ -267,10 +372,10 @@ function WeldingMachine({x,running}) {
  return <group position={[x,0,0]}>
   <Cuboid position={[0,.32,0]} size={[7.5,.64,6.1]} color="#485e65" />
   <Cuboid position={[0,.65,0]} size={[5.9,.14,4.5]} color="#263f46"/>
-  <RobotArm position={[-2.9,.68,-2.55]} color="#d6a362" size={1.13} running={running} phase={0}/>
-  <RobotArm position={[2.8,.68,-2.48]} color="#cfa25c" mirror size={1.11} running={running} phase={1.8}/>
-  <RobotArm position={[-3,.68,2.65]} color="#7cb6b1" size={.86} running={running} phase={3.2}/>
-  <RobotArm position={[3.05,.68,2.4]} color="#7cb6b1" mirror size={.90} running={running} phase={4.5}/>
+  <RobotArm position={[-2.9,.68,-2.55]} color="#d6a362" size={1.13} running={running} phase={0} weld/>
+  <RobotArm position={[2.8,.68,-2.48]} color="#cfa25c" mirror size={1.11} running={running} phase={1.8} weld/>
+  <RobotArm position={[-3,.68,2.65]} color="#7cb6b1" size={.86} running={running} phase={3.2} weld/>
+  <RobotArm position={[3.05,.68,2.4]} color="#7cb6b1" mirror size={.90} running={running} phase={4.5} weld/>
   <Cuboid position={[0,5.0,-2.9]} size={[7.7,.32,.32]} color="#8da4a4"/>
   {[-3.4,3.4].map(a=><Cuboid key={a} position={[a,2.9,-2.9]} size={[.19,4.45,.19]} color="#8ca9a8" />)}
   <Indicator position={[3.4,5.25,-2.9]} color="#fac47c" />
@@ -306,12 +411,12 @@ function AssemblyMachine({x,running}) {
   {[-3.3,3.3].map(a=>[-3.5,3.5].map(b=><Cuboid key={`${a}/${b}`} position={[a,3.85,b]} size={[.31,7.1,.34]} color="#8b9da0"/>))}
   {[-3.5,3.5].map(z=><Cuboid key={z} position={[0,7.25,z]} size={[7.7,.42,.39]} color="#b2b7a7"/>)}
   <Cuboid position={[0,7.45,0]} size={[7.3,.3,7.2]} color="#a8b6ae" />
-  <group ref={hoist}>
+  <group ref={hoist}><MotionPart running={running}>
     <Cuboid position={[0,6.94,0]} size={[1.4,.6,1.0]} color="#d6b36c" />
     <Rod from={[-.36,6.6,0]} to={[-.36,4.45,0]} radius={.055} color="#d2d2bd"/>
     <Rod from={[.36,6.6,0]} to={[.36,4.45,0]} radius={.055} color="#d2d2bd"/>
     <Cuboid position={[0,4.32,0]} size={[2.45,.42,1.28]} color="#566b72" />
-  </group>
+  </MotionPart></group>
   <RobotArm position={[-3.25,.7,-2.50]} color="#ddaa61" size={.95} running={running} phase={1.4}/>
   <RobotArm position={[3.2,.7,2.85]} color="#9bc1b7" mirror size={.90} running={running} phase={2.4}/>
   <DashboardCabinet position={[4.4,0,-4.9]} />
@@ -327,10 +432,10 @@ function QualityMachine({x,running}) {
   {[-3.12,3.12].map(a=>[-2.38,2.38].map(b=><Cuboid key={`${a}/${b}`} position={[a,3.0,b]} size={[.28,5.3,.3]} color="#8eaaaa"/>))}
   <Cuboid position={[0,5.65,0]} size={[7,.58,5.1]} color="#8ca3a2" />
   <Cuboid position={[0,5.1,0]} size={[4,.14,4.6]} color="#425a60"/>
-  <group ref={scanner} position={[0,0,0]}>
+  <group ref={scanner} position={[0,0,0]}><MotionPart running={running}>
     <Cuboid position={[0,4.86,0]} size={[.3,.35,4.3]} color="#c7c2a4"/>
     {[-1.9,0,1.9].map(z=><Cuboid key={z} position={[0,4.52,z]} size={[.28,.26,.65]} color="#82d4cd" emissive="#6fd1c6" emissiveIntensity={.6}/>)}
-  </group>
+  </MotionPart><ScanBeam running={running}/></group>
   {[-2.4,2.4].map(z=><group key={z}>
     <Cuboid position={[-3,2.5,z]} size={[.17,3.7,.17]} color="#8a9c9e"/>
     <Cuboid position={[-2.9,3.1,z]} size={[.09,1.05,.21]} color="#8fdfd0" emissive="#59c9bd" emissiveIntensity={.95}/>
@@ -345,12 +450,12 @@ function QualityMachine({x,running}) {
 function Operator({position=[0,0,0],phase=0,running=true,color='#d1aa67'}) {
  const g=useRef();
  useFrame(({clock})=>{if(g.current&&running)g.current.position.y=Math.abs(Math.sin(clock.getElapsedTime()*1.6+phase))*.05;});
- return <group position={position}><group ref={g}>
+ return <group position={position}><group ref={g}><MotionPart running={running} phase={phase}>
   <Cylinder position={[0,.55,0]} args={[.2,.24,1.1,10]} color="#47626b"/>
   <Cylinder position={[0,1.35,0]} args={[.26,.22,.55,10]} color={color}/>
   <mesh position={[0,1.85,0]}><sphereGeometry args={[.19,10,8]}/><meshStandardMaterial color="#d8d3c3" roughness={.6}/></mesh>
   <Cuboid position={[0,2.0,0]} size={[.44,.1,.44]} color="#e3b455"/>
- </group></group>;
+ </MotionPart></group></group>;
 }
 function TrimMachine({x,running}) {
  return <group position={[x,0,0]}>
@@ -382,11 +487,11 @@ function MarriageMachine({x,running}) {
   {[-3.2,3.2].map(a=>[-2.6,2.6].map(b=><Cuboid key={`${a}/${b}`} position={[a,2.8,b]} size={[.3,5.1,.3]} color="#8b9da0"/>))}
   <Cuboid position={[0,5.4,-2.6]} size={[6.7,.32,.32]} color="#b2b7a7"/>
   <Cuboid position={[0,5.4,2.6]} size={[6.7,.32,.32]} color="#b2b7a7"/>
-  <group ref={lift} position={[0,.9,0]}>
+  <group ref={lift} position={[0,.9,0]}><MotionPart running={running}>
     <Cuboid position={[0,0,0]} size={[3.4,.22,1.9]} color="#566b72"/>
     <Cuboid position={[0,.3,0]} size={[1.9,.55,1.3]} color="#9a8e70"/>
     {[-1.3,1.3].map(a=><Cylinder key={a} position={[a,-.3,0]} args={[.14,.14,.8,8]} color="#bfd0c8"/>)}
-  </group>
+  </MotionPart></group>
   <group position={[0,.55,-4.1]}>
     <Cuboid position={[0,.35,0]} size={[1.8,.7,1.4]} color="#c1ab7c"/>
     <Cuboid position={[0,.78,0]} size={[1.5,.16,1.1]} color="#8a7a58"/>
@@ -407,7 +512,7 @@ function EolMachine({x,running}) {
   <Cuboid position={[0,.26,0]} size={[5.6,.05,3.3]} color="#202c31"/>
   {[-1.35,1.35].map((a,i)=>[-.75,.75].map((b,j)=><group key={`${a}/${b}`}>
     <Cylinder position={[a,.34,b]} args={[.42,.42,.9,16]} rotation={[Math.PI/2,0,0]} color="#8fa4a4"/>
-    <mesh ref={el=>{wheels.current[i*2+j]=el;}} position={[a,.34,b]} rotation={[Math.PI/2,0,0]}><boxGeometry args={[.16,.04,.96]}/><meshStandardMaterial color="#e1c27a"/></mesh>
+    <MotionPart running={running} phase={i+j}><mesh ref={el=>{wheels.current[i*2+j]=el;}} position={[a,.34,b]} rotation={[Math.PI/2,0,0]}><boxGeometry args={[.16,.04,.96]}/><meshStandardMaterial color="#e1c27a"/></mesh></MotionPart>
   </group>))}
   {[-3.7,3.7].map(a=>[-2.7,2.7].map(b=><Cuboid key={`${a}/${b}`} position={[a,2.4,b]} size={[.26,4.6,.28]} color="#8eaaaa"/>))}
   <Cuboid position={[0,4.8,0]} size={[8,.5,6]} color="#8ca3a2"/>
@@ -427,13 +532,13 @@ function DispatchMachine({x,running}) {
  return <group position={[x,0,0]}>
   <Cuboid position={[0,.16,0]} size={[9,.32,6.4]} color="#4a6068"/>
   <Cuboid position={[0,.25,5.3]} size={[9,.5,3]} color="#3a4a4f"/>
-  <group ref={truck} position={[0,0,6.4]}>
+  <group ref={truck} position={[0,0,6.4]}><MotionPart running={running}>
     <Cuboid position={[0,2.2,0]} size={[8.2,3.2,2.4]} color="#b7c0b8" metalness={.3}/>
     <Cuboid position={[0,.7,0]} size={[8.4,.4,2.5]} color="#4b5d62"/>
     <Cuboid position={[4.8,1.6,0]} size={[1.7,2.2,2.3]} color="#7a97a0"/>
     <Cuboid position={[5.6,2.0,0]} size={[.12,1,2]} color="#a7d1d6" transparent opacity={.55}/>
     {[-3,-1.5,3.5,5].map(a=>[-1.1,1.1].map(b=><Cylinder key={`${a}/${b}`} position={[a,.4,b]} args={[.42,.42,.3,14]} rotation={[Math.PI/2,0,0]} color="#161f22"/>))}
-  </group>
+  </MotionPart></group>
   {[-3.6,3.6].map(a=><Cuboid key={a} position={[a,3.3,-2.2]} size={[.25,6.2,.26]} color="#8da4a6"/>)}
   <Cuboid position={[0,6.4,-2.2]} size={[8.1,.4,.4]} color="#bba96a"/>
   <PalletStack position={[-2.8,0,-3.2]} count={2}/>
@@ -496,12 +601,12 @@ function TyrePallet({position=[0,0,0]}) {
 function MobileRobot({position=[0,0,0],phase=0,running=true}) {
  const g=useRef();
  useFrame(({clock})=>{if(g.current&&running){g.current.position.z=Math.sin(clock.getElapsedTime()*.17+phase)*1.1;}});
- return <group ref={g} position={position}>
+ return <group ref={g} position={position}><MotionPart running={running} phase={phase}>
   <Cuboid position={[0,.29,0]} size={[1.8,.45,1.2]} color="#718b8d" />
   <Cuboid position={[0,.57,0]} size={[1.58,.13,1.08]} color="#879d97" />
   {[-.7,.7].map(x=>[-.43,.43].map(z=><Cylinder key={`${x}/${z}`} position={[x,.16,z]} args={[.15,.15,.22,10]} rotation={[Math.PI/2,0,0]} color="#202d2c"/>))}
   <Indicator position={[.7,.71,.38]} color="#e4b37a"/>
- </group>;
+ </MotionPart></group>;
 }
 function Ancillaries({running}) {
   return <group>
@@ -568,7 +673,7 @@ function CameraRig({view,command}) {
  return <OrbitControls ref={ctrl} enableDamping dampingFactor={.08} minZoom={5} maxZoom={40}
    minPolarAngle={.02} maxPolarAngle={Math.PI*.46} enablePan enableRotate screenSpacePanning target={[0,1,0]} />;
 }
-function FactoryWorld({stations,metrics,bottleneckId,selectedId,setSelectedId,running,uph,view,command}) {
+function FactoryWorld({stations,metrics,bottleneckId,selectedId,setSelectedId,running,uph,view,command,highlight}) {
  const flow=useRef(1);
  flow.current=Math.max(.15,uph/45);
  const live=(id)=>running&&['running','degraded','setup'].includes(metrics[id]?.status||'running');
@@ -580,7 +685,9 @@ function FactoryWorld({stations,metrics,bottleneckId,selectedId,setSelectedId,ru
    dispatch:<DispatchMachine x={0} running={live('dispatch')}/>, powertrain:<PowertrainMachine x={0} z={0} running={live('powertrain')}/>,
  };
  const ids=[...MAIN_IDS,'powertrain'];
- return <>
+ const calm=useReducedMotion();
+ const motion=useMemo(()=>({on:highlight,calm}),[highlight,calm]);
+ return <MotionCtx.Provider value={motion}>
    <color attach="background" args={['#111d24']}/>
    <fog attach="fog" args={['#111d24',150,330]} />
    <ambientLight intensity={1.22} color="#cce0dc" />
@@ -589,7 +696,7 @@ function FactoryWorld({stations,metrics,bottleneckId,selectedId,setSelectedId,ru
      shadow-camera-left={-58} shadow-camera-right={58} shadow-camera-top={58} shadow-camera-bottom={-58} shadow-camera-near={1} shadow-camera-far={190} shadow-bias={-.001} />
    <directionalLight position={[30,24,-40]} intensity={1.35} color="#79b4c0"/>
    {[[-14,-14],[14,-14],[-14,14],[14,14]].map(([x,z])=><pointLight key={`${x}${z}`} position={[x,9,z]} intensity={26} distance={34} color={x<0?'#b1dacd':'#ffd6a1'} />)}
-   <Floor/><HallStructure/><RailConveyor/>
+   <Floor/><HallStructure/><RailConveyor/><FlowChevrons running={running} flow={flow}/>
    {ids.map(id=>{
      const L=LAYOUT[id], m=metrics[id], feeder=id==='powertrain';
      return <group key={id} position={[L.x,0,L.z]} rotation={[0,L.rot,0]} onClick={(e)=>{e.stopPropagation();setSelectedId(id);}}>
@@ -603,12 +710,13 @@ function FactoryWorld({stations,metrics,bottleneckId,selectedId,setSelectedId,ru
    {ids.map((id,i)=><MarkerLabel key={id} id={id} index={i} cfg={stations.find(s=>s.id===id)} metric={metrics[id]} selected={selectedId===id} bottleneck={bottleneckId===id} onSelect={setSelectedId}/>)}
    <OrthographicCamera makeDefault position={VIEWS.iso.p} zoom={11.5} near={.1} far={520}/>
    <CameraRig view={view} command={command} />
- </>;
+ </MotionCtx.Provider>;
 }
 
 export default function FactoryScene({stations,metrics,bottleneckId,selectedId,setSelectedId,running,uph}){
  const [view,setView]=useState('iso');
  const [command,setCommand]=useState(0);
+ const [highlight,setHighlight]=useState(true);
  const order=[...MAIN_IDS,'powertrain'];
  return <div className="scene-3d-shell show-grid">
    <div className="scene-chrome scene-chrome-left"><span className="scene-status-dot"/> DIGITAL TWIN / V3.1 <span className="scene-chrome-sep">·</span> AX-01 / SIMULATED</div>
@@ -616,6 +724,7 @@ export default function FactoryScene({stations,metrics,bottleneckId,selectedId,s
    <div className="camera-rail" aria-label="Factory camera controls">
      <span>CAMERA</span>
      {['iso','top','front'].map(v=><button key={v} onClick={()=>{setView(v);setCommand(c=>c+1);}} className={view===v?'active':''}>{v==='iso'?'3D ISO':v==='top'?'TOP':'FRONT'}</button>)}
+     <button title="Highlight moving parts" aria-pressed={highlight} className={highlight?'active':''} onClick={()=>setHighlight(h=>!h)}><Activity size={13}/>&nbsp;MOTION</button>
      <button title="Reset camera" aria-label="Reset 3D camera" onClick={()=>{setView('iso');setCommand(c=>c+1);}}><RotateCcw size={14}/></button>
    </div>
    <ol className="scene-rail" aria-label="Station status">
@@ -629,7 +738,7 @@ export default function FactoryScene({stations,metrics,bottleneckId,selectedId,s
      <Canvas shadows gl={{antialias:true,powerPreference:'high-performance'}} dpr={[1,1.6]} frameloop="always" aria-label="Interactive 3D factory laid out as a U-shaped loop with nine production stations and a powertrain feeder cell">
        <Suspense fallback={null}>
          <FactoryWorld stations={stations} metrics={metrics} bottleneckId={bottleneckId} selectedId={selectedId}
-           setSelectedId={setSelectedId} running={running} uph={uph} view={view} command={command}/>
+           setSelectedId={setSelectedId} running={running} uph={uph} view={view} command={command} highlight={highlight}/>
        </Suspense>
      </Canvas>
    </div>

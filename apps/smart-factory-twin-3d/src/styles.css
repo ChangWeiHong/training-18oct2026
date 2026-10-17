@@ -111,6 +111,7 @@ h1 span{color:inherit}
 .asset-tag.alert .tag-led{background:#efaa6c}
 .factory-toolbar{padding:10px 16px;background:#16252b;border-color:#2c444b}
 .factory-legend{gap:19px}
+.legend-dot.motion{background:#3df5d2;box-shadow:0 0 9px #3df5d288}
 .factory-legend>span,.factory-hint{color:#8fa9aa;font-size:10px}
 .station-detail{background:#142229}
 .controls-panel{order:1}
