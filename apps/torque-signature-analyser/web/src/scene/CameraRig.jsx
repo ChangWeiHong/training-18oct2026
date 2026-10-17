@@ -32,12 +32,14 @@ export default function CameraRig({ preset, focus, reducedMotion }) {
     invalidate();
   }, [preset, focus, aspect, reducedMotion, camera, invalidate]);
 
-  if (import.meta.env?.DEV && typeof window !== 'undefined') {
+  useEffect(() => {
+    if (!import.meta.env?.DEV) return undefined;
     window.__tsaCam = () => ({
       pos: camera.position.toArray(), target: controls.current?.target.toArray(), aspect, size: [size.width, size.height],
       anim: Boolean(anim.current), expected: Object.fromEntries(Object.entries(presetPose(preset, focus, aspect)).map(([k, v]) => [k, v.toArray()])),
     });
-  }
+    return () => { delete window.__tsaCam; };
+  }, [camera, aspect, size.width, size.height, preset, focus]);
 
   useFrame((_, dt) => {
     const a = anim.current;

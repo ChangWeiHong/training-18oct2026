@@ -15,7 +15,7 @@ export function presetPose(preset, focus, aspect = 1.5) {
     const half = Math.tan((FOV * Math.PI) / 360);
     const dist = Math.max(h / (2 * half), (STACK.width * 1.2) / (2 * half * aspect)) * 1.06;
     // Cut side towards the viewer, a little elevation and a slight side turn for a 3/4 read.
-    const dir = T.clone().addScaledVector(R, 0.25).setY(0.55).normalize();
+    const dir = T.clone().addScaledVector(R, 0.25).setY(0.85).normalize();
     const target = P.clone().setY((STACK.top + STACK.bottom) / 2);
     return { target, position: target.clone().addScaledVector(dir, dist) };
   }
