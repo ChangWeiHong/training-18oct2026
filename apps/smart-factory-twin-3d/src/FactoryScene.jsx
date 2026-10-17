@@ -6,8 +6,14 @@ import { RotateCcw, ScanLine, Move3d } from 'lucide-react';
 
 /* A procedural 3D manufacturing environment. All meshes, materials, machines and
    layout are authored locally; no models, textures or telemetry are downloaded. */
-const POSITIONS = [-23, -11.5, 0, 11.5, 23];
-const LENGTH = 63;
+const MAIN_IDS = ['stamp','weld','paint','trim','marriage','final','eol','audit','dispatch'];
+const SPACING = 10.6;
+const LENGTH = 100;
+const HALF = LENGTH / 2;
+const LAYOUT = Object.fromEntries(MAIN_IDS.map((id,i)=>[id,[(i-4)*SPACING,0]]));
+LAYOUT.powertrain = [0,-16.5];
+const BELT = 92;
+const STATUS_COLOR = { running:'#739da8', degraded:'#d9a35f', down:'#d9776a', blocked:'#b9a96c', starved:'#6f8fa8', setup:'#a79ad0', off:'#4f5f65' };
 const palette = {
   floor: '#26333b', concrete: '#1b292f', frame: '#70848b', steel: '#536b76',
   steelLight: '#a0b5b8', steelDark: '#374b55', glass: '#90c5c4', conveyor: '#222b2e',
@@ -43,45 +49,50 @@ function Indicator({position,color='#67c9b9'}) {
   </group>;
 }
 function Floor() {
-  const lines = useMemo(()=> Array.from({length:32},(_,i)=>-31+i*2),[]);
+  const lines = useMemo(()=> Array.from({length:Math.floor(LENGTH/2)+1},(_,i)=>-HALF+1+i*2),[]);
   return <group>
     <Cuboid position={[0,-.55,0]} size={[LENGTH,1.1,23]} color="#26343a" metalness={.12} roughness={.91}/>
+    <Cuboid position={[0,-.55,-17.5]} size={[34,1.1,12]} color="#24323a" metalness={.12} roughness={.91}/>
     <Cuboid position={[0,.015,-9.7]} size={[LENGTH,.028,2.2]} color="#333e42" metalness={.09}/>
     <Cuboid position={[0,.015,9.7]} size={[LENGTH,.028,2.1]} color="#3e4646" metalness={.06}/>
     {lines.map((x,i)=><group key={i}>
       <Cuboid position={[x,.03,0]} size={[.026,.035,21]} color="#53646b" metalness={.1}/>
-      {i<31&&[-7.0,7.0].map((z,k)=><Cuboid key={k} position={[x+1,.03,z]} size={[1.6,.035,.04]} color="#87958f" metalness={0}/>) }
+      {i<lines.length-1&&[-7.0,7.0].map((z,k)=><Cuboid key={k} position={[x+1,.03,z]} size={[1.6,.035,.04]} color="#87958f" metalness={0}/>) }
     </group>)}
     {Array.from({length:11},(_,i)=>-10+i*2).map(z=><Cuboid key={z} position={[0,.035,z]} size={[LENGTH,.03,.022]} color="#526169" metalness={0}/>)}
     {[-8.48,8.45].map(z=><group key={z}>
       <Cuboid position={[0,.055,z]} size={[LENGTH,.04,.08]} color="#d8a44e" metalness={0}/>
-      {Array.from({length:29},(_,i)=><Cuboid key={i} position={[-29+i*2.12,.06,z]} size={[.7,.05,.08]} color="#232e31" metalness={0}/>)}
+      {Array.from({length:Math.floor(LENGTH/2.12)-1},(_,i)=><Cuboid key={i} position={[-HALF+2+i*2.12,.06,z]} size={[.7,.05,.08]} color="#232e31" metalness={0}/>)}
     </group>)}
-    {[-31.25,31.25].map(x=><Cuboid key={x} position={[x,.19,0]} size={[.18,.32,23]} color="#4f636b"/>)}
+    {[-HALF+.25,HALF-.25].map(x=><Cuboid key={x} position={[x,.19,0]} size={[.18,.32,23]} color="#4f636b"/>)}
     {[-11.35,11.35].map(z=><Cuboid key={z} position={[0,.18,z]} size={[LENGTH,.32,.2]} color="#52656b"/>)}
+    <Cuboid position={[0,.05,-12.2]} size={[3.2,.05,.9]} color="#d8a44e"/>
+    <Cuboid position={[0,.2,-11.7]} size={[3,.1,.1]} color="#4f636b"/>
   </group>;
 }
 function HallStructure() {
+  const cols = useMemo(()=>Array.from({length:9},(_,i)=>-48+i*12),[]);
+  const lights = useMemo(()=>Array.from({length:14},(_,i)=>-44+i*6.8),[]);
   return <group>
-    {[-30,-18,-6,6,18,30].map((x,i)=><group key={x}>
+    {cols.map((x,i)=><group key={x}>
       {[-10.4,10.4].map((z,j)=><group key={j}>
         <Cuboid position={[x,4.45,z]} size={[.30,8.9,.35]} color="#6a8087"/>
         <Cuboid position={[x,8.7,z]} size={[.78,.24,.75]} color="#8ca3a8"/>
-        <Indicator position={[x,6.2,z]} color={i===2 && j===0?'#efb261':'#6aabb6'}/>
+        <Indicator position={[x,6.2,z]} color={i===4 && j===0?'#efb261':'#6aabb6'}/>
       </group>)}
       <Rod from={[x,8.7,-10.4]} to={[x,8.7,10.4]} radius={.11} color="#7e9399"/>
       <Cuboid position={[x,7.35,-10.4]} size={[.25,2.2,.24]} color="#839ca1"/>
     </group>)}
-    <Cuboid position={[0,8.7,-10.4]} size={[61,.26,.32]} color="#8ba1a7"/>
-    <Cuboid position={[0,8.7,10.4]} size={[61,.26,.32]} color="#8ba1a7"/>
-    <Cuboid position={[0,4.7,-11.3]} size={[62,6.8,.23]} color="#384b50" transparent opacity={.57}/>
-    {Array.from({length:12},(_,i)=>-27.5+i*5).map(x=><group key={x}>
+    <Cuboid position={[0,8.7,-10.4]} size={[LENGTH-2,.26,.32]} color="#8ba1a7"/>
+    <Cuboid position={[0,8.7,10.4]} size={[LENGTH-2,.26,.32]} color="#8ba1a7"/>
+    <Cuboid position={[0,4.7,-11.3]} size={[LENGTH-1,6.8,.23]} color="#384b50" transparent opacity={.57}/>
+    {Array.from({length:19},(_,i)=>-45+i*5).map(x=><group key={x}>
       <Cuboid position={[x,5.4,-11.05]} size={[3.8,2.5,.065]} color="#91b5b6" transparent opacity={.16}/>
       <Cuboid position={[x,4.2,-10.98]} size={[3.83,.10,.10]} color="#7c9ba2"/>
     </group>)}
     {[-3.4,3.4].map(z=><group key={z}>
-      <Cuboid position={[0,7.75,z]} size={[57,.18,.32]} color="#a6a69a"/>
-      {Array.from({length:9},(_,i)=>-27+i*6.75).map(x=><group key={x}>
+      <Cuboid position={[0,7.75,z]} size={[LENGTH-6,.18,.32]} color="#a6a99a"/>
+      {lights.map(x=><group key={x}>
         <Cuboid position={[x,7.53,z]} size={[1.6,.12,.63]} color="#d5dfd4" emissive="#f4ecbb" emissiveIntensity={.8}/>
         <Cuboid position={[x,7.63,z]} size={[.14,.3,.75]} color="#7b8c90"/>
       </group>)}
@@ -89,34 +100,51 @@ function HallStructure() {
   </group>;
 }
 function RailConveyor(){
+  const L=BELT, n=Math.floor(L/.89);
   return <group>
-    <Cuboid position={[0,.50,.10]} size={[59,.42,2.8]} color="#3e565e" />
-    <Cuboid position={[0,.76,.10]} size={[58.5,.12,2.25]} color="#182831" metalness={.43}/>
+    <Cuboid position={[0,.50,.10]} size={[L,.42,2.8]} color="#3e565e" />
+    <Cuboid position={[0,.76,.10]} size={[L-.5,.12,2.25]} color="#182831" metalness={.43}/>
     {[-1.25,1.45].map(z=><group key={z}>
-      <Cuboid position={[0,.98,z]} size={[59,.30,.16]} color="#8eabae"/>
-      <Cuboid position={[0,.69,z]} size={[59,.12,.12]} color="#aec2c2"/>
+      <Cuboid position={[0,.98,z]} size={[L,.30,.16]} color="#8eabae"/>
+      <Cuboid position={[0,.69,z]} size={[L,.12,.12]} color="#aec2c2"/>
     </group>)}
-    {Array.from({length:65},(_,i)=>-28.5+i*.89).map((x,i)=><group key={i}>
+    {Array.from({length:n},(_,i)=>-L/2+.5+i*.89).map((x,i)=><group key={i}>
       <Cylinder position={[x,.84,.10]} args={[.12,.12,2.5,8]} rotation={[Math.PI/2,0,0]} color={i%2?'#6c848b':'#9db0b1'}/>
       {i%3===0&&<Cuboid position={[x,.20,.12]} size={[.17,.43,2.55]} color="#61767d" />}
     </group>)}
-    <Cuboid position={[0,.38,-2.0]} size={[60,.22,.3]} color="#6a7c80"/>
-    <Cuboid position={[0,.38,2.12]} size={[60,.22,.3]} color="#6a7c80"/>
+    <Cuboid position={[0,.38,-2.0]} size={[L+1,.22,.3]} color="#6a7c80"/>
+    <Cuboid position={[0,.38,2.12]} size={[L+1,.22,.3]} color="#6a7c80"/>
+    {/* kit feeder belt from the powertrain bay to the marriage station */}
+    <Cuboid position={[0,.5,-9.6]} size={[1.9,.34,13.6]} color="#3e565e"/>
+    <Cuboid position={[0,.72,-9.6]} size={[1.5,.1,13.6]} color="#182831"/>
+    {Array.from({length:15},(_,i)=>-15.6+i*.9).map(z=><Cylinder key={z} position={[0,.8,z+6]} args={[.1,.1,1.6,8]} rotation={[0,0,Math.PI/2]} color="#9db0b1"/>)}
   </group>;
 }
-function Zone({x,index,selected,bottleneck,onClick}){
- const color=bottleneck?'#eb9c54':selected?'#9bddd6':'#739da8';
- return <group position={[x,0,0]} onClick={(e)=>{e.stopPropagation();onClick(index);}}>
-   <mesh position={[0,.083,0]} rotation={[-Math.PI/2,0,0]}><planeGeometry args={[10.6,16.7]}/>
-     <meshBasicMaterial color={color} transparent opacity={bottleneck ? 0.115 : selected ? 0.056 : 0.022} depthWrite={false}/></mesh>
-   {[[-5.2,-7.9],[5.2,-7.9],[-5.2,7.9],[5.2,7.9]].map(([a,b],i)=><group key={i} position={[a,.2,b]}>
-      <Cuboid position={[0,.09,0]} size={[.92,.14,.12]} color={color} emissive={bottleneck?color:undefined} emissiveIntensity={.4}/>
+function Zone({id,w=9.8,d=16.7,x,z=0,selected,bottleneck,status,onClick}){
+ const color=bottleneck?'#eb9c54':status==='down'?STATUS_COLOR.down:selected?'#9bddd6':(STATUS_COLOR[status]||'#739da8');
+ const hot=bottleneck||status==='down';
+ const hw=w/2-.1, hd=d/2-.2;
+ return <group position={[x,0,z]} onClick={(e)=>{e.stopPropagation();onClick(id);}}>
+   <mesh position={[0,.083,0]} rotation={[-Math.PI/2,0,0]}><planeGeometry args={[w,d]}/>
+     <meshBasicMaterial color={color} transparent opacity={hot ? 0.115 : selected ? 0.07 : 0.024} depthWrite={false}/></mesh>
+   {[[-hw,-hd],[hw,-hd],[-hw,hd],[hw,hd]].map(([a,b],i)=><group key={i} position={[a,.2,b]}>
+      <Cuboid position={[0,.09,0]} size={[.92,.14,.12]} color={color} emissive={hot?color:undefined} emissiveIntensity={.4}/>
       <Cuboid position={[0,.1,0]} size={[.12,.16,.87]} color={color} />
-      {(bottleneck||selected)&&<Cuboid position={[0,.5,0]} size={[.075,.8,.075]} color={color} transparent opacity={.6}/>}
+      {(hot||selected)&&<Cuboid position={[0,.5,0]} size={[.075,.8,.075]} color={color} transparent opacity={.6}/>}
    </group>)}
-   {[-5.25,5.25].map(a=><Cuboid key={a} position={[a,.11,0]} size={[.055,.09,15.75]} color={color} transparent opacity={bottleneck ? 0.9 : 0.40}/>)}
-   {[-7.9,7.9].map(b=><Cuboid key={b} position={[0,.11,b]} size={[10.4,.09,.055]} color={color} transparent opacity={bottleneck ? 0.9 : 0.40}/>)}
+   {[-hw,hw].map(a=><Cuboid key={a} position={[a,.11,0]} size={[.055,.09,d-.95]} color={color} transparent opacity={hot ? 0.9 : 0.40}/>)}
+   {[-hd,hd].map(b=><Cuboid key={b} position={[0,.11,b]} size={[w-.4,.09,.055]} color={color} transparent opacity={hot ? 0.9 : 0.40}/>)}
  </group>;
+}
+// Input buffer drawn as a row of slots on the aisle side. Filled slots show queue length.
+function BufferRow({x,z=3.7,cap,fill,color='#6ac9c0'}){
+  const n=Math.min(cap,14), w=.55;
+  return <group position={[x-(n*w)/2+w/2,.28,z]}>
+    {Array.from({length:n},(_,i)=><group key={i} position={[i*w,0,0]}>
+      <Cuboid position={[0,0,0]} size={[.46,.1,.9]} color="#2d4046" metalness={.2}/>
+      {i<Math.min(fill,n)&&<Cuboid position={[0,.2,0]} size={[.4,.3,.74]} color={color} emissive={color} emissiveIntensity={.25}/>}
+    </group>)}
+  </group>;
 }
 function CarBody({ paint='#82b9c1', ghost=false }) {
  return <group>
@@ -133,14 +161,14 @@ function CarBody({ paint='#82b9c1', ghost=false }) {
   <Cuboid position={[1.35,.01,0]} size={[.07,.10,.55]} color="#f1d19a" emissive="#f9c879" emissiveIntensity={.4}/>
  </group>;
 }
-function TravelingCar({index,running,throughput}) {
+function TravelingCar({index,count,running,flow}) {
  const group=useRef();
- const progress=useRef(index/7);
+ const progress=useRef(index/count);
  useFrame((_,delta)=>{
-    if(running) progress.current=(progress.current+Math.min(delta,.08)*(throughput/70)*.010)%1;
-    if(group.current)group.current.position.x=-29+progress.current*58;
+    if(running) progress.current=(progress.current+Math.min(delta,.08)*flow.current*.0075)%1;
+    if(group.current)group.current.position.x=-BELT/2+1.5+progress.current*(BELT-3);
  });
- return <group ref={group} position={[-29+index/7*58,1.26,.10]}>
+ return <group ref={group} position={[-BELT/2+index/count*(BELT-3),1.26,.10]}>
    <CarBody paint={['#84b8bf','#9fb1b1','#bdc3b8','#77b4b4','#c3bb9f','#7796a2','#b6c4c2'][index%7]} ghost={index===0}/>
  </group>;
 }
@@ -309,6 +337,125 @@ function QualityMachine({x,running}) {
   <Cuboid position={[-3,1.05,-4.5]} size={[1.5,2.1,.8]} color="#7d9ca0" />
  </group>;
 }
+function Operator({position=[0,0,0],phase=0,running=true,color='#d1aa67'}) {
+ const g=useRef();
+ useFrame(({clock})=>{if(g.current&&running)g.current.position.y=Math.abs(Math.sin(clock.getElapsedTime()*1.6+phase))*.05;});
+ return <group position={position}><group ref={g}>
+  <Cylinder position={[0,.55,0]} args={[.2,.24,1.1,10]} color="#47626b"/>
+  <Cylinder position={[0,1.35,0]} args={[.26,.22,.55,10]} color={color}/>
+  <mesh position={[0,1.85,0]}><sphereGeometry args={[.19,10,8]}/><meshStandardMaterial color="#d8d3c3" roughness={.6}/></mesh>
+  <Cuboid position={[0,2.0,0]} size={[.44,.1,.44]} color="#e3b455"/>
+ </group></group>;
+}
+function TrimMachine({x,running}) {
+ return <group position={[x,0,0]}>
+  <Cuboid position={[0,.2,0]} size={[8.8,.4,6.4]} color="#4a6068"/>
+  <Cuboid position={[0,.42,-.1]} size={[8.4,.08,3.5]} color="#c8b27a"/>
+  {[-4.1,4.1].map(a=>[-2.9,2.9].map(b=><Cuboid key={`${a}/${b}`} position={[a,3.2,b]} size={[.24,6.4,.26]} color="#8da4a6"/>))}
+  <Cuboid position={[0,6.4,-2.9]} size={[8.6,.3,.3]} color="#8da4a6"/>
+  <Cuboid position={[0,6.4,2.9]} size={[8.6,.3,.3]} color="#8da4a6"/>
+  {[-2.7,0,2.7].map(a=><group key={a}>
+    <Rod from={[a,6.3,2.9]} to={[a,3.7,2.1]} radius={.045} color="#d2d2bd"/>
+    <Cuboid position={[a,3.55,2.0]} size={[.8,.28,.5]} color="#d6b36c"/>
+  </group>)}
+  {[[-3,-2.0],[-1,-2.0],[1.4,-2.0],[3,-2.0],[-2,2.2],[2,2.2]].map(([a,b],i)=><Operator key={i} position={[a,0,b]} phase={i*1.1} running={running} color={i%2?'#7cb6b1':'#d1aa67'}/>)}
+  {[-3.2,0,3.2].map(a=><group key={a} position={[a,0,-4.2]}>
+    <Cuboid position={[0,.9,0]} size={[1.9,1.8,.9]} color="#6f8280"/>
+    {[.3,.9,1.5].map(y=><Cuboid key={y} position={[0,y,.47]} size={[1.7,.12,.04]} color="#b39a6c"/>)}
+  </group>)}
+  <DashboardCabinet position={[4.3,0,-4.4]} rotate={Math.PI/9}/>
+  <Indicator position={[-4.1,6.7,2.9]}/>
+  <SafetyFence at={[0,0,4.6]} length={8.4}/>
+ </group>;
+}
+function MarriageMachine({x,running}) {
+ const lift=useRef();
+ useFrame(({clock})=>{if(lift.current&&running)lift.current.position.y=.9+(Math.sin(clock.getElapsedTime()*.9)*.5+.5)*1.1;});
+ return <group position={[x,0,0]}>
+  <Cuboid position={[0,.25,0]} size={[7.6,.5,6]} color="#485e65"/>
+  <Cuboid position={[0,.25,-4.1]} size={[3.2,.5,5.4]} color="#3f565d"/>
+  {[-3.2,3.2].map(a=>[-2.6,2.6].map(b=><Cuboid key={`${a}/${b}`} position={[a,2.8,b]} size={[.3,5.1,.3]} color="#8b9da0"/>))}
+  <Cuboid position={[0,5.4,-2.6]} size={[6.7,.32,.32]} color="#b2b7a7"/>
+  <Cuboid position={[0,5.4,2.6]} size={[6.7,.32,.32]} color="#b2b7a7"/>
+  <group ref={lift} position={[0,.9,0]}>
+    <Cuboid position={[0,0,0]} size={[3.4,.22,1.9]} color="#566b72"/>
+    <Cuboid position={[0,.3,0]} size={[1.9,.55,1.3]} color="#9a8e70"/>
+    {[-1.3,1.3].map(a=><Cylinder key={a} position={[a,-.3,0]} args={[.14,.14,.8,8]} color="#bfd0c8"/>)}
+  </group>
+  <group position={[0,.55,-4.1]}>
+    <Cuboid position={[0,.35,0]} size={[1.8,.7,1.4]} color="#c1ab7c"/>
+    <Cuboid position={[0,.78,0]} size={[1.5,.16,1.1]} color="#8a7a58"/>
+  </group>
+  <RobotArm position={[-3,.5,-2.4]} color="#9bc1b7" size={.82} running={running} phase={1.1}/>
+  <RobotArm position={[3,.5,2.5]} color="#ddaa61" mirror size={.82} running={running} phase={2.6}/>
+  <Cuboid position={[0,.7,.1]} size={[3.1,.25,1.5]} color="#6d8a90"/>
+  <DashboardCabinet position={[-4.1,0,-4.8]} rotate={-Math.PI/10}/>
+  <Indicator position={[3.2,5.7,2.6]}/>
+  <SafetyFence at={[0,0,4.6]} length={8}/>
+ </group>;
+}
+function EolMachine({x,running}) {
+ const wheels=useRef([]);
+ useFrame((_,d)=>{if(running)wheels.current.forEach(w=>{if(w)w.rotation.z+=d*7;});});
+ return <group position={[x,0,0]}>
+  <Cuboid position={[0,.12,0]} size={[8.4,.24,6.2]} color="#46595f"/>
+  <Cuboid position={[0,.26,0]} size={[5.6,.05,3.3]} color="#202c31"/>
+  {[-1.35,1.35].map((a,i)=>[-.75,.75].map((b,j)=><group key={`${a}/${b}`}>
+    <Cylinder position={[a,.34,b]} args={[.42,.42,.9,16]} rotation={[Math.PI/2,0,0]} color="#8fa4a4"/>
+    <mesh ref={el=>{wheels.current[i*2+j]=el;}} position={[a,.34,b]} rotation={[Math.PI/2,0,0]}><boxGeometry args={[.16,.04,.96]}/><meshStandardMaterial color="#e1c27a"/></mesh>
+  </group>))}
+  {[-3.7,3.7].map(a=>[-2.7,2.7].map(b=><Cuboid key={`${a}/${b}`} position={[a,2.4,b]} size={[.26,4.6,.28]} color="#8eaaaa"/>))}
+  <Cuboid position={[0,4.8,0]} size={[8,.5,6]} color="#8ca3a2"/>
+  <Cuboid position={[-3.85,2.4,0]} size={[.1,4.2,5.2]} color="#90c6c4" transparent opacity={.14}/>
+  <Cuboid position={[3.85,2.4,0]} size={[.1,4.2,5.2]} color="#90c6c4" transparent opacity={.14}/>
+  <Cylinder position={[0,3.4,-2.4]} args={[.28,.28,2.4,10]} rotation={[0,0,Math.PI/2]} color="#a79e88"/>
+  <Rod from={[2.2,3.4,-2.4]} to={[3.6,5.3,-2.4]} radius={.22} color="#b4b4a4"/>
+  <DashboardCabinet position={[4.6,0,-3.4]} tall={2.6}/>
+  <DashboardCabinet position={[4.6,0,-1.9]} tall={2.6}/>
+  <Indicator position={[3.7,5.2,2.7]}/>
+  <SafetyFence at={[0,0,4.5]} length={8.2}/>
+ </group>;
+}
+function DispatchMachine({x,running}) {
+ const truck=useRef();
+ useFrame(({clock})=>{if(truck.current&&running)truck.current.position.x=Math.sin(clock.getElapsedTime()*.08)*.5;});
+ return <group position={[x,0,0]}>
+  <Cuboid position={[0,.16,0]} size={[9,.32,6.4]} color="#4a6068"/>
+  <Cuboid position={[0,.25,5.3]} size={[9,.5,3]} color="#3a4a4f"/>
+  <group ref={truck} position={[0,0,6.4]}>
+    <Cuboid position={[0,2.2,0]} size={[8.2,3.2,2.4]} color="#b7c0b8" metalness={.3}/>
+    <Cuboid position={[0,.7,0]} size={[8.4,.4,2.5]} color="#4b5d62"/>
+    <Cuboid position={[4.8,1.6,0]} size={[1.7,2.2,2.3]} color="#7a97a0"/>
+    <Cuboid position={[5.6,2.0,0]} size={[.12,1,2]} color="#a7d1d6" transparent opacity={.55}/>
+    {[-3,-1.5,3.5,5].map(a=>[-1.1,1.1].map(b=><Cylinder key={`${a}/${b}`} position={[a,.4,b]} args={[.42,.42,.3,14]} rotation={[Math.PI/2,0,0]} color="#161f22"/>))}
+  </group>
+  {[-3.6,3.6].map(a=><Cuboid key={a} position={[a,3.3,-2.2]} size={[.25,6.2,.26]} color="#8da4a6"/>)}
+  <Cuboid position={[0,6.4,-2.2]} size={[8.1,.4,.4]} color="#bba96a"/>
+  <PalletStack position={[-2.8,0,-3.2]} count={2}/>
+  <PalletStack position={[2.8,0,-3.4]} count={3}/>
+  <MobileRobot position={[0,0,-.2]} phase={1.2} running={running}/>
+  <DashboardCabinet position={[-4.1,0,-4.5]}/>
+  <Indicator position={[3.6,6.7,-2.2]}/>
+ </group>;
+}
+function PowertrainMachine({x,z,running}) {
+ return <group position={[x,0,z]}>
+  <Cuboid position={[0,.2,0]} size={[13,.4,8]} color="#4a6068"/>
+  {[-3.4,3.4].map((a,i)=><group key={a}>
+    <Cuboid position={[a,.9,0]} size={[2.8,1,2]} color="#3d535a"/>
+    <Cuboid position={[a,1.5,0]} size={[1.9,.6,1.4]} color={i?'#7f9aa3':'#b79e6b'}/>
+    <RobotArm position={[a+(i?1.9:-1.9),.4,-1.9]} color={i?'#9bc1b7':'#d1aa67'} mirror={!!i} size={.85} running={running} phase={i*2.1}/>
+    <RobotArm position={[a+(i?-1.9:1.9),.4,2.0]} color="#81bfc0" mirror={!i} size={.78} running={running} phase={1.2+i}/>
+  </group>)}
+  <Cuboid position={[0,.55,0]} size={[1.9,.3,5.6]} color="#2b3e45"/>
+  {[-5.6,5.6].map(a=><StorageRack key={a} position={[a,0,-3.2]} levels={2} width={3.2}/>)}
+  {[-5.8,5.8].map(a=>[-3.4,3.4].map(b=><Cuboid key={`${a}/${b}`} position={[a,2.5,b]} size={[.2,4.6,.22]} color="#8ba3a5"/>))}
+  <Cuboid position={[0,4.9,-3.4]} size={[11.8,.28,.28]} color="#8ba3a5"/>
+  <DashboardCabinet position={[0,0,-3.6]} rotate={Math.PI}/>
+  <Indicator position={[5.8,5.2,3.4]}/>
+  <SafetyFence at={[0,0,4.1]} length={12}/>
+ </group>;
+}
 function Forklift({position=[0,0,0],rotation=0}) {
  return <group position={position} rotation={[0,rotation,0]}>
   <Cuboid position={[0,.42,0]} size={[2.65,.76,1.55]} color="#b89a58" />
@@ -352,50 +499,52 @@ function MobileRobot({position=[0,0,0],phase=0,running=true}) {
  </group>;
 }
 function Ancillaries({running}) {
- return <group>
-  <Forklift position={[-28.2,0,8.0]} rotation={Math.PI/2}/>
-  <ToolCart position={[-7.9,0,-7.9]} color="#96b1ad"/>
-  <ToolCart position={[17,0,7.8]} color="#b4a779"/>
-  <ToolCart position={[27,0,7.7]} color="#93a9ad"/>
-  <TyrePallet position={[14,0,-7.4]}/>
-  <TyrePallet position={[-1.0,0,-7.1]}/>
-  <MobileRobot position={[-4.8,0,9.1]} phase={0} running={running}/>
-  <MobileRobot position={[8.2,0,-8.4]} phase={2} running={running}/>
-  <StorageRack position={[-25,0,-7.2]} levels={3} width={4.0}/>
-  <StorageRack position={[21,0,-7.3]} levels={3} width={3.8}/>
-  <StorageRack position={[-14.0,0,7.9]} levels={2} width={4.5}/>
-  <StorageRack position={[11.8,0,7.9]} levels={2} width={3.5}/>
-  <PalletStack position={[29,0,-7.0]} count={2}/>
-  <PalletStack position={[-29,0,6.1]} count={3}/>
-  <PalletStack position={[2,0,7.3]} count={2}/>
-  {[-26,-14,-2,10,22].map((x,i)=><group key={x}>
-    <Cuboid position={[x,1.32,8.3]} size={[1.35,2.64,.90]} color={i%2?'#6f8280':'#869593'} />
-    <Cuboid position={[x,2.0,8.8]} size={[.83,.52,.06]} color="#253d43" emissive="#375d61" emissiveIntensity={.3}/>
-  </group>)}
-  <Cuboid position={[-28,1,-3.5]} size={[1.0,2.0,2]} color="#829897" />
-  {Array.from({length:10},(_,i)=>-28+i*6).map(x=><group key={x}>
+  const racks=[[-46,-7.2,3,4.0],[-33,7.9,2,4.5],[-20,-7.3,3,3.8],[-9,7.9,2,3.5],[7,-7.3,3,4.0],[18,7.9,2,4.5],[30,-7.3,3,3.8],[41,7.9,2,3.5]];
+  const lampsX=Array.from({length:12},(_,i)=>-45+i*8.2);
+  return <group>
+   <Forklift position={[-47,0,8.0]} rotation={Math.PI/2}/>
+   <Forklift position={[36,0,-7.8]} rotation={-Math.PI/2}/>
+   <ToolCart position={[-37,0,-7.9]} color="#96b1ad"/>
+   <ToolCart position={[-15.5,0,7.8]} color="#b4a779"/>
+   <ToolCart position={[26,0,7.7]} color="#93a9ad"/>
+   <TyrePallet position={[-26,0,-7.4]}/>
+   <TyrePallet position={[15,0,-7.1]}/>
+   <MobileRobot position={[-26,0,9.1]} phase={0} running={running}/>
+   <MobileRobot position={[12,0,9.1]} phase={2} running={running}/>
+   <MobileRobot position={[-4.2,0,-6.4]} phase={3.6} running={running}/>
+   {racks.map(([x,z,l,w],i)=><StorageRack key={i} position={[x,0,z]} levels={l} width={w}/>)}
+   <PalletStack position={[47,0,-7.0]} count={2}/>
+   <PalletStack position={[-48,0,6.1]} count={3}/>
+   <PalletStack position={[-3,0,7.3]} count={2}/>
+   <PalletStack position={[-16,-.0,-7.0]} count={2}/>
+   {[-45,-31,-17,4,22,33].map((x,i)=><group key={x}>
+     <Cuboid position={[x,1.32,8.3]} size={[1.35,2.64,.90]} color={i%2?'#6f8280':'#869593'} />
+     <Cuboid position={[x,2.0,8.8]} size={[.83,.52,.06]} color="#253d43" emissive="#375d61" emissiveIntensity={.3}/>
+   </group>)}
+   {lampsX.map(x=><group key={x}>
      <Cylinder position={[x,6.5,-8.2]} args={[.08,.08,6,10]} rotation={[Math.PI/2,0,0]} color="#a79e88"/>
      <Cuboid position={[x,6.48,-8.2]} size={[.22,.19,6.1]} color="#9a9a91" />
      <Rod from={[x,6.48,-8.2]} to={[x,8,-8.2]} radius={.06} color="#abb2a5"/>
-  </group>)}
-  <Cuboid position={[0,6.5,-8.2]} size={[59,.32,.32]} color="#ba9e65"/>
-  <Cuboid position={[0,6.9,-8.2]} size={[59,.16,.18]} color="#d2b879"/>
-  {[-19,-7,5,17,27].map(x=><group key={x}>
-    <Cuboid position={[x,.15,-6.6]} size={[2,.27,1.55]} color="#52676e" />
-    {[-.75,.75].map(off=><Cylinder key={off} position={[x+off,.44,-6.6]} args={[.27,.27,.13,12]} color="#b6b5a3"/>)}
-  </group>)}
-  {[-28,-15,-2,13,28].map(x=><group key={x}>
-    <Cuboid position={[x,.73,9.7]} size={[.82,1.3,.74]} color="#d0aa65"/>
-    <Cuboid position={[x,1.42,9.7]} size={[.73,.14,.74]} color="#4e6268"/>
-  </group>)}
- </group>;
+   </group>)}
+   <Cuboid position={[0,6.5,-8.2]} size={[LENGTH-6,.32,.32]} color="#ba9e65"/>
+   <Cuboid position={[0,6.9,-8.2]} size={[LENGTH-6,.16,.18]} color="#d2b879"/>
+   {[-37,-26,-15,16,27,38].map(x=><group key={x}>
+     <Cuboid position={[x,.15,-6.6]} size={[2,.27,1.55]} color="#52676e" />
+     {[-.75,.75].map(off=><Cylinder key={off} position={[x+off,.44,-6.6]} args={[.27,.27,.13,12]} color="#b6b5a3"/>)}
+   </group>)}
+  </group>;
 }
-function MarkerLabel({x,index,station,selected,bottleneck,onSelect}) {
+const STATUS_TEXT = { running:'Running', degraded:'Degraded', down:'Down', blocked:'Blocked', starved:'Starved', setup:'Changeover', off:'Idle' };
+function MarkerLabel({id,index,cfg,metric,selected,bottleneck,onSelect}) {
+ const [x,z]=LAYOUT[id];
+ const status=metric?.status||'off';
  const warn=bottleneck;
- return <Html transform center position={[x,8.9,2.6]} distanceFactor={10} zIndexRange={[12,0]} occlude={false}>
-   <button className={`asset-tag ${warn?'alert':''} ${selected?'selected':''}`} onClick={(e)=>{e.stopPropagation();onSelect(index);}} aria-label={`Select ${station.name}`}>
-     <span className="tag-no">{String(index+1).padStart(2,'0')}</span><span className="tag-meta"><strong>{station.name}</strong><small>{station.cycle.toFixed(0)}s cycle · {station.downtime?`${station.downtime}% downtime`:'operational'}</small></span>
-     <span className="tag-led"/>
+ const feeder=id==='powertrain';
+ return <Html transform center position={[x,feeder?7.2:8.9,z+(feeder?4.8:2.6)]} distanceFactor={14} zIndexRange={[12,0]} occlude={false}>
+   <button className={`asset-tag ${warn?'alert':''} ${selected?'selected':''}`} data-status={status} onClick={(e)=>{e.stopPropagation();onSelect(id);}} aria-label={`Select ${cfg.name}`}>
+     <span className="tag-no">{feeder?'PT':String(index+1).padStart(2,'0')}</span>
+     <span className="tag-meta"><strong>{cfg.name}</strong><small>{STATUS_TEXT[status]}{metric?` · ${metric.utilisation.toFixed(0)}% busy`:''}</small></span>
+     <span className="tag-led" style={{background:STATUS_COLOR[status],boxShadow:`0 0 8px ${STATUS_COLOR[status]}88`}}/>
    </button>
  </Html>;
 }
@@ -403,13 +552,13 @@ function CameraRig({view,command}) {
  const {camera}=useThree();
  const ctrl=useRef();
  const animating=useRef(true);
- const desired=useRef(new Vector3(35,32,64));
- const target=useRef(new Vector3(0,2,0));
+ const desired=useRef(new Vector3(44,62,84));
+ const target=useRef(new Vector3(0,2,-3));
  useEffect(()=>{
-   const presets={iso:[35,32,64],top:[0,72,.01],front:[3,16,76]};
+   const presets={iso:[44,62,84],top:[0,110,.01],front:[4,20,118]};
    const next=presets[view]||presets.iso;
    desired.current.set(...next);
-   target.current.set(0,view==='top'?0:2,0);
+   target.current.set(0,view==='top'?0:2,view==='top'?-3:-3);
    animating.current=true;
  },[view,command]);
  useFrame((_,delta)=>{
@@ -421,45 +570,57 @@ function CameraRig({view,command}) {
      ctrl.current.update();
    } else { animating.current=false; }
  });
- return <OrbitControls ref={ctrl} enableDamping dampingFactor={.08} minZoom={10} maxZoom={32}
+ return <OrbitControls ref={ctrl} enableDamping dampingFactor={.08} minZoom={8} maxZoom={48}
    minPolarAngle={.12} maxPolarAngle={Math.PI*.46} enablePan enableRotate screenSpacePanning
-   target={[0,2,0]} />;
+   target={[0,2,-3]} />;
 }
-function FactoryWorld({stations,bottleneckIndex,selectedIndex,setSelectedIndex,running,throughput,view,command}) {
+function FactoryWorld({stations,metrics,bottleneckId,selectedId,setSelectedId,running,uph,view,command}) {
+ const flow=useRef(1);
+ flow.current=Math.max(.15,uph/45);
+ const live=(id)=>running&&['running','degraded','setup'].includes(metrics[id]?.status||'running');
+ const machines={
+   stamp:<StampingMachine x={LAYOUT.stamp[0]} running={live('stamp')}/>,
+   weld:<WeldingMachine x={LAYOUT.weld[0]} running={live('weld')}/>,
+   paint:<PaintingMachine x={LAYOUT.paint[0]} running={live('paint')}/>,
+   trim:<TrimMachine x={LAYOUT.trim[0]} running={live('trim')}/>,
+   marriage:<MarriageMachine x={LAYOUT.marriage[0]} running={live('marriage')}/>,
+   final:<AssemblyMachine x={LAYOUT.final[0]} running={live('final')}/>,
+   eol:<EolMachine x={LAYOUT.eol[0]} running={live('eol')}/>,
+   audit:<QualityMachine x={LAYOUT.audit[0]} running={live('audit')}/>,
+   dispatch:<DispatchMachine x={LAYOUT.dispatch[0]} running={live('dispatch')}/>,
+   powertrain:<PowertrainMachine x={LAYOUT.powertrain[0]} z={LAYOUT.powertrain[1]} running={live('powertrain')}/>,
+ };
+ const ids=[...MAIN_IDS,'powertrain'];
  return <>
    <color attach="background" args={['#111d24']}/>
-   <fog attach="fog" args={['#111d24',65,145]} />
+   <fog attach="fog" args={['#111d24',90,230]} />
    <ambientLight intensity={1.22} color="#cce0dc" />
    <hemisphereLight intensity={1.7} color="#d6ece9" groundColor="#344249" />
-   <directionalLight castShadow position={[-18,38,25]} intensity={2.8} color="#f6f1dc" shadow-mapSize-width={1024} shadow-mapSize-height={1024}
-     shadow-camera-left={-43} shadow-camera-right={43} shadow-camera-top={25} shadow-camera-bottom={-25} shadow-bias={-.001} />
-   <directionalLight position={[10,18,-20]} intensity={1.35} color="#79b4c0"/>
-   <pointLight position={[-12,8,2]} intensity={22} distance={20} color="#b1dacd" />
-   <pointLight position={[15,7,-1]} intensity={24} distance={19} color="#ffd6a1" />
+   <directionalLight castShadow position={[-30,48,30]} intensity={2.8} color="#f6f1dc" shadow-mapSize-width={2048} shadow-mapSize-height={2048}
+     shadow-camera-left={-62} shadow-camera-right={62} shadow-camera-top={36} shadow-camera-bottom={-36} shadow-camera-near={1} shadow-camera-far={140} shadow-bias={-.001} />
+   <directionalLight position={[20,18,-30]} intensity={1.35} color="#79b4c0"/>
+   {[-34,-12,12,34].map(x=><pointLight key={x} position={[x,8,2]} intensity={22} distance={24} color={x<0?'#b1dacd':'#ffd6a1'} />)}
    <Floor/><HallStructure/>
-   {POSITIONS.map((x,index)=><Zone key={index} index={index} x={x} selected={selectedIndex===index} bottleneck={bottleneckIndex===index} onClick={setSelectedIndex}/>)}
+   {MAIN_IDS.map(id=><Zone key={id} id={id} x={LAYOUT[id][0]} selected={selectedId===id} bottleneck={bottleneckId===id} status={metrics[id]?.status} onClick={setSelectedId}/>)}
+   <Zone id="powertrain" w={14} d={9.4} x={LAYOUT.powertrain[0]} z={LAYOUT.powertrain[1]} selected={selectedId==='powertrain'} bottleneck={bottleneckId==='powertrain'} status={metrics.powertrain?.status} onClick={setSelectedId}/>
    <RailConveyor/>
-   {[
-     <StampingMachine x={POSITIONS[0]} running={running}/>,
-     <WeldingMachine x={POSITIONS[1]} running={running}/>,
-     <PaintingMachine x={POSITIONS[2]} running={running}/>,
-     <AssemblyMachine x={POSITIONS[3]} running={running}/>,
-     <QualityMachine x={POSITIONS[4]} running={running}/>
-   ].map((machine,index)=><group key={index} onClick={(e)=>{e.stopPropagation();setSelectedIndex(index);}}>{machine}</group>)}
+   {ids.map(id=><group key={id} onClick={(e)=>{e.stopPropagation();setSelectedId(id);}}>{machines[id]}</group>)}
+   {ids.map(id=>{const m=metrics[id]; if(!m)return null; const [x,z]=LAYOUT[id]; const feeder=id==='powertrain';
+     return <BufferRow key={id} x={x-(feeder?0:5.3)} z={feeder?z+4.9:3.7} cap={m.bufferCap} fill={m.buffer} color={m.buffer>=m.bufferCap?'#d9a35f':'#6ac9c0'}/>;})}
    <Ancillaries running={running}/>
-   {Array.from({length:7},(_,i)=><TravelingCar key={i} index={i} running={running} throughput={throughput}/>)}
-   {POSITIONS.map((x,index)=><MarkerLabel key={index} x={x} index={index} station={stations[index]} selected={selectedIndex===index} bottleneck={bottleneckIndex===index} onSelect={setSelectedIndex}/>)}
-   <OrthographicCamera makeDefault position={[35,32,64]} zoom={18} near={.1} far={300}/>
+   {Array.from({length:9},(_,i)=><TravelingCar key={i} index={i} count={9} running={running} flow={flow}/>)}
+   {ids.map((id,i)=><MarkerLabel key={id} id={id} index={i} cfg={stations.find(s=>s.id===id)} metric={metrics[id]} selected={selectedId===id} bottleneck={bottleneckId===id} onSelect={setSelectedId}/>)}
+   <OrthographicCamera makeDefault position={[44,62,84]} zoom={13} near={.1} far={420}/>
    <CameraRig view={view} command={command} />
  </>;
 }
 
-export default function FactoryScene({stations,bottleneckIndex,selectedIndex,setSelectedIndex,running,throughput}){
+export default function FactoryScene({stations,metrics,bottleneckId,selectedId,setSelectedId,running,uph}){
  const [view,setView]=useState('iso');
  const [command,setCommand]=useState(0);
  const [grid,setGrid]=useState(true);
  return <div className={`scene-3d-shell ${grid?'show-grid':''}`}>
-   <div className="scene-chrome scene-chrome-left"><span className="scene-status-dot"/> DIGITAL TWIN / V2.0 <span className="scene-chrome-sep">·</span> AX-01 / SIMULATED</div>
+   <div className="scene-chrome scene-chrome-left"><span className="scene-status-dot"/> DIGITAL TWIN / V3.0 <span className="scene-chrome-sep">·</span> AX-01 / SIMULATED</div>
    <div className="scene-chrome scene-chrome-right"><ScanLine size={14}/> PROCEDURAL 3D <span className="scene-chrome-sep">/</span> NO EXTERNAL ASSETS</div>
    <div className="camera-rail" aria-label="Factory camera controls">
      <span>CAMERA</span>
@@ -467,14 +628,14 @@ export default function FactoryScene({stations,bottleneckIndex,selectedIndex,set
      <button title="Reset camera" aria-label="Reset 3D camera" onClick={()=>{setView('iso');setCommand(c=>c+1);}}><RotateCcw size={14}/></button>
    </div>
    <div className="scene-canvas">
-     <Canvas shadows gl={{antialias:true,powerPreference:'high-performance'}} dpr={[1,1.8]} frameloop="always" aria-label="Interactive 3D factory with five manufacturing stations">
+     <Canvas shadows gl={{antialias:true,powerPreference:'high-performance'}} dpr={[1,1.6]} frameloop="always" aria-label="Interactive 3D factory with nine production stations and a powertrain feeder cell">
        <Suspense fallback={null}>
-         <FactoryWorld stations={stations} bottleneckIndex={bottleneckIndex} selectedIndex={selectedIndex}
-           setSelectedIndex={setSelectedIndex} running={running} throughput={throughput} view={view} command={command}/>
+         <FactoryWorld stations={stations} metrics={metrics} bottleneckId={bottleneckId} selectedId={selectedId}
+           setSelectedId={setSelectedId} running={running} uph={uph} view={view} command={command}/>
        </Suspense>
      </Canvas>
    </div>
    <div className="scene-guide"><Move3d size={13}/><span>DRAG TO ORBIT</span><span className="guide-separator"/> SCROLL TO ZOOM <span className="guide-separator"/> CLICK A STATION</div>
-   <div className="scene-scale">CONCEPT LAYOUT: 63 × 23m <span>/</span> MOTION ACCELERATED FOR DEMO</div>
+   <div className="scene-scale">CONCEPT LAYOUT: 100 × 35m <span>/</span> VEHICLE MOTION IS ILLUSTRATIVE</div>
  </div>;
 }

@@ -17,37 +17,24 @@ npm run build  # production static bundle
 npm run preview
 ```
 
+## What the model does
+
+`src/sim/engine.js` is a seeded discrete-event simulation, one tick per simulated second. Same config and seed give the same run.
+
+- **Nine stations plus a feeder:** stamping (press), body welding (robot cells), paint (batch oven), interior trim (manual), chassis marriage (join with powertrain kits), final assembly (manual), end-of-line test, quality audit, dispatch (truck batches). The powertrain cell feeds a kit buffer.
+- **Per-station controls:** cycle time and variability, parallel machines, buffer size, MTBF/MTTR failures, first-pass yield, scrap share, rework target, changeover time, line speed, staffing, batch size.
+- **Line controls:** demand target, CONWIP or push release, WIP cap, 1 to 3 shifts with breaks, model mix (sedan/SUV/EV), run-length sequencing.
+- **Disruptions:** inject a breakdown, quality drop, staff absence, supply stop or demand surge into the live run.
+- **Read-outs:** output vs target, WIP, lead time, rolled yield, per-station busy/blocked/starved/down shares, buffer fill, OEE, and a live constraint detector.
+- **Improvement advisor:** runs each candidate change on the same engine (4 seeds, 12 h) and ranks them by capacity gain.
+
+`src/sim/analysis.js` also holds a closed-form capacity estimate. It ignores starving, blocking and variability, so it overstates the run. The gap between the two is the cost of those effects.
+
+**Limits:** one product flow, no maintenance planning, no operator skills, no part-level material tracking, simplified break calendar. All inputs are synthetic.
+
 ## 3D production floor
 
-The real Three.js scene (`src/FactoryScene.jsx`) is fully procedural. No remote GLTF assets or textures. The production floor is **63 × 23 conceptual world units**, and the view can be rotated, zoomed and panned. Three camera presets provide 3D isometric, top and front views. Rendering includes:
-
-- Stamping press with animated die and sheet staging.
-- Four robotic welding manipulators, structural gantry and protected cell.
-- Transparent paint booth, spray manipulators and extraction ducts.
-- Vehicle assembly gantry, moving hoist and robot tools.
-- Quality inspection gate, scanner and operator cabinets.
-- Connected motor conveyor, moving vehicles, factory hall, overhead light trusses, pipework, storage racks, forklifts, material pallets, tire stacks, mobile robots, safety fences, control cabinets, and other support equipment.
-- Click an asset or station label to select a production stage; bottleneck and selected stages get restrained floor annotations.
-
-Vehicle animation is deliberately accelerated to make flow visible and is **not** a discrete-event or vehicle-tracking simulation.
-
-## Simulation model
-
-`src/simulation.js` is a pure local function covered by `tests/simulation.test.js`.
-
-- Cycle time editable from 15–100s per unit.
-- Downtime editable from 0–60% for each station.
-- Effective cycle time = `nominalCycleSeconds / (1 - downtimePercent / 100)`.
-- Bottleneck is the stage with the greatest effective cycle time.
-- Line capacity = `3600 / maxEffectiveCycleSeconds` (units/hour).
-- Utilisation = `stageEffectiveCycle / maxEffectiveCycle` (as a percentage).
-- Mean station utilisation = average of above figures.
-- Balance efficiency = `sum(nominalCycles) / (stationCount * maxEffectiveCycle)`.
-- Estimated shift output = `floor(hourlyCapacity * 8)`.
-- **Simulate Improvement** cuts the bottleneck's *nominal* cycle by 20%, respecting the 15s minimum; it can cause the constraint to move.
-- **Reset** restores all initial rates and clears downtime.
-
-**Model limits:** ideal serial flow; no station buffers, parallel lines, scrap, queues, setup times, failures, or quality-yield model. Charts display synthetic time-series jitter; there is no historical or live telemetry. These metrics are capacity estimates, not certified OEE values.
+`src/FactoryScene.jsx` is fully procedural, 100 x 35 conceptual metres. Station zones and tags take their color from live state. Rows of blocks on the floor show each input buffer. Vehicle motion is illustrative.
 
 ## Cloud Run
 
