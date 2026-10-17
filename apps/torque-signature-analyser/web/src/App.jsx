@@ -4,6 +4,7 @@ import CountStrip from './components/CountStrip.jsx';
 import Ledger from './components/Ledger.jsx';
 import TorqueGraph from './components/TorqueGraph.jsx';
 import EvidencePanel from './components/EvidencePanel.jsx';
+import JointScene from './scene/JointScene.jsx';
 import { initialState, selectionReducer, selectedRundown, parseSpecInputs, specToInputs, SAMPLE_SPEC, EMPTY_SPEC } from './state.js';
 import { listSamples, analyseSample, analyseUpload } from './api.js';
 
@@ -127,7 +128,12 @@ export default function App() {
             </aside>
           </div>
           <div className="slot slot-3d" data-slot="3d">
-            <p className="slot-empty">3D joint goes here.</p>
+            <JointScene
+              result={state.result}
+              selected={selected}
+              cursor={state.cursor}
+              onSelect={(id) => dispatch({ type: 'SELECT', rundownId: id })}
+            />
           </div>
           <div className="slot slot-playback" data-slot="playback">
             <p className="slot-empty">Playback bar goes here.</p>
