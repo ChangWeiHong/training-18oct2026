@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import Toolbar from './components/Toolbar.jsx';
 import CountStrip from './components/CountStrip.jsx';
 import Ledger from './components/Ledger.jsx';
 import TorqueGraph from './components/TorqueGraph.jsx';
 import EvidencePanel from './components/EvidencePanel.jsx';
-import JointScene from './scene/JointScene.jsx';
+const JointScene = lazy(() => import('./scene/JointScene.jsx'));
 import { initialState, selectionReducer, selectedRundown, parseSpecInputs, specToInputs, SAMPLE_SPEC, EMPTY_SPEC } from './state.js';
 import { listSamples, analyseSample, analyseUpload } from './api.js';
 
@@ -128,12 +128,14 @@ export default function App() {
             </aside>
           </div>
           <div className="slot slot-3d" data-slot="3d">
-            <JointScene
-              result={state.result}
-              selected={selected}
-              cursor={state.cursor}
-              onSelect={(id) => dispatch({ type: 'SELECT', rundownId: id })}
-            />
+            <Suspense fallback={<p className="slot-empty">Loading 3D view.</p>}>
+              <JointScene
+                result={state.result}
+                selected={selected}
+                cursor={state.cursor}
+                onSelect={(id) => dispatch({ type: 'SELECT', rundownId: id })}
+              />
+            </Suspense>
           </div>
           <div className="slot slot-playback" data-slot="playback">
             <p className="slot-empty">Playback bar goes here.</p>

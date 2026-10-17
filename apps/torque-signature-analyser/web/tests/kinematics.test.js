@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { jointPose, boltSlots, statusKind } from '../src/scene/kinematics.js';
 
 const curve = { angle: [0, 100, 200, 300, 400], torque: [2, 10, 30, 80, 110] };
-const opts = { torqueMax: 120, maxCompression: 0.08 };
+const opts = { torqueMax: 120, maxCompression: 0.14 };
 
 test('rotation equals the measured angle in radians', () => {
   const p = jointPose(curve, 3, 200, opts);
@@ -22,9 +22,9 @@ test('compression is 0 before snug and bounded after', () => {
   assert.equal(jointPose(curve, 1, 200, opts).compression, 0);
   assert.equal(jointPose(curve, 2, 200, opts).compression, 0);
   const c = jointPose(curve, 3, 200, opts).compression;
-  assert.ok(Math.abs(c - (80 / 120) * 0.08) < 1e-12);
+  assert.ok(Math.abs(c - (80 / 120) * 0.14) < 1e-12);
   const over = jointPose({ angle: [0, 300], torque: [0, 999] }, 1, 100, opts).compression;
-  assert.equal(over, 0.08);
+  assert.equal(over, 0.14);
 });
 
 test('null snug: rotation only, no travel or compression', () => {
@@ -64,4 +64,12 @@ test('statusKind priority: outside, investigate, cant_assess, typical', () => {
   assert.equal(statusKind({ spec_result: 'within', signature: 'investigate' }), 'investigate');
   assert.equal(statusKind({ spec_result: 'within', signature: 'cant_assess' }), 'cant_assess');
   assert.equal(statusKind({ spec_result: 'not_supplied', signature: 'typical' }), 'typical');
+});
+
+test('visual gap is a fraction: 1 at angle 0, linear in travel, 0 at and after snug, 0 with no snug', () => {
+  assert.equal(jointPose(curve, 0, 200, opts).gap, 1);
+  assert.ok(Math.abs(jointPose(curve, 1, 200, opts).gap - 0.5) < 1e-12);
+  assert.equal(jointPose(curve, 2, 200, opts).gap, 0);
+  assert.equal(jointPose(curve, 4, 200, opts).gap, 0);
+  assert.equal(jointPose(curve, 0, null, opts).gap, 0);
 });

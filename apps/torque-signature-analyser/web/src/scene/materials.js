@@ -18,7 +18,10 @@ export function tokenColor(name, fallback = '#888888') {
 }
 
 /** Roughness variation (MengTo metal step 4): smears, two scratch angles and fine grain. Green channel is read. */
+let roughCache = null;
+let hatchCache = null;
 function roughnessTexture(seed = 7, size = 256) {
+  if (roughCache) return roughCache;
   const c = document.createElement('canvas');
   c.width = c.height = size;
   const g = c.getContext('2d');
@@ -52,6 +55,7 @@ function roughnessTexture(seed = 7, size = 256) {
   g.putImageData(img, 0, 0);
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  roughCache = t;
   return t;
 }
 
@@ -83,8 +87,12 @@ const F0 = (r, g, b) => new THREE.Color().setRGB(r, g, b, THREE.LinearSRGBColorS
 export function createMaterials(cut) {
   const rough = roughnessTexture();
   const steelF0 = F0(0.56, 0.57, 0.58);
-  const hatch = hatchTexture(tokenColor('--color-alu', '#bbb').multiplyScalar(0.7), tokenColor('--color-surface', '#222'));
-  const hatchDark = hatchTexture(tokenColor('--color-steel', '#99a').multiplyScalar(0.45), tokenColor('--color-surface', '#222'));
+  hatchCache ??= {
+    top: hatchTexture(tokenColor('--color-alu', '#bbb').multiplyScalar(0.8), tokenColor('--color-surface', '#222')),
+    base: hatchTexture(tokenColor('--color-steel', '#99a').multiplyScalar(0.6), tokenColor('--color-surface', '#222')),
+  };
+  const hatch = hatchCache.top;
+  const hatchDark = hatchCache.base;
   const single = cut?.single ?? [];
   const box = cut?.box ?? [];
 
@@ -94,15 +102,17 @@ export function createMaterials(cut) {
   const washer = new THREE.MeshPhysicalMaterial({ color: steelF0, metalness: 1, roughness: 0.3, roughnessMap: rough, anisotropy: 0.8, clippingPlanes: single });
   const washerFree = washer.clone();
   washerFree.clippingPlanes = null;
-  const socket = new THREE.MeshStandardMaterial({ color: F0(0.3, 0.31, 0.33), metalness: 1, roughness: 0.22, roughnessMap: rough, side: THREE.DoubleSide, clippingPlanes: single, emissive: new THREE.Color(0, 0, 0) });
+  const socket = new THREE.MeshStandardMaterial({ color: F0(0.62, 0.64, 0.67), metalness: 1, roughness: 0.3, roughnessMap: rough, side: THREE.DoubleSide, clippingPlanes: single, emissive: new THREE.Color(0, 0, 0) });
   const plateTop = new THREE.MeshStandardMaterial({ color: steelF0, metalness: 1, roughness: 0.34, roughnessMap: rough, side: THREE.DoubleSide, clippingPlanes: box, clipIntersection: true });
-  const plateBase = new THREE.MeshStandardMaterial({ color: F0(0.24, 0.25, 0.27), metalness: 0.9, roughness: 0.62, roughnessMap: rough, side: THREE.DoubleSide, clippingPlanes: box, clipIntersection: true });
-  const hub = new THREE.MeshStandardMaterial({ color: F0(0.2, 0.21, 0.23), metalness: 0.9, roughness: 0.7, roughnessMap: rough });
+  const plateBase = new THREE.MeshStandardMaterial({ color: F0(0.42, 0.44, 0.47), metalness: 0.9, roughness: 0.55, roughnessMap: rough, side: THREE.DoubleSide, clippingPlanes: box, clipIntersection: true });
+  const hub = new THREE.MeshStandardMaterial({ color: F0(0.34, 0.35, 0.38), metalness: 0.9, roughness: 0.6, roughnessMap: rough });
   const capTop = new THREE.MeshStandardMaterial({ map: hatch, metalness: 0, roughness: 0.9 });
   const capBase = new THREE.MeshStandardMaterial({ map: hatchDark, metalness: 0, roughness: 0.9 });
-  const capBolt = new THREE.MeshStandardMaterial({ color: tokenColor('--color-steel', '#aab'), metalness: 0, roughness: 0.8 });
+  const capBolt = new THREE.MeshStandardMaterial({ color: tokenColor('--color-steel', '#aab').multiplyScalar(0.55), metalness: 0, roughness: 0.8 });
   const edge = new THREE.MeshBasicMaterial({ color: tokenColor('--color-motion', '#3df5d2'), toneMapped: false, transparent: true, opacity: 0.9, clippingPlanes: single });
 
+  const gapMat = new THREE.MeshBasicMaterial({ color: tokenColor('--color-motion', '#3df5d2'), transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, clippingPlanes: single });
+  const mark = new THREE.MeshBasicMaterial({ color: tokenColor('--color-text', '#eee'), toneMapped: false, clippingPlanes: single });
   const status = {
     typical: tokenColor('--color-steel', '#99a'),
     investigate: tokenColor('--color-amber', '#e0a030'),
@@ -113,6 +123,6 @@ export function createMaterials(cut) {
   const ringCut = Object.fromEntries(Object.entries(ring).map(([k, m]) => { const c = m.clone(); c.clippingPlanes = single; return [k, c]; }));
   const motion = tokenColor('--color-motion', '#3df5d2');
 
-  const all = [zinc, zincFree, washer, washerFree, socket, plateTop, plateBase, hub, capTop, capBase, capBolt, edge, hatch, hatchDark, rough, ...Object.values(ring), ...Object.values(ringCut)];
-  return { zinc, zincFree, washer, washerFree, socket, plateTop, plateBase, hub, capTop, capBase, capBolt, edge, ring, ringCut, motion, dispose: () => all.forEach((m) => m.dispose()) };
+  const all = [zinc, zincFree, washer, washerFree, socket, plateTop, plateBase, hub, capTop, capBase, capBolt, edge, gapMat, mark, ...Object.values(ring), ...Object.values(ringCut)];
+  return { zinc, zincFree, washer, washerFree, socket, plateTop, plateBase, hub, capTop, capBase, capBolt, edge, gapMat, mark, ring, ringCut, motion, dispose: () => all.forEach((m) => m.dispose()) };
 }

@@ -7,7 +7,23 @@ import Flange, { FLANGE, slotAngle, slotPosition } from './Flange.jsx';
 import CameraRig from './CameraRig.jsx';
 import Overlay from './Overlay.jsx';
 import { createMaterials, tokenColor } from './materials.js';
-import { boltSlots, jointPose, statusKind, travelAt } from './kinematics.js';
+import { boltSlots, jointPose, statusKind } from './kinematics.js';
+
+// R15: starting head-to-washer gap is 30% of the head height; compression cap is 10% of the top plate.
+const GAP_MAX = 0.3 * 0.95;
+const MAX_COMPRESSION = 0.1 * FLANGE.topT;
+
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
+  useEffect(() => {
+    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    if (!mq) return undefined;
+    const on = () => setReduced(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return reduced;
+}
 
 function hasWebGL() {
   try {
@@ -31,12 +47,13 @@ function cutPlanes(slot) {
   return { single: [A], box: [A, B1, B2] };
 }
 
-function Scene({ focus, siblings, selected, pose, snugAngle, preset, detail, lit, reducedMotion, onSelect }) {
+function Scene({ focus, siblings, selected, pose, preset, detail, lit, reducedMotion, onSelect }) {
   const { invalidate, gl } = useThree();
   const materials = useMemo(() => createMaterials(cutPlanes(focus)), [focus]);
   const bg = useMemo(() => tokenColor('--color-paper', '#15191c'), []);
   useEffect(() => () => materials.dispose(), [materials]);
   useEffect(() => { gl.localClippingEnabled = true; invalidate(); }, [gl, invalidate]);
+  useEffect(() => () => { document.body.style.cursor = ''; }, []);
   useEffect(() => {
     materials.socket.emissive.copy(lit ? materials.motion : new THREE.Color(0, 0, 0));
     materials.socket.emissiveIntensity = lit ? 0.35 : 0;
@@ -45,7 +62,7 @@ function Scene({ focus, siblings, selected, pose, snugAngle, preset, detail, lit
 
   const compression = pose.compression;
   const topY = FLANGE.baseT + FLANGE.topT - compression;
-  const gapUnits = snugAngle == null ? 0 : (travelAt(snugAngle, snugAngle) - pose.travel) / 10;
+  const gapUnits = pose.gap * GAP_MAX;
   const pick = (id) => (e) => {
     e.stopPropagation();
     if (e.delta < 4) onSelect(id);
@@ -55,20 +72,21 @@ function Scene({ focus, siblings, selected, pose, snugAngle, preset, detail, lit
   return (
     <>
       <color attach="background" args={[bg]} />
-      <ambientLight intensity={0.35} />
+      <ambientLight intensity={0.5} />
       <directionalLight position={[-6, 12, 8]} intensity={1.6} color="#fff2df" />
-      <directionalLight position={[8, 5, -4]} intensity={0.5} color="#aec7df" />
+      <directionalLight position={[8, 5, -4]} intensity={0.9} color="#aec7df" />
+      <directionalLight position={[3, 6, 12]} intensity={1.2} color="#fff6ea" />
       <Environment resolution={256} frames={1}>
         <color attach="background" args={['#0b0d0e']} />
-        <Lightformer form="rect" intensity={9} position={[-5, 4.2, 4.8]} scale={[5.2, 3.9]} color="#fff4e2" />
-        <Lightformer form="rect" intensity={3} position={[6, 1.6, 2]} scale={[3, 5.4]} color="#b4d0ee" />
-        <Lightformer form="rect" intensity={4} position={[2.5, 2.2, -5.5]} scale={[2, 4.6]} color="#ffe2b8" />
-        <Lightformer form="rect" intensity={3} position={[0, 6, 0]} scale={[7.5, 2.2]} color="#e4ecf4" />
+        <Lightformer form="rect" intensity={14} position={[-5, 4.2, 4.8]} scale={[5.2, 3.9]} color="#fff4e2" />
+        <Lightformer form="rect" intensity={5} position={[6, 1.6, 2]} scale={[3, 5.4]} color="#b4d0ee" />
+        <Lightformer form="rect" intensity={7} position={[2.5, 2.2, -5.5]} scale={[2, 4.6]} color="#ffe2b8" />
+        <Lightformer form="rect" intensity={5} position={[0, 6, 0]} scale={[7.5, 2.2]} color="#e4ecf4" />
       </Environment>
 
       <Flange materials={materials} squash={compression} focus={focus} />
 
-      {siblings.map(({ slot, rundown, kind }) => {
+      {(preset === 'flange' || focus == null) && siblings.map(({ slot, rundown, kind }) => {
         const last = (rundown.curve?.angle?.[rundown.curve.angle.length - 1] ?? 0) * (Math.PI / 180);
         return (
           <group key={rundown.id} position={slotPosition(slot).setY(topY + WASHER.thickness)} rotation={[0, -slotAngle(slot), 0]}>
@@ -81,6 +99,11 @@ function Scene({ focus, siblings, selected, pose, snugAngle, preset, detail, lit
       {focus != null && selected && (
         <group position={slotPosition(focus).setY(topY)} rotation={[0, -slotAngle(focus), 0]}>
           <Washer materials={materials} cut detail={detail} />
+          {gapUnits > 0.01 && (
+            <mesh material={materials.gapMat} position={[0, WASHER.thickness + gapUnits / 2, 0]}>
+              <cylinderGeometry args={[1.3, 1.3, gapUnits, 40, 1, true]} />
+            </mesh>
+          )}
           <group position={[0, WASHER.thickness + gapUnits, 0]}>
             <Bolt materials={materials} status={statusKind(selected)} rotation={-pose.rotationRad} cut detail={detail} showSocket lit={lit} />
           </group>
@@ -97,7 +120,7 @@ function JointView({ result, selected, cursor, onSelect }) {
   const [compact, setCompact] = useState(false);
   const [preset, setPreset] = useState('section');
   const [lit, setLit] = useState(false);
-  const reducedMotion = useMemo(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false, []);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     const el = box.current;
@@ -110,12 +133,14 @@ function JointView({ result, selected, cursor, onSelect }) {
   // Sea-glass accent only while the cursor is advancing.
   const prev = useRef(cursor);
   useEffect(() => {
-    if (prev.current === cursor) return undefined;
+    const advanced = cursor > prev.current;
     prev.current = cursor;
+    if (reducedMotion) { setLit(false); return undefined; }
+    if (!advanced) return undefined;
     setLit(true);
     const t = setTimeout(() => setLit(false), 220);
     return () => clearTimeout(t);
-  }, [cursor]);
+  }, [cursor, reducedMotion]);
 
   const rundowns = result?.rundowns ?? [];
   const { slots, overflow, focus } = useMemo(() => {
@@ -129,7 +154,7 @@ function JointView({ result, selected, cursor, onSelect }) {
   const torqueMax = spec?.torque_max_nm ?? Math.max(1, ...rundowns.map((r) => r.features?.final_torque ?? 0));
   const snug = selected?.features?.snug_angle ?? null;
   const pose = useMemo(
-    () => jointPose(selected?.curve, cursor, snug, { torqueMax, maxCompression: 0.04 * FLANGE.topT }),
+    () => jointPose(selected?.curve, cursor, snug, { torqueMax, maxCompression: MAX_COMPRESSION }),
     [selected, cursor, snug, torqueMax],
   );
   const detail = !compact && preset === 'section' && focus != null ? 'full' : 'simple';
@@ -149,7 +174,6 @@ function JointView({ result, selected, cursor, onSelect }) {
           siblings={slots.filter((s) => s.slot !== focus)}
           selected={selected}
           pose={pose}
-          snugAngle={snug}
           preset={preset}
           detail={detail}
           lit={lit}

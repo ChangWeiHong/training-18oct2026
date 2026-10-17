@@ -134,6 +134,13 @@ export default function Bolt({ materials, status, rotation = 0, cut = false, det
         <mesh geometry={hex} material={zinc} />
         <mesh geometry={shank} material={zinc} />
         {thread && <mesh geometry={thread} material={zinc} />}
+        {cut && (
+          <>
+            {/* Index marks: painted stripe across the hex top and a tick on the flange, so turning reads at a glance. */}
+            <mesh geometry={plane} material={materials.mark} position={[0.5, BOLT.flangeT + BOLT.hexH + 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[0.95, 0.14, 1]} />
+            <mesh geometry={plane} material={materials.mark} position={[1.17, BOLT.flangeT + 0.013, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[0.2, 0.1, 1]} />
+          </>
+        )}
         {sock && (
           <>
             <mesh geometry={sock.ring} material={materials.socket} />
