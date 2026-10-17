@@ -13,7 +13,7 @@ You need Python 3.13 and Node.js 20+.
 ```bash
 # API on :8080
 python3 -m venv api/.venv
-api/.venv/bin/pip install -r api/requirements.txt
+api/.venv/bin/pip install -r api/requirements.txt -r api/requirements-dev.txt
 api/.venv/bin/uvicorn api.main:app --port 8080 --reload
 
 # Web on :5173, proxies /api to :8080
@@ -38,17 +38,17 @@ One row per sample. A header row is required. Column names are not case-sensitiv
 | Column | Required | Meaning |
 |---|---|---|
 | `rundown_id` | yes | Identifies one tightening. Rows with the same ID form one curve |
-| `angle_deg` | yes | Turn angle in degrees, from -360 to 3600 |
+| `angle_deg` | yes | Turn angle in degrees, from -10 to 3600 |
 | `torque_nm` | yes | Torque in newton metres |
 | `sample_index` | no | Sample order within the rundown. Rows keep file order if you leave it out |
 | `time_ms` | no | Time since the start of the rundown |
 | `assembly_id` | no | Groups bolts into one assembly. Defaults to `rundown_id` |
 | `bolt_position` | no | Bolt number within the assembly |
-| `seeded_pattern` | no | Answer key in the sample files. The app ignores it when scoring your data |
+| `seeded_pattern` | no | Answer key in the sample files. The app ignores it for scoring and returns it unchanged |
 
-Limits: 5 MB per file, 500 rundowns, 5000 points per rundown. Bad rows come back with the row, the column and a suggested fix.
+Limits: 5 MB per file, 64 columns, 500 rundowns, 5000 points per rundown. The server runs two analyses at a time and answers 503 "Server busy" to a request that waits more than 10 seconds. Bad rows come back with the row, the column and a suggested fix.
 
-You can upload a second file as the reference group. Without one, the app compares rundowns against the rest of the same file.
+You can upload a second file as the reference group. Without one, the app compares each rundown with the whole upload, itself included.
 
 ## How it works
 
@@ -78,14 +78,12 @@ Codex reviewed the code at three checkpoints. The full text is in `docs/codex-re
 From this folder, to Cloud Run in project `marii-ge`:
 
 ```bash
-gcloud run deploy torque-signature-analyser \
-  --source . \
-  --project marii-ge \
-  --region asia-southeast1 \
-  --allow-unauthenticated
+gcloud run deploy torque-signature-analyser --source . --region asia-southeast1 --project marii-ge --allow-unauthenticated --memory 1Gi --cpu 1 --concurrency 4 --min-instances 0
 ```
 
-The root `Dockerfile` builds the web bundle in a Node stage, then runs the API on Python 3.13 and serves the bundle. The container listens on `$PORT` (8080). The Vite build caps Node's heap at 700 MB so it fits small Docker VMs. Register the resulting URL in `hub/apps.json`, as described in `/DEPLOY.md`.
+The Dockerfile in this folder builds the web bundle in a Node stage, then runs the API on Python 3.13 as a non-root user and serves the bundle on `$PORT` (8080). It installs `api/requirements.txt` only; `api/requirements-dev.txt` adds the test packages. Register the resulting URL in `hub/apps.json`, as described in the repo root DEPLOY.md.
+
+Measured in a container limited to 1 GB and 1 CPU: four concurrent uploads of a 4.9 MB, 500-rundown file peaked at 387 MiB, and the first `/healthz` answered 0.84 s after `docker run`.
 
 Local check:
 

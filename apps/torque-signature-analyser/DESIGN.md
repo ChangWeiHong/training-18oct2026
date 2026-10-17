@@ -1,4 +1,4 @@
-# Torque Signature Analyser — Visual System
+# Torque Signature Analyser Visual System
 
 ## Audience and job
 
@@ -35,7 +35,7 @@ Assembly and quality engineers who review bolt tightening curves. The main task 
 | Steel | `--color-steel` | Typical |
 | Hatch grey | `--color-hatch` | Not assessable |
 
-Every status carries a symbol and a label next to its colour. Status text keeps 4.5:1 contrast against its background, including the dimmed stale state.
+Every status carries a symbol and a label next to its colour. Status and body text measure at least 4.5:1 on the surface and raised-surface tokens, including the dimmed stale state. The lowest ratios on the raised surface are faint text at 4.53 and the outside-spec red at 4.67 (task 9b measurements; checked by calculation, not with a screen reader or colour-vision simulation).
 
 ## Type and spacing
 
@@ -51,7 +51,7 @@ Every status carries a symbol and a label next to its colour. Status text keeps 
 - Bolt rotation comes from the cursor angle on the graph, not a timer.
 - Materials use a brushed-metal look with subdued mottling and lowered exposure.
 - The scene needs WebGL2. If it is missing or the renderer fails, a scene boundary shows a fallback and keeps the graph, evidence and ledger working.
-- Rendering resolution follows device pixel ratio.
+- Rendering resolution follows device pixel ratio, capped at 2.
 
 ## Motion
 
@@ -66,8 +66,8 @@ Every status carries a symbol and a label next to its colour. Status text keeps 
 - stop-slop: the microcopy, evidence sentences, About text and this documentation. Copy states the value and its limit in plain words.
 - MengTo 3D skills, applied to the flange scene:
   - metal: brushed steel materials with restrained roughness and low-contrast mottling.
-  - orbit-inspect: cursor-driven rotation, orbit and zoom controls, and framing that fits both flange presets at any aspect.
+  - orbit-inspect: cursor-driven rotation, orbit and zoom controls, and framing that fits both flange presets; the camera projection tests (`web/tests/camera.test.js`) cover narrow and wide aspects with and without a selected bolt. A real-GPU check of every device size is not part of those tests.
   - high-poly: smooth bolt heads, sockets and washers from dense procedural geometry rather than flat primitives.
-  - retina: pixel ratio follows the device, with a cap to hold frame rate.
+  - retina: pixel ratio follows the device, capped at 2 to hold frame rate.
 
 The 3D requirement and the graph take precedence over the static-illustration constraints of diagram-design.
