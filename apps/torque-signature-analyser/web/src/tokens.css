@@ -1,0 +1,66 @@
+/* Torque Signature Analyser design tokens. OKLCH only. Components reference these by name. */
+:root {
+  color-scheme: dark;
+
+  /* Graphite surfaces and aluminium rules */
+  --color-paper: oklch(18.5% 0.012 230);
+  --color-surface: oklch(22.5% 0.014 230);
+  --color-surface-2: oklch(27% 0.016 228);
+  --color-surface-3: oklch(31.5% 0.018 226);
+  --color-rule: oklch(34% 0.018 225);
+  --color-rule-strong: oklch(50% 0.022 220);
+
+  /* Text */
+  --color-text: oklch(93% 0.008 200);
+  --color-muted: oklch(76% 0.016 215);
+  --color-faint: oklch(66% 0.018 215);
+  --color-on-light: oklch(20% 0.02 230);
+
+  /* Aluminium control accent (buttons, selection, focus) */
+  --color-alu: oklch(84% 0.025 205);
+  --color-alu-strong: oklch(92% 0.02 200);
+  --color-focus: oklch(90% 0.07 250);
+
+  /* Sea-glass #3df5d2: playback and motion only */
+  --color-motion: oklch(87% 0.155 176);
+  --color-motion-dim: oklch(40% 0.07 180);
+
+  /* Status colours. Each status also carries a symbol and a label. */
+  --color-steel: oklch(78% 0.035 235);
+  --color-steel-bg: oklch(30% 0.02 235);
+  --color-amber: oklch(82% 0.155 78);
+  --color-amber-bg: oklch(30% 0.06 78);
+  --color-outside: oklch(70% 0.2 25);
+  --color-outside-bg: oklch(30% 0.09 25);
+  --color-hatch: oklch(70% 0.01 230);
+  --color-hatch-bg: oklch(26% 0.008 230);
+  --color-within: oklch(80% 0.03 200);
+  --color-notsupplied: oklch(68% 0.012 230);
+
+  /* Type */
+  --font-ui: "Segoe UI", Aptos, "Helvetica Neue", system-ui, sans-serif;
+  --font-display: "Arial Narrow", "Helvetica Neue", "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+
+  /* 4 pt spacing */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+
+  --radius-sm: 3px;
+  --radius-md: 5px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.64, 0, 0.78, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+}
