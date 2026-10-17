@@ -84,7 +84,7 @@ export default function Ledger({ rundowns, selectedId, onSelect }) {
                   <td className="num">{r.rank}</td>
                   <td className="mono">{r.assembly_id}</td>
                   <td className="num">{r.bolt_position ?? '-'}</td>
-                  <td><StatusMark kind={r.spec_result === 'within' ? 'within' : r.spec_result === 'outside' ? 'outside' : 'not_supplied'} /></td>
+                  <td><StatusMark kind={['within', 'outside', 'incomplete'].includes(r.spec_result) ? r.spec_result : 'not_supplied'} /></td>
                   <td><StatusMark kind={r.signature} /></td>
                   <td className="evidence-cell">{firstEvidenceLine(r) || <span className="dim">None</span>}</td>
                   {showKey && <td className="mono">{r.seeded_pattern ?? '-'}</td>}

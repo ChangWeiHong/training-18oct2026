@@ -78,3 +78,8 @@ test('sortRundowns by signature puts investigate first, rank breaks ties', () =>
   assert.deepEqual(sortRundowns(rows, 'signature').map((r) => r.id), ['c', 'b', 'a']);
   assert.deepEqual(sortRundowns(rows, 'signature', 'desc').map((r) => r.id), ['a', 'b', 'c']);
 });
+
+import { SPEC_ORDER as _SO } from '../src/state.js';
+test('incomplete spec sorts between outside and within', () => {
+  assert.ok(_SO.outside < _SO.incomplete && _SO.incomplete < _SO.within);
+});

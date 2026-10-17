@@ -46,3 +46,14 @@ def test_mixed_pack_timing(seed):
     t0 = time.perf_counter()
     analyse(pack, ref, SAMPLE_SPEC)
     assert time.perf_counter() - t0 < 2.0
+
+
+@SEEDS
+def test_mixed_pack_signature_only_recall(seed):
+    """Seeded abnormal rundowns that pass spec must still be caught by the signature."""
+    res = analyse(make_pack("mixed", seed), make_reference(seed), SAMPLE_SPEC)
+    inspec = [r for r in res["rundowns"]
+              if r["seeded_pattern"] not in (None, "normal") and r["spec_result"] == "within"]
+    assert inspec
+    hit = sum(r["signature"] == "investigate" for r in inspec)
+    assert hit / len(inspec) >= 0.70, (hit, len(inspec))

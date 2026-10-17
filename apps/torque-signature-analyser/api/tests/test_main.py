@@ -148,3 +148,31 @@ def test_spa_fallback_and_no_shadow(tmp_path, monkeypatch):
     r = c.get("/api/nothing")
     assert r.status_code == 404 and "error" in r.json()
     assert c.get("/api/samples").status_code == 200
+
+
+def _bad_upload(body: bytes, header="rundown_id,angle_deg,torque_nm\n"):
+    r = client.post("/api/analyse", files={"readings": ("b.csv", header.encode() + body, "text/csv")})
+    assert r.status_code == 400
+    j = r.json()
+    assert set(j) == {"error", "row", "column", "fix"} and j["fix"]
+    return j
+
+
+@pytest.mark.parametrize("body,col", [(b"A,1,inf\n", "torque_nm"), (b",1,2\n", "rundown_id"),
+                                       (b"A,1e9,2\n", "angle_deg")])
+def test_bad_values_400_not_500(body, col):
+    assert _bad_upload(body)["column"] == col
+
+
+def test_duplicate_header_400():
+    j = _bad_upload(b"A,1,2,3\n", header="rundown_id,Angle_Deg,angle_deg,torque_nm\n")
+    assert j["column"] == "angle_deg"
+
+
+def test_oversize_reference_400():
+    good = (SAMPLES / "clean.csv").read_bytes()
+    r = client.post("/api/analyse", files={
+        "readings": ("a.csv", good, "text/csv"),
+        "reference": ("r.csv", b"x" * 6_000_000, "text/csv")})
+    assert r.status_code == 400
+    assert "Reference file" in r.json()["error"] or "larger" in r.json()["error"]

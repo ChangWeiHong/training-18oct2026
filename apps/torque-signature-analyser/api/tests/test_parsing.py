@@ -80,3 +80,37 @@ def test_non_numeric_torque(make_csv):
         parse_readings(make_csv(REQ, rows))
     assert e.value.row == 3
     assert e.value.column == "torque_nm"
+
+
+@pytest.mark.parametrize("bad,col", [("inf", "torque_nm"), ("-inf", "torque_nm"), ("nan", "torque_nm"),
+                                      ("inf", "angle_deg")])
+def test_non_finite_rejected(make_csv, bad, col):
+    rows = two_rundowns()
+    rows[2] = ("a", bad, 1) if col == "angle_deg" else ("a", 2, bad)
+    with pytest.raises(ParseError) as e:
+        parse_readings(make_csv(REQ, rows))
+    assert e.value.row == 3 and e.value.column == col
+
+
+def test_blank_rundown_id_rejected(make_csv):
+    rows = two_rundowns()
+    rows[4] = ("", 4, 2.0)
+    with pytest.raises(ParseError) as e:
+        parse_readings(make_csv(REQ, rows))
+    assert e.value.row == 5 and e.value.column == "rundown_id" and e.value.fix
+
+
+def test_duplicate_headers_after_normalising(make_csv):
+    with pytest.raises(ParseError) as e:
+        parse_readings(make_csv(["rundown_id", "Angle_Deg", "angle_deg", "torque_nm"],
+                                [("a", 1, 1, 1), ("a", 2, 2, 2)]))
+    assert e.value.column == "angle_deg"
+
+
+@pytest.mark.parametrize("angle", [1e9, 3601, -11])
+def test_angle_range_rejected(make_csv, angle):
+    rows = two_rundowns()
+    rows[3] = ("a", angle, 2.0)
+    with pytest.raises(ParseError) as e:
+        parse_readings(make_csv(REQ, rows))
+    assert e.value.row == 4 and e.value.column == "angle_deg" and e.value.fix

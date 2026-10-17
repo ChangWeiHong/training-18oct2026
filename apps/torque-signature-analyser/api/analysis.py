@@ -23,6 +23,9 @@ IF_PERCENTILE = 0.5         # IF threshold = this percentile of reference scores
 AREA_PERCENTILE = 99.0
 AREA_MARGIN = 1.4           # multiplier on the reference area p99
 DEFAULT_SNUG_NM = 30.0
+MAX_PRE_POINTS = 2000       # cap on the pre-snug envelope grid, whatever the angles
+MIN_REF_USABLE = 20         # reference rundowns with a snug point and slope
+MIN_OVERLAP = 0.5           # share of a candidate's post-snug span the envelope must cover
 MIN_REFINE = 5              # within-upload refit needs at least this many kept rundowns
 MAX_EVIDENCE = 3
 DECIMALS = 3
@@ -61,6 +64,8 @@ class Ref:
     medians: np.ndarray | None = None
     forest: IsolationForest | None = None
     if_threshold: float | None = None
+    usable: int = 0                                # rundowns with snug point and slope
+    no_snug: int = 0                               # rundowns left out for lack of a snug point
 
 
 def _opt_str(v):
@@ -116,7 +121,7 @@ def _envelope(runs: list[Run]) -> tuple[dict, dict]:
     mat = np.array([al for _, al in rows]) if rows else np.empty((0, len(GRID)))
     env = {"grid": GRID.tolist(), **_band(mat, len(rows))}
     snug_as = [r.a[r.k] for r, _ in rows]
-    top = int(math.ceil(max(snug_as))) if snug_as else 0
+    top = min(int(math.ceil(max(snug_as))), MAX_PRE_POINTS - 1) if snug_as else 0
     pgrid = np.arange(0.0, top + 1.0)
     pre_rows = []
     for r, _ in rows:
@@ -144,6 +149,8 @@ def _matrix(runs_feats: list[dict], medians: np.ndarray) -> np.ndarray:
 
 def _fit(runs: list[Run]) -> Ref:
     ref = Ref(n=len(runs))
+    ref.usable = sum(r.k is not None and r.feats["slope"] is not None for r in runs)
+    ref.no_snug = sum(r.k is None for r in runs)
     cols = {}
     for f in FEATURES:
         vals = np.array([r.feats[f] for r in runs if r.feats[f] is not None], float)
@@ -169,24 +176,42 @@ def _fit(runs: list[Run]) -> Ref:
 # ---------------------------------------------------------------- scoring
 
 def _spec_result(feats: dict, spec: dict | None) -> str:
+    """within only when every supplied limit was checked and passed; outside wins."""
     if not spec:
         return "not_supplied"
     checks = [("final_torque", "torque_min_nm", "torque_max_nm"),
               ("post_snug_angle", "angle_min_deg", "angle_max_deg")]
-    seen = False
+    checked = unassessed = False
     for feat, lo_key, hi_key in checks:
         v, lo, hi = feats[feat], spec.get(lo_key), spec.get(hi_key)
-        if v is None:
+        if lo is None and hi is None:
             continue
-        if lo is not None:
-            seen = True
-            if v < lo:
-                return "outside"
-        if hi is not None:
-            seen = True
-            if v > hi:
-                return "outside"
-    return "within" if seen else "not_supplied"
+        if v is None:
+            unassessed = True
+            continue
+        checked = True
+        if (lo is not None and v < lo) or (hi is not None and v > hi):
+            return "outside"
+    if unassessed:
+        return "incomplete"
+    return "within" if checked else "not_supplied"
+
+
+def _overlap(r: Run, p50: np.ndarray) -> float:
+    """Share of the candidate's post-snug span that the reference envelope covers.
+
+    The span is cut at the envelope's last covered point: running past the end of the
+    reference is a signature finding (a soft joint does it), not a lack of support.
+    Gaps before that point, or an empty envelope, count against the candidate.
+    """
+    if r.k is None or r.fi < r.k:
+        return 0.0
+    covered = ~np.isnan(p50) & (GRID >= 0)
+    if not covered.any():
+        return 0.0
+    span = float(np.max(r.a[:r.fi + 1]) - r.a[r.k])
+    in_span = (GRID >= 0) & (GRID <= min(span, GRID[covered].max()))
+    return float((in_span & covered).sum() / max(in_span.sum(), 1))
 
 
 def _zscores(feats: dict, ref: Ref) -> dict:
@@ -249,6 +274,7 @@ def _score(runs: list[Run], ref: Ref, spec: dict | None) -> list[dict]:
     if ref.forest is not None and runs:
         x = _matrix([r.feats for r in runs], ref.medians)
         if_hit = ref.forest.score_samples(x) < ref.if_threshold
+    ref_ok = ref.usable >= MIN_REF_USABLE
     out = []
     for r, ih in zip(runs, if_hit):
         z = _zscores(r.feats, ref)
@@ -257,6 +283,7 @@ def _score(runs: list[Run], ref: Ref, spec: dict | None) -> list[dict]:
         area_hit = area is not None and ref.area_p99 is not None and area > AREA_MARGIN * ref.area_p99
         # A rehit starts above snug (k == 0) and has no fit window, so it is still assessed.
         cant = r.feats["snug_angle"] is None or (r.feats["slope"] is None and r.k != 0)
+        cant = cant or not ref_ok or _overlap(r, p50) < MIN_OVERLAP
         flagged = z_hit or area_hit or bool(ih)
         sig = "cant_assess" if cant else "investigate" if flagged else "typical"
         iforest_only = sig == "investigate" and not z_hit and not area_hit
@@ -330,6 +357,11 @@ def analyse(readings: pd.DataFrame, reference: pd.DataFrame | None, spec: dict |
     if n_cant:
         warnings.append(f"{n_cant} rundown(s) have no snug point or no usable slope, "
                         "so the signature can't be assessed.")
+    if ref.no_snug:
+        warnings.append(f"Reference: {ref.no_snug} of {ref.n} rundowns had no snug point "
+                        "and were left out.")
+    if ref.usable < MIN_REF_USABLE:
+        warnings.append(f"Reference too small to compare signatures ({ref.usable} usable).")
     if method == "stats":
         warnings.append(f"Fewer than {IF_MIN_COMPLETE} complete reference rundowns: "
                         "statistics only, no Isolation Forest.")
@@ -347,6 +379,7 @@ def analyse(readings: pd.DataFrame, reference: pd.DataFrame | None, spec: dict |
             "outside_spec": count(lambda i: i["spec_result"] == "outside"),
             "within_spec": count(lambda i: i["spec_result"] == "within"),
             "spec_not_supplied": count(lambda i: i["spec_result"] == "not_supplied"),
+            "spec_incomplete": count(lambda i: i["spec_result"] == "incomplete"),
             "investigate": count(lambda i: i["signature"] == "investigate"),
             "cant_assess": n_cant,
             "typical": count(lambda i: i["signature"] == "typical")}},

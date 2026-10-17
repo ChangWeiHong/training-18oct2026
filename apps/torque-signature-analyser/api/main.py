@@ -84,16 +84,16 @@ def _parse_spec(raw) -> dict | None:
 
 
 async def _read_upload(f, label: str) -> bytes:
-    data = await f.read()
+    data = await f.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
         raise ApiError(400, f"{label} is larger than {MAX_BYTES // 1_000_000} MB.",
                        "Split the file into smaller uploads.")
     return data
 
 
-def _parse_upload(data: bytes, reference: bool):
+async def _parse_upload(data: bytes, reference: bool):
     try:
-        return parse_readings(data)
+        return await run_in_threadpool(parse_readings, data)
     except ParseError as e:
         msg = ("Reference file: " + e.message) if reference else e.message
         raise ApiError(400, msg, e.fix, e.row, e.column)
@@ -162,12 +162,12 @@ def create_app(dist: Path | None = DEFAULT_DIST) -> FastAPI:
                 raise ApiError(400, "No readings file was uploaded.",
                                "Attach a CSV in the 'readings' field.")
             spec = _parse_spec(form.get("spec"))
-            readings = _parse_upload(await _read_upload(up, "Readings file"), False)
+            readings = await _parse_upload(await _read_upload(up, "Readings file"), False)
             reference = None
             if hasattr(ref_up, "read"):
                 data = await _read_upload(ref_up, "Reference file")
                 if data.strip():
-                    reference = _parse_upload(data, True)
+                    reference = await _parse_upload(data, True)
                     reference_source = "supplied"
         else:
             raise ApiError(400, "Unsupported request type.",

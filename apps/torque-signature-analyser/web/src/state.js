@@ -84,7 +84,7 @@ export function specToInputs(spec) {
 }
 
 export const SIGNATURE_ORDER = { investigate: 0, cant_assess: 1, typical: 2 };
-export const SPEC_ORDER = { outside: 0, within: 1, not_supplied: 2 };
+export const SPEC_ORDER = { outside: 0, incomplete: 1, within: 2, not_supplied: 3 };
 
 export function sortRundowns(rows, key, dir = 'asc') {
   const m = dir === 'asc' ? 1 : -1;
