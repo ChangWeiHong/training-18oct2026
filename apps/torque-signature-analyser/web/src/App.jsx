@@ -87,6 +87,10 @@ export default function App() {
 
   const rundowns = state.result?.rundowns ?? [];
   const selected = selectedRundown(state);
+  // A new analysis result gives the 3D view a fresh start after an earlier failure.
+  const resultSeen = useRef({ result: null, n: 0 });
+  if (resultSeen.current.result !== state.result) resultSeen.current = { result: state.result, n: resultSeen.current.n + 1 };
+  const resultKey = resultSeen.current.n;
   const canRerun = parsed !== 'partial' && Boolean(readingsFile || sampleId);
 
   return (
@@ -130,7 +134,7 @@ export default function App() {
             </aside>
           </div>
           <div className="slot slot-3d" data-slot="3d">
-            <SceneBoundary>
+            <SceneBoundary key={resultKey}>
             <Suspense fallback={<p className="slot-empty">Loading 3D view.</p>}>
               <JointScene
                 result={state.result}
