@@ -112,7 +112,8 @@ export function createMaterials(cut) {
   const edge = new THREE.MeshBasicMaterial({ color: tokenColor('--color-motion', '#3df5d2'), toneMapped: false, transparent: true, opacity: 0.9, clippingPlanes: single });
 
   const gapMat = new THREE.MeshBasicMaterial({ color: tokenColor('--color-motion', '#3df5d2'), transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, clippingPlanes: single });
-  const mark = new THREE.MeshBasicMaterial({ color: tokenColor('--color-text', '#eee'), toneMapped: false, clippingPlanes: single });
+  const mark = new THREE.MeshBasicMaterial({ color: tokenColor('--color-alu-strong', '#fff'), toneMapped: false, side: THREE.DoubleSide, clippingPlanes: single });
+  const markBack = new THREE.MeshBasicMaterial({ color: tokenColor('--color-paper', '#111'), toneMapped: false, side: THREE.DoubleSide, clippingPlanes: single });
   const status = {
     typical: tokenColor('--color-steel', '#99a'),
     investigate: tokenColor('--color-amber', '#e0a030'),
@@ -123,6 +124,6 @@ export function createMaterials(cut) {
   const ringCut = Object.fromEntries(Object.entries(ring).map(([k, m]) => { const c = m.clone(); c.clippingPlanes = single; return [k, c]; }));
   const motion = tokenColor('--color-motion', '#3df5d2');
 
-  const all = [zinc, zincFree, washer, washerFree, socket, plateTop, plateBase, hub, capTop, capBase, capBolt, edge, gapMat, mark, ...Object.values(ring), ...Object.values(ringCut)];
-  return { zinc, zincFree, washer, washerFree, socket, plateTop, plateBase, hub, capTop, capBase, capBolt, edge, gapMat, mark, ring, ringCut, motion, dispose: () => all.forEach((m) => m.dispose()) };
+  const all = [zinc, zincFree, washer, washerFree, socket, plateTop, plateBase, hub, capTop, capBase, capBolt, edge, gapMat, mark, markBack, ...Object.values(ring), ...Object.values(ringCut)];
+  return { zinc, zincFree, washer, washerFree, socket, plateTop, plateBase, hub, capTop, capBase, capBolt, edge, gapMat, mark, markBack, ring, ringCut, motion, dispose: () => all.forEach((m) => m.dispose()) };
 }

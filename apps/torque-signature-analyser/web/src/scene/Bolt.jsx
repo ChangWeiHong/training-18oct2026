@@ -69,8 +69,8 @@ function socketGeometry(detail) {
     ring.rotateX(-Math.PI / 2);
     ring.translate(0, BOLT.flangeT + 0.04, 0);
     const seg = detail === 'full' ? 32 : 14;
-    const drive = new THREE.CylinderGeometry(0.85, 0.95, 2.2, seg, 1, true);
-    drive.translate(0, BOLT.flangeT + 0.04 + 1.05 + 1.1, 0);
+    const drive = new THREE.CylinderGeometry(0.85, 0.95, 1.2, seg, 1, true);
+    drive.translate(0, BOLT.flangeT + 0.04 + 1.05 + 0.6, 0);
     const lid = new THREE.CircleGeometry(0.95, seg);
     lid.rotateX(-Math.PI / 2);
     lid.translate(0, BOLT.flangeT + 0.04 + 1.05, 0);
@@ -135,18 +135,14 @@ export default function Bolt({ materials, status, rotation = 0, cut = false, det
         <mesh geometry={shank} material={zinc} />
         {thread && <mesh geometry={thread} material={zinc} />}
         {cut && (
-          <>
-            {/* Index marks: painted stripe across the hex top and a tick on the flange, so turning reads at a glance. */}
-            <mesh geometry={plane} material={materials.mark} position={[0.5, BOLT.flangeT + BOLT.hexH + 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[0.95, 0.14, 1]} />
+          <group rotation={[0, Math.PI / 4, 0]}>
+            {/* Index marks: bright stripe over the hex top and down the vertex edge, on a dark underlay, so turning reads in 3/4 view. */}
+            <mesh geometry={plane} material={materials.markBack} position={[0.5, BOLT.flangeT + BOLT.hexH + 0.011, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[1.0, 0.3, 1]} />
+            <mesh geometry={plane} material={materials.mark} position={[0.5, BOLT.flangeT + BOLT.hexH + 0.014, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[0.96, 0.17, 1]} />
+            <mesh geometry={plane} material={materials.markBack} position={[0.795, BOLT.flangeT + BOLT.hexH / 2 + 0.04, -0.459]} rotation={[0, (2 * Math.PI) / 3, 0]} scale={[0.36, BOLT.hexH, 1]} />
+            <mesh geometry={plane} material={materials.mark} position={[0.799, BOLT.flangeT + BOLT.hexH / 2 + 0.04, -0.461]} rotation={[0, (2 * Math.PI) / 3, 0]} scale={[0.2, BOLT.hexH, 1]} />
             <mesh geometry={plane} material={materials.mark} position={[1.17, BOLT.flangeT + 0.013, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[0.2, 0.1, 1]} />
-          </>
-        )}
-        {sock && (
-          <>
-            <mesh geometry={sock.ring} material={materials.socket} />
-            <mesh geometry={sock.drive} material={materials.socket} />
-            <mesh geometry={sock.lid} material={materials.socket} />
-          </>
+          </group>
         )}
       </group>
       <mesh geometry={ringGeo()} material={ring} position={[0, BOLT.flangeT + 0.012, 0]} rotation={[Math.PI / 2, 0, 0]} />

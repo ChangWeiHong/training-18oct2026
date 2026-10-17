@@ -4,16 +4,23 @@ import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { slotAngle, slotPosition } from './Flange.jsx';
 
-export function presetPose(preset, focus) {
+const FOV = 32;
+// Joint-section stack, local y: bolt tip -0.7 up to ~30% of the (shortened) socket, with a 10% margin.
+const STACK = { bottom: -0.7, top: 5.6, width: 3.6 };
+
+export function presetPose(preset, focus, aspect = 1.5) {
   if (preset === 'section' && focus != null) {
     const a = slotAngle(focus);
     const P = slotPosition(focus);
     const R = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
     const T = new THREE.Vector3(-Math.sin(a), 0, Math.cos(a));
-    return {
-      target: P.clone().setY(3.9),
-      position: P.clone().addScaledVector(T, 11.5).addScaledVector(R, 3.4).setY(6.4),
-    };
+    const h = (STACK.top - STACK.bottom) * 1.1;
+    const half = Math.tan((FOV * Math.PI) / 360);
+    const dist = Math.max(h / (2 * half), (STACK.width * 1.2) / (2 * half * aspect)) * 1.06;
+    // Cut side towards the viewer, a little elevation and a slight side turn for a 3/4 read.
+    const dir = T.clone().addScaledVector(R, 0.25).setY(0.55).normalize();
+    const target = P.clone().setY((STACK.top + STACK.bottom) / 2);
+    return { target, position: target.clone().addScaledVector(dir, dist) };
   }
   if (focus != null) {
     // View from the cut side, aimed between the hub and the selected bolt so it sits inside the frame.
@@ -28,16 +35,20 @@ export function presetPose(preset, focus) {
 
 /** Bounded orbit (no pan, no auto-rotate) with preset moves. Orbiting never touches the cursor. */
 export default function CameraRig({ preset, focus, reducedMotion }) {
-  const { camera, invalidate } = useThree();
+  const { camera, invalidate, size } = useThree();
+  const aspect = size.width / Math.max(1, size.height);
+  const lastAspect = useRef(aspect);
   const controls = useRef();
   const anim = useRef(null);
   const first = useRef(true);
 
   useEffect(() => {
-    const to = presetPose(preset, focus);
+    const to = presetPose(preset, focus, aspect);
+    const resized = lastAspect.current !== aspect;
+    lastAspect.current = aspect;
     const c = controls.current;
     if (!c) return;
-    if (first.current || reducedMotion) {
+    if (first.current || reducedMotion || resized) {
       first.current = false;
       camera.position.copy(to.position);
       c.target.copy(to.target);
@@ -47,7 +58,7 @@ export default function CameraRig({ preset, focus, reducedMotion }) {
     }
     anim.current = { t: 0, fromPos: camera.position.clone(), fromTarget: c.target.clone(), to };
     invalidate();
-  }, [preset, focus, reducedMotion, camera, invalidate]);
+  }, [preset, focus, aspect, reducedMotion, camera, invalidate]);
 
   useFrame((_, dt) => {
     const a = anim.current;
