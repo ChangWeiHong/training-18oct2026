@@ -30,6 +30,20 @@ function Gauge({ torque, max, spec }) {
   );
 }
 
+/** Status legend and the illustrative-motion caption. Rendered below the canvas, never over the joint. */
+export function JointStrip() {
+  return (
+    <div className="joint-strip">
+      <ul className="joint-legend" aria-label="Head ring colours">
+        {KINDS.map((k) => (
+          <li key={k}><StatusMark kind={k} /></li>
+        ))}
+      </ul>
+      <p className="joint-caption">Rotation: measured. Travel and compression: illustrative.</p>
+    </div>
+  );
+}
+
 export default function Overlay({ selected, pose, torqueMax, spec, preset, onPreset, slots, selectedId, onSelect, note }) {
   return (
     <div className="joint-overlay">
@@ -68,14 +82,6 @@ export default function Overlay({ selected, pose, torqueMax, spec, preset, onPre
         <div className="joint-gauge">
           <Gauge torque={pose.torque} max={torqueMax} spec={spec} />
           <p className="joint-angle mono">Angle <b>{pose.angle.toFixed(1)}°</b></p>
-        </div>
-        <div className="joint-legend-wrap">
-          <ul className="joint-legend" aria-label="Head ring colours">
-            {KINDS.map((k) => (
-              <li key={k}><StatusMark kind={k} /></li>
-            ))}
-          </ul>
-          <p className="joint-caption">Rotation: measured. Travel and compression: illustrative.</p>
         </div>
       </div>
     </div>
