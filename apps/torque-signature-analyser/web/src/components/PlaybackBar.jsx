@@ -1,9 +1,9 @@
-import { Play, Pause, SkipBack, SkipForward, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, ChevronLeft, ChevronRight, Repeat, Route } from 'lucide-react';
 import { SPEEDS, hasTime } from '../playback.js';
 
 const fmt = (v) => (Math.round(v * 10) / 10).toFixed(1);
 
-export default function PlaybackBar({ selected, cursor, playing, speed, dispatch }) {
+export default function PlaybackBar({ selected, cursor, playing, speed, loop, tour, canTour, reducedMotion, dispatch }) {
   const curve = selected?.curve;
   const n = curve?.angle?.length ?? 0;
   const ready = n > 1;
@@ -28,6 +28,21 @@ export default function PlaybackBar({ selected, cursor, playing, speed, dispatch
           <button type="button" className="btn btn-icon" disabled={!ready} aria-label="Back 1 sample" title="Back 1 sample (Left)" onClick={() => dispatch({ type: 'STEP', delta: -1 })}><ChevronLeft size={14} aria-hidden="true" /></button>
           <button type="button" className="btn btn-icon" disabled={!ready} aria-label="Forward 1 sample" title="Forward 1 sample (Right)" onClick={() => dispatch({ type: 'STEP', delta: 1 })}><ChevronRight size={14} aria-hidden="true" /></button>
           <button type="button" className="btn btn-icon" disabled={!ready} aria-label="Forward 10 samples" title="Forward 10 samples (Shift+Right)" onClick={() => dispatch({ type: 'STEP', delta: 10 })}><SkipForward size={14} aria-hidden="true" /></button>
+        </div>
+        <div className="btn-group playback-modes" role="group" aria-label="Repeat and tour">
+          <button type="button" className="btn btn-small btn-toggle" aria-pressed={loop} title="Hold the final pose for 1 second, then play again" onClick={() => dispatch({ type: 'SET_LOOP', on: !loop })}>
+            <Repeat size={13} aria-hidden="true" /><span>Loop</span>
+          </button>
+          <button
+            type="button"
+            className="btn btn-small btn-toggle"
+            aria-pressed={tour}
+            disabled={!ready || !canTour || reducedMotion}
+            title={reducedMotion ? 'Tour is off because your system asks for less motion' : canTour ? 'Play each flagged rundown in rank order. Any action of yours stops it.' : 'Nothing is flagged in this pack'}
+            onClick={() => dispatch({ type: 'SET_TOUR', on: !tour })}
+          >
+            <Route size={13} aria-hidden="true" /><span>Tour</span>
+          </button>
         </div>
         <div className="btn-group playback-speeds" role="group" aria-label="Speed">
           {SPEEDS.map((x) => (

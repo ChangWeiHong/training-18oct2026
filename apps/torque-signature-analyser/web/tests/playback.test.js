@@ -37,3 +37,30 @@ test('playback stops at the last sample', () => {
   assert.equal(nextPosition(timed, 3, 5000, 4), 4);
   assert.equal(nextPosition(uniform, 8, 1000, 1), 9);
 });
+
+import { frameStep, HOLD_MS } from '../src/playback.js';
+
+test('frameStep advances, then holds on the last sample for one second, then ends', () => {
+  let s = { pos: 0, hold: null };
+  let out = frameStep(timed, s.pos, s.hold, 100, 1);
+  assert.deepEqual(out, { pos: 1, hold: null, ended: false });
+  out = frameStep(timed, 3.5, null, 1000, 1);
+  assert.deepEqual(out, { pos: 4, hold: 0, ended: false });
+  out = frameStep(timed, 4, 0, 400, 1);
+  assert.deepEqual(out, { pos: 4, hold: 400, ended: false });
+  out = frameStep(timed, 4, 400, 400, 1);
+  assert.equal(out.ended, false);
+  out = frameStep(timed, 4, 800, 250, 1);
+  assert.equal(out.ended, true);
+  assert.equal(HOLD_MS, 1000);
+});
+
+test('the hold is real time, whatever the playback speed', () => {
+  assert.equal(frameStep(timed, 4, 900, 100, 0.25).ended, true);
+  assert.equal(frameStep(timed, 4, 900, 100, 4).ended, true);
+  assert.equal(frameStep(timed, 4, 0, 100, 0.25).ended, false);
+});
+
+test('frameStep on a curve with fewer than two samples ends at once', () => {
+  assert.equal(frameStep({ angle: [0], t: null }, 0, null, 16, 1).ended, true);
+});
