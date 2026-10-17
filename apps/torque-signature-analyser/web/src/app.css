@@ -151,3 +151,49 @@ button, input, select { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* Torque graph and evidence (Task 7) */
+.slot-graph, .slot-evidence { border-style: solid; border-color: var(--color-rule); }
+.graph { display: grid; gap: var(--space-xs); min-width: 0; }
+.graph-controls { display: flex; flex-wrap: wrap; gap: var(--space-xs) var(--space-md); justify-content: space-between; }
+.graph-readout { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-muted); }
+.graph-readout b { color: var(--color-text); font-weight: 600; }
+.graph-note { border: 1px solid var(--color-rule-strong); background: var(--color-hatch-bg); color: var(--color-text); border-radius: var(--radius-sm); padding: var(--space-md); }
+.graph-wrap { min-width: 0; }
+.graph-svg { display: block; touch-action: pan-y; cursor: crosshair; user-select: none; font-variant-numeric: tabular-nums; }
+.graph-svg:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.g-grid { stroke: var(--color-rule); stroke-width: 1; }
+.g-plot-frame { fill: none; stroke: var(--color-rule-strong); stroke-width: 1; }
+.g-tick, .g-axis { fill: var(--color-muted); font-size: 11px; font-family: var(--font-mono); }
+.g-axis { font-family: var(--font-ui); letter-spacing: 0.02em; }
+.g-band { fill: var(--color-steel); fill-opacity: 0.18; stroke: none; }
+.g-median { fill: none; stroke: var(--color-steel); stroke-width: 1.25; stroke-dasharray: 5 4; }
+.g-interval { fill: var(--color-amber); fill-opacity: 0.14; stroke: var(--color-amber); stroke-opacity: 0.5; stroke-width: 1; }
+.g-faint { fill: none; stroke: var(--color-faint); stroke-opacity: 0.4; stroke-width: 1; }
+.g-curve { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.curve-typical { stroke: var(--color-steel); background: var(--color-steel); }
+.curve-investigate { stroke: var(--color-amber); background: var(--color-amber); }
+.curve-cant_assess { stroke: var(--color-hatch); background: var(--color-hatch); }
+.g-limit { stroke: var(--color-muted); stroke-width: 1; stroke-dasharray: 2 3; }
+.g-limit-label { fill: var(--color-text); font-size: 11px; paint-order: stroke; stroke: var(--color-paper); stroke-width: 3px; stroke-linejoin: round; }
+.g-cursor { stroke: var(--color-alu-strong); stroke-width: 1.25; }
+.g-cursor-dot { fill: var(--color-paper); stroke: var(--color-alu-strong); stroke-width: 2; }
+.g-hover-dot { fill: var(--color-alu-strong); }
+.g-tip rect { fill: var(--color-surface-3); stroke: var(--color-rule-strong); }
+.g-tip text { fill: var(--color-text); font-size: 11px; font-family: var(--font-mono); }
+.graph-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-md); color: var(--color-muted); font-size: var(--text-xs); }
+.graph-legend li { display: inline-flex; align-items: center; gap: var(--space-xs); }
+.key { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--color-muted); }
+.key-curve { height: 3px; border-top: 0; }
+.key-band { height: 10px; border-top: 0; background: var(--color-steel); opacity: 0.35; }
+.key-interval { height: 10px; border-top: 0; background: var(--color-amber); opacity: 0.45; }
+.key-faint { border-top-color: var(--color-faint); }
+
+.evidence { display: grid; gap: var(--space-xs); align-content: start; }
+.evidence-status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); }
+.evidence-key { font-size: var(--text-xs); color: var(--color-muted); letter-spacing: 0.04em; text-transform: uppercase; min-width: 6ch; }
+.evidence-list { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-xs); }
+.evidence-list li { border-left: 2px solid var(--color-amber); padding-left: var(--space-xs); font-variant-numeric: tabular-nums; }
+.evidence-hint { font-weight: 600; }
+.evidence-note { color: var(--color-muted); }
+.evidence-flag { border-left: 3px solid var(--color-amber); background: var(--color-amber-bg); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-sm); }
