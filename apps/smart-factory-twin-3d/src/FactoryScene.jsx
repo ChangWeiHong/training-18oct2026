@@ -11,11 +11,12 @@ const MAIN_IDS = ['stamp','weld','paint','trim','marriage','final','eol','audit'
 // east edge and east to west along the south edge. The west side is the material and shipping yard.
 const R = 27, P = 12, PI = Math.PI;
 const LAYOUT = {
-  stamp:{x:-P,z:-R,rot:0}, weld:{x:0,z:-R,rot:0}, paint:{x:P,z:-R,rot:0},
-  trim:{x:R,z:-P,rot:-PI/2}, marriage:{x:R,z:0,rot:-PI/2}, final:{x:R,z:P,rot:-PI/2},
-  eol:{x:P,z:R,rot:PI}, audit:{x:0,z:R,rot:PI}, dispatch:{x:-P,z:R,rot:PI},
+  stamp:{x:-P,z:-R,rot:PI}, weld:{x:0,z:-R,rot:PI}, paint:{x:P,z:-R,rot:PI},
+  trim:{x:R,z:-P,rot:PI/2}, marriage:{x:R,z:0,rot:PI/2}, final:{x:R,z:P,rot:PI/2},
+  eol:{x:P,z:R,rot:0}, audit:{x:0,z:R,rot:0}, dispatch:{x:-P,z:R,rot:0},
   powertrain:{x:7,z:0,rot:PI/2},
 };
+// Each station's open front (fences, buffer row, operators) faces away from the courtyard.
 const inward = (L,k=1)=>[Math.sin(L.rot)*k,Math.cos(L.rot)*k];
 const PATH = [[-R,-R],[R,-R],[R,R],[-R,R]];
 const SEG = 2*R;
