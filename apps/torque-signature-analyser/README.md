@@ -2,7 +2,17 @@
 
 A browser tool for reviewing bolt tightening curves. You load a CSV of torque-angle rundowns, and the app compares each one with a reference group, checks it against your spec limits, and flags the ones worth a second look. A 3D flange shows the selected bolt turning as you scrub the cursor along its curve.
 
-All data is synthetic. The app ships four sample shifts and has no database, no login and no external AI calls.
+All data is synthetic. The app ships ten sample packs across five joints (wheel hub, brake caliper bracket, subframe, seat-belt anchor, engine mount) and has no database, no login and no external AI calls. Every spec in the packs is illustrative, not an OEM value.
+
+## Demo mode
+
+The header carries a "Synthetic demo data" badge. The upload, reference and template controls are hidden. Add `?upload=1` to the URL to show them; the API endpoints stay on either way.
+
+On load and on every selection the cursor plays the rundown and loops, holding the last pose for one second. **Loop** turns that off. **Tour** (off by default) moves to the next flagged rundown after each loop, by rank, and wraps. Any click, drag, key press or pause turns Tour off. With `prefers-reduced-motion`, nothing starts by itself and Tour is disabled; Play and Loop still work. Playback starts at 0.25x because a real rundown lasts under a second.
+
+## Sample packs
+
+`api/synth.py` holds a joint profile per joint (snug torque, target torque, slope, bolts per assembly, sample spacing). The wheel-hub patterns are written once; the other joints map those curves through their profile. Each pack ships its own spec and a 120-rundown reference. Regenerate with `api/.venv/bin/python -m api.synth` (seed 7). Held-out seeds 101, 202 and 303 are used only by the tests.
 
 ![Analyser workbench at 1440 px](docs/screenshots/final-1440.png)
 

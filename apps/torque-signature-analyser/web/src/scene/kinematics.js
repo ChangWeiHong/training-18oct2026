@@ -21,26 +21,26 @@ export function jointPose(curve, cursor, snugAngle, opts = {}) {
 }
 
 /**
- * Map one assembly's rundowns onto the 6 flange holes (decision 5).
+ * Map one assembly's rundowns onto the flange holes (decision 5). `count` is the joint's bolt count (1 to 6).
  * Valid unique positions keep their hole. Missing, out-of-range or duplicate positions
- * fill the free holes by order; duplicates and anything past six go to overflow.
+ * fill the free holes by order; duplicates and anything past `count` go to overflow.
  */
-export function boltSlots(rundowns) {
+export function boltSlots(rundowns, count = 6) {
   const slots = [];
   const taken = new Set();
   const rest = [];
   const overflow = [];
   for (const r of rundowns) {
     const p = r.bolt_position;
-    if (Number.isInteger(p) && p >= 1 && p <= 6) {
+    if (Number.isInteger(p) && p >= 1 && p <= count) {
       if (taken.has(p - 1)) overflow.push(r);
       else { taken.add(p - 1); slots.push({ slot: p - 1, rundown: r }); }
     } else rest.push(r);
   }
   for (const r of rest) {
     let k = 0;
-    while (k < 6 && taken.has(k)) k += 1;
-    if (k >= 6) overflow.push(r);
+    while (k < count && taken.has(k)) k += 1;
+    if (k >= count) overflow.push(r);
     else { taken.add(k); slots.push({ slot: k, rundown: r }); }
   }
   slots.sort((a, b) => a.slot - b.slot);

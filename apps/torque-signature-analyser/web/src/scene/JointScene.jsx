@@ -10,6 +10,7 @@ import Overlay, { JointHeader, JointStrip } from './Overlay.jsx';
 import { createMaterials, tokenColor } from './materials.js';
 import { keyAction } from './camera.js';
 import { hasWebGL2 } from './webgl.js';
+import { useReducedMotion } from '../motion.js';
 import { boltSlots, jointPose, statusKind } from './kinematics.js';
 
 // R15: starting head-to-washer gap is 30% of the head height; compression cap is 10% of the top plate.
@@ -18,23 +19,11 @@ const MAX_COMPRESSION = 0.1 * FLANGE.topT;
 // Lifted exposure so plates, washer and bolt read against the graphite background.
 const EXPOSURE = 1.3;
 
-function useReducedMotion() {
-  const [reduced, setReduced] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
-  useEffect(() => {
-    const mq = window.matchMedia?.('(prefers-reduced-motion: reduce)');
-    if (!mq) return undefined;
-    const on = () => setReduced(mq.matches);
-    mq.addEventListener('change', on);
-    return () => mq.removeEventListener('change', on);
-  }, []);
-  return reduced;
-}
-
 /** Clipping planes for the half-section: one plane through the bolt axis, plus a window slab for the plates. */
-function cutPlanes(slot) {
+function cutPlanes(slot, count) {
   if (slot == null) return { single: [], box: [] };
-  const a = slotAngle(slot);
-  const P = slotPosition(slot);
+  const a = slotAngle(slot, count);
+  const P = slotPosition(slot, count);
   const R = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
   const T = new THREE.Vector3(-Math.sin(a), 0, Math.cos(a));
   const A = new THREE.Plane(T.clone().negate(), T.dot(P));
@@ -43,9 +32,9 @@ function cutPlanes(slot) {
   return { single: [A], box: [A, B1, B2] };
 }
 
-function Scene({ rigApi, focus, siblings, selected, pose, preset, detail, lit, reducedMotion, onSelect }) {
+function Scene({ rigApi, count, focus, siblings, selected, pose, preset, detail, lit, reducedMotion, onSelect }) {
   const { invalidate, gl } = useThree();
-  const materials = useMemo(() => createMaterials(cutPlanes(focus)), [focus]);
+  const materials = useMemo(() => createMaterials(cutPlanes(focus, count)), [focus, count]);
   const bg = useMemo(() => tokenColor('--color-paper', '#15191c'), []);
   useEffect(() => () => materials.dispose(), [materials]);
   useEffect(() => { gl.localClippingEnabled = true; invalidate(); }, [gl, invalidate]);
@@ -80,12 +69,12 @@ function Scene({ rigApi, focus, siblings, selected, pose, preset, detail, lit, r
         <Lightformer form="rect" intensity={5} position={[0, 6, 0]} scale={[7.5, 2.2]} color="#e4ecf4" />
       </Environment>
 
-      <Flange materials={materials} squash={compression} focus={focus} />
+      <Flange materials={materials} squash={compression} focus={focus} count={count} />
 
       {(preset === 'flange' || focus == null) && siblings.map(({ slot, rundown, kind }) => {
         const last = (rundown.curve?.angle?.[rundown.curve.angle.length - 1] ?? 0) * (Math.PI / 180);
         return (
-          <group key={rundown.id} position={slotPosition(slot).setY(topY + WASHER.thickness)} rotation={[0, -slotAngle(slot), 0]}>
+          <group key={rundown.id} position={slotPosition(slot, count).setY(topY + WASHER.thickness)} rotation={[0, -slotAngle(slot, count), 0]}>
             <group position={[0, -WASHER.thickness, 0]}><Washer materials={materials} cut={false} detail="simple" /></group>
             <Bolt materials={materials} status={kind} rotation={-last} detail="simple" onClick={pick(rundown.id)} onPointerOver={hover(true)} onPointerOut={hover(false)} />
           </group>
@@ -93,7 +82,7 @@ function Scene({ rigApi, focus, siblings, selected, pose, preset, detail, lit, r
       })}
 
       {focus != null && selected && (
-        <group position={slotPosition(focus).setY(topY)} rotation={[0, -slotAngle(focus), 0]}>
+        <group position={slotPosition(focus, count).setY(topY)} rotation={[0, -slotAngle(focus, count), 0]}>
           <Washer materials={materials} cut detail={detail} />
           {gapUnits > 0.01 && (
             <mesh material={materials.gapMat} position={[0, WASHER.thickness + gapUnits / 2, 0]}>
@@ -106,12 +95,12 @@ function Scene({ rigApi, focus, siblings, selected, pose, preset, detail, lit, r
         </group>
       )}
 
-      <CameraRig apiRef={rigApi} preset={focus == null ? 'flange' : preset} focus={focus} reducedMotion={reducedMotion} />
+      <CameraRig apiRef={rigApi} preset={focus == null ? 'flange' : preset} focus={focus} count={count} reducedMotion={reducedMotion} />
     </>
   );
 }
 
-function JointView({ result, selected, cursor, onSelect }) {
+function JointView({ result, selected, cursor, onSelect, bolts = 6 }) {
   const box = useRef(null);
   const [compact, setCompact] = useState(false);
   const [preset, setPreset] = useState('section');
@@ -153,10 +142,10 @@ function JointView({ result, selected, cursor, onSelect }) {
   const rundowns = result?.rundowns ?? [];
   const { slots, overflow, focus } = useMemo(() => {
     const mates = selected ? rundowns.filter((r) => r.assembly_id === selected.assembly_id) : [];
-    const s = boltSlots(mates);
+    const s = boltSlots(mates, bolts);
     const withKind = s.slots.map((x) => ({ ...x, kind: statusKind(x.rundown) }));
     return { slots: withKind, overflow: s.overflow, focus: withKind.find((x) => x.rundown.id === selected?.id)?.slot };
-  }, [rundowns, selected]);
+  }, [rundowns, selected, bolts]);
 
   const spec = result?.spec ?? null;
   const torqueMax = spec?.torque_max_nm ?? Math.max(1, ...rundowns.map((r) => r.features?.final_torque ?? 0));
@@ -166,7 +155,7 @@ function JointView({ result, selected, cursor, onSelect }) {
     [selected, cursor, snug, torqueMax],
   );
   const detail = !compact && preset === 'section' && focus != null ? 'full' : 'simple';
-  const note = selected && focus == null ? `${selected.id} is not drawn: it repeats a bolt position or the assembly has more than six bolts. Use the ledger.` : null;
+  const note = selected && focus == null ? `${selected.id} is not drawn: it repeats a bolt position or the assembly has more bolts than this joint. Use the ledger.` : null;
 
   return (
     <div className="joint-wrap" onKeyDown={onKeyDown}>
@@ -191,6 +180,7 @@ function JointView({ result, selected, cursor, onSelect }) {
       >
         <Scene
           rigApi={rigApi}
+          count={bolts}
           focus={focus}
           siblings={slots.filter((s) => s.slot !== focus)}
           selected={selected}

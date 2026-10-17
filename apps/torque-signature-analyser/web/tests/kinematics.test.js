@@ -64,3 +64,17 @@ test('visual gap is a fraction: 1 at angle 0, linear in travel, 0 at and after s
   assert.equal(jointPose(curve, 4, 200, opts).gap, 0);
   assert.equal(jointPose(curve, 0, null, opts).gap, 0);
 });
+
+test('boltSlots honours a bolt count below six', () => {
+  const s = boltSlots([rd('a', 2), rd('b', 1)], 2);
+  assert.deepEqual(s.slots.map((x) => [x.slot, x.rundown.id]), [[0, 'b'], [1, 'a']]);
+  const over = boltSlots([rd('a', 1), rd('b', 3), rd('c', null)], 2);
+  assert.deepEqual(over.slots.map((x) => x.rundown.id), ['a', 'b']);
+  assert.deepEqual(over.overflow.map((r) => r.id), ['c']);
+});
+
+test('boltSlots with a single bolt keeps one slot', () => {
+  const s = boltSlots([rd('a', 1), rd('b', 1)], 1);
+  assert.equal(s.slots.length, 1);
+  assert.equal(s.overflow.length, 1);
+});

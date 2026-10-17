@@ -10,7 +10,7 @@ export const ORBIT = { minDistance: 5, maxDistance: 80, minPolar: 0.2, maxPolar:
 const FIT_NDC = 0.92; // ~8 % margin
 
 /** Points the flange view must keep in frame: both plate rims and the bolt heads (with washer and head). */
-export function flangeBoundPoints() {
+export function flangeBoundPoints(count = 6) {
   const pts = [];
   const top = FLANGE.baseT + FLANGE.topT;
   const headTop = top + 1.7;
@@ -22,8 +22,8 @@ export function flangeBoundPoints() {
   };
   ring(FLANGE.baseR, 0);
   ring(FLANGE.topR, top);
-  for (let s = 0; s < 6; s += 1) {
-    const P = slotPosition(s);
+  for (let s = 0; s < count; s += 1) {
+    const P = slotPosition(s, count);
     ring(1.4, headTop, P.x, P.z, 10);
   }
   return pts;
@@ -71,10 +71,10 @@ export function keyAction(e) {
   }
 }
 
-export function presetPose(preset, focus, aspect = 1.5) {
+export function presetPose(preset, focus, aspect = 1.5, count = 6) {
   if (preset === 'section' && focus != null) {
-    const a = slotAngle(focus);
-    const P = slotPosition(focus);
+    const a = slotAngle(focus, count);
+    const P = slotPosition(focus, count);
     const R = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
     const T = new THREE.Vector3(-Math.sin(a), 0, Math.cos(a));
     const h = (STACK.top - STACK.bottom) * 1.1;
@@ -90,15 +90,15 @@ export function presetPose(preset, focus, aspect = 1.5) {
   }
   if (focus != null) {
     // View from the cut side, aimed between the hub and the selected bolt so it sits inside the frame.
-    const a = slotAngle(focus);
+    const a = slotAngle(focus, count);
     const R = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
     const T = new THREE.Vector3(-Math.sin(a), 0, Math.cos(a));
     const target = R.clone().multiplyScalar(2.4).setY(1.8);
     const dir = T.clone().multiplyScalar(17).addScaledVector(R, -4).setY(17).normalize();
-    return { target, position: target.clone().addScaledVector(dir, fitDistance(flangeBoundPoints(), target, dir, aspect)) };
+    return { target, position: target.clone().addScaledVector(dir, fitDistance(flangeBoundPoints(count), target, dir, aspect)) };
   }
   const target = new THREE.Vector3(0, 1.5, 0);
   const dir = new THREE.Vector3(0, 18.5, 18).normalize();
-  return { target, position: target.clone().addScaledVector(dir, fitDistance(flangeBoundPoints(), target, dir, aspect)) };
+  return { target, position: target.clone().addScaledVector(dir, fitDistance(flangeBoundPoints(count), target, dir, aspect)) };
 }
 

@@ -34,7 +34,8 @@ export default function About({ open, onClose }) {
         <h3>Limits</h3>
         <ul className="about-limits">
           <li>The tool reads continuous-drive tightening traces only.</li>
-          <li>All sample data is synthetic.</li>
+          <li>All sample data is synthetic. Every joint, spec and number in the sample packs is illustrative, not an OEM value.</li>
+          <li>The upload, reference and template controls are hidden in this demo. Add <code>?upload=1</code> to the address to show them.</li>
           <li>The detector was checked on 3 held-out synthetic seeds. Each had only 3 to 5 abnormal rundowns that were still in spec, so the recall figures rest on very few cases.</li>
           <li>A flag means worth checking. It does not confirm a fault.</li>
           <li>Real nutrunner traces may differ from the synthetic ones.</li>
@@ -42,7 +43,7 @@ export default function About({ open, onClose }) {
         </ul>
 
         <h3>Keys</h3>
-        <p className="about-keys">Left and Right step one sample, with Shift ten. In the 3D view, Q and E rotate, W and S tilt, plus and minus zoom, 0 resets.</p>
+        <p className="about-keys">Playback loops by default and holds the last pose for one second. Tour moves on to the next flagged rundown after each loop. Any click, drag, key press or pause turns Tour off. With reduced motion set in your system, nothing starts by itself. Left and Right step one sample, with Shift ten. In the 3D view, Q and E rotate, W and S tilt, plus and minus zoom, 0 resets.</p>
       </div>
     </dialog>
   );

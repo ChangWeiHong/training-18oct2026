@@ -6,16 +6,16 @@ import { FLANGE, slotAngle, slotPosition } from './flangeLayout.js';
 export { FLANGE, slotAngle, slotPosition };
 
 const cache = {};
-function plateGeometry(key, outerR, boreR, holeR, depth) {
-  return (cache[key] ??= (() => {
+function plateGeometry(key, outerR, boreR, holeR, depth, count) {
+  return (cache[`${key}${count}`] ??= (() => {
     const s = new THREE.Shape();
     s.absarc(0, 0, outerR, 0, Math.PI * 2, false);
     const bore = new THREE.Path();
     bore.absarc(0, 0, boreR, 0, Math.PI * 2, true);
     s.holes.push(bore);
-    for (let k = 0; k < 6; k += 1) {
+    for (let k = 0; k < count; k += 1) {
       const h = new THREE.Path();
-      h.absarc(Math.cos(slotAngle(k)) * FLANGE.circle, -Math.sin(slotAngle(k)) * FLANGE.circle, holeR, 0, Math.PI * 2, true);
+      h.absarc(Math.cos(slotAngle(k, count)) * FLANGE.circle, -Math.sin(slotAngle(k, count)) * FLANGE.circle, holeR, 0, Math.PI * 2, true);
       s.holes.push(h);
     }
     const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: 40 });
@@ -30,9 +30,9 @@ const planeGeo = () => (cache.plane ??= new THREE.PlaneGeometry(1, 1));
  * The two plates. `squash` is the visual compression (same unit as the scene); `focus` = slot index that is
  * shown in half-section (caps are drawn in a frame whose local x runs along the radius).
  */
-export default function Flange({ materials, squash = 0, focus }) {
-  const top = plateGeometry('top', FLANGE.topR, 2.6, FLANGE.holeTop, FLANGE.topT);
-  const base = plateGeometry('base', FLANGE.baseR, 1.6, FLANGE.holeBase, FLANGE.baseT);
+export default function Flange({ materials, squash = 0, focus, count = 6 }) {
+  const top = plateGeometry('top', FLANGE.topR, 2.6, FLANGE.holeTop, FLANGE.topT, count);
+  const base = plateGeometry('base', FLANGE.baseR, 1.6, FLANGE.holeBase, FLANGE.baseT, count);
   const s = 1 - squash / FLANGE.topT;
   const w = FLANGE.window;
   const plane = planeGeo();
@@ -42,7 +42,7 @@ export default function Flange({ materials, squash = 0, focus }) {
       <mesh geometry={base} material={materials.plateBase} />
       <mesh geometry={top} material={materials.plateTop} position={[0, FLANGE.baseT, 0]} scale={[1, s, 1]} />
       {focus != null && (
-        <group position={slotPosition(focus)} rotation={[0, -slotAngle(focus), 0]}>
+        <group position={slotPosition(focus, count)} rotation={[0, -slotAngle(focus, count), 0]}>
           {[-1, 1].map((sg) => (
             <group key={sg}>
               <mesh geometry={plane} material={materials.capBase} position={[(sg * (FLANGE.holeBase + w)) / 2, FLANGE.baseT / 2, 0.002]} scale={[w - FLANGE.holeBase, FLANGE.baseT, 1]} />
