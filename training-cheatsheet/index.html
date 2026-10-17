@@ -149,28 +149,28 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
     <div class="fields">
       <div class="field">
         <label for="f-user">[user]</label>
-        <span class="hint">Tells the AI who it builds for, so it uses their words and shows the detail they need. Write one job title, not "everyone".</span>
+        <span class="hint">Tells the AI who will use the app, so it builds for that job. Write one job title, not "everyone".</span>
         <input type="text" id="f-user" placeholder="plant maintenance technicians">
       </div>
       <div class="field">
         <label for="f-goal">[goal]</label>
-        <span class="hint">Tells the AI what problem the screen solves. Every part of the app should serve this. Start with a verb and add the benefit: "so they can ...".</span>
+        <span class="hint">Tells the AI what problem the app solves. Start with a verb and add the benefit: "so they can ...".</span>
         <input type="text" id="f-goal" placeholder="spot air compressors likely to fail, so they can fix them before breakdown">
       </div>
       <div class="field">
         <label for="f-input">The app works on [input]</label>
-        <span class="hint">Tells the AI what kind of data to make up for the samples. Name the readings or records, not a file type. The app ships with samples, so nobody uploads a file.</span>
+        <span class="hint">Tells the AI what fictional data to make for the samples. Name the readings or records, not a file type.</span>
         <input type="text" id="f-input" placeholder="weekly compressor sensor readings">
       </div>
       <div class="field">
         <label for="f-cases">What are the samples?</label>
-        <span class="hint">Gives the AI test cases to build, and gives you a way to check its rules. Write 3 lines: a name, then what you would see in the data (symptoms, not a label). Easy case, in-between case, worst case. Each line becomes one option in the dropdown.</span>
+        <span class="hint">Defines the options in the dropdown, so you can see how the app handles an easy, in-between and worst case. Write 3 lines: a name, then what you would see in the data (symptoms, not a label).</span>
         <textarea id="f-cases" rows="3" placeholder="Normal Operation: temperature, vibration and pressure stay flat for all compressors&#10;Early Warning: ...&#10;Critical Condition: ..."></textarea>
       </div>
       <div class="two">
         <div class="field">
           <label for="f-act">[summarise / rank / compare / draft]</label>
-          <span class="hint">Tells the AI what to do with the data. Pick one or two.</span>
+          <span class="hint">Tells the AI what to do with the data. Pick one.</span>
           <select id="f-act"><option>rank</option><option>summarise</option><option>compare</option><option>draft</option><option>rank and compare</option></select>
         </div>
         <div class="field">
@@ -181,7 +181,7 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
       </div>
       <div class="field">
         <label for="f-result">[result]</label>
-        <span class="hint">Tells the AI exactly what to put on screen, so it does not guess. Name the columns or fields.</span>
+        <span class="hint">Tells the AI what to put on screen. Name the columns or fields.</span>
         <input type="text" id="f-result" placeholder="compressor ID, readings, risk level, reason">
       </div>
       <div class="two">
@@ -192,13 +192,13 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
         </div>
         <div class="field">
           <label for="f-action">before [action]</label>
-          <span class="hint">The real-world decision the app must not make alone. It goes into the review note.</span>
+          <span class="hint">What needs a human check before it happens. The review note names it. Write an action, e.g. "scheduling maintenance".</span>
           <input type="text" id="f-action" placeholder="scheduling maintenance">
         </div>
       </div>
       <div class="field">
         <label for="f-donts">Do NOT list</label>
-        <span class="hint">Stops the AI adding extras you did not ask for, so the first build stays small and quick to check. One per line. Edit freely.</span>
+        <span class="hint">Lists what the AI must leave out, so the first build stays small and quick to check. One per line.</span>
         <textarea id="f-donts" rows="6"></textarea>
       </div>
       <div class="row">
