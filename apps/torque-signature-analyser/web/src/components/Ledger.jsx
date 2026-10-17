@@ -1,15 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import StatusMark from './StatusMark.jsx';
 import { sortRundowns } from '../state.js';
-
-const fmt = (n) => (Number.isInteger(n) ? String(n) : String(Math.round(n * 10) / 10));
+import { fmt, withUnit } from '../format.js';
 
 export function firstEvidenceLine(r) {
   const e = r.evidence?.[0];
   if (e) {
-    const range = e.ref_lo != null && e.ref_hi != null ? `, reference ${fmt(e.ref_lo)} to ${fmt(e.ref_hi)} ${e.unit}` : '';
-    return `${e.label} ${fmt(e.value)} ${e.unit}${range}`;
+    const range = e.ref_lo != null && e.ref_hi != null ? `, reference ${fmt(e.ref_lo)} to ${withUnit(e.ref_hi, e.unit)}` : '';
+    return `${e.label} ${withUnit(e.value, e.unit)}${range}`;
   }
   if (r.pattern_hint) return r.pattern_hint;
   if (r.signature === 'investigate') return 'Combined pattern, no single feature stands out';
@@ -35,11 +34,24 @@ export default function Ledger({ rundowns, selectedId, onSelect }) {
 
   const ariaSort = (key) => (sort.key === key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none');
 
+  // Roving tabindex: the selected row is the one tab stop. Arrows move the selection.
+  const rowRefs = useRef(new Map());
+  const tabId = rows.some((r) => r.id === selectedId) ? selectedId : rows[0]?.id;
+
   const onKey = (e, id) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       onSelect(id);
+      return;
     }
+    const at = rows.findIndex((r) => r.id === id);
+    const to = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: rows.length - 1 }[e.key];
+    if (to == null) return;
+    e.preventDefault();
+    const next = rows[Math.min(rows.length - 1, Math.max(0, to))];
+    if (!next) return;
+    onSelect(next.id);
+    rowRefs.current.get(next.id)?.focus();
   };
 
   return (
@@ -65,8 +77,8 @@ export default function Ledger({ rundowns, selectedId, onSelect }) {
                   <SortButton label={c.label} active={sort.key === c.key} dir={sort.dir} onClick={() => toggle(c.key)} />
                 </th>
               ))}
-              <th>First evidence</th>
-              {showKey && <th>Seeded pattern</th>}
+              <th className="th-pad">First evidence</th>
+              {showKey && <th className="th-pad">Seeded pattern</th>}
             </tr>
           </thead>
           <tbody>
@@ -76,7 +88,8 @@ export default function Ledger({ rundowns, selectedId, onSelect }) {
                 <tr
                   key={r.id}
                   className={selected ? 'is-selected' : undefined}
-                  tabIndex={0}
+                  ref={(el) => { if (el) rowRefs.current.set(r.id, el); else rowRefs.current.delete(r.id); }}
+                  tabIndex={r.id === tabId ? 0 : -1}
                   aria-selected={selected}
                   onClick={() => onSelect(r.id)}
                   onKeyDown={(e) => onKey(e, r.id)}

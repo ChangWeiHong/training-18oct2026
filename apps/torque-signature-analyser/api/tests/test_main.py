@@ -194,3 +194,13 @@ def test_content_length_rejected_before_form_parse():
                              "content-length": str(2 * 5_000_000 + 65537)})
     assert r.status_code == 400
     assert set(r.json()) == {"error", "row", "column", "fix"}
+
+
+def test_json_explicit_null_spec_means_no_spec():
+    r = client.post("/api/analyse", json={"sample_id": "mixed", "spec": None})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["spec"] is None
+    assert {x["spec_result"] for x in d["rundowns"]} == {"not_supplied"}
+    # Leaving the key out still uses the pack's own spec.
+    assert client.post("/api/analyse", json={"sample_id": "mixed"}).json()["spec"] is not None

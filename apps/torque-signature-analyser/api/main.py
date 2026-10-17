@@ -153,7 +153,10 @@ def create_app(dist: Path | None = DEFAULT_DIST) -> FastAPI:
                 raise ApiError(400, "sample_id is required.", "Send {\"sample_id\": \"clean\"}.")
             pack = _pack(body["sample_id"])
             readings, reference = _sample_frames(pack["id"])
-            spec = _parse_spec(body["spec"]) if body.get("spec") else pack["spec"]
+            if "spec" not in body:
+                spec = pack["spec"]  # key left out: the pack's own spec
+            else:
+                spec = _parse_spec(body["spec"])  # explicit null: no spec
             reference_source = "sample"
         elif ctype.startswith("multipart/form-data"):
             try:
