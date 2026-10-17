@@ -46,7 +46,7 @@ Every status carries a symbol and a label next to its colour. Status and body te
 
 ## 3D contract
 
-- Procedural geometry only: flange plate, six bolts, sockets, washer and joint section.
+- Procedural geometry only: flange plate, one to six evenly spaced bolts (the joint's bolt count), sockets, washer and joint section.
 - True perspective camera with orbit, zoom and labelled keyboard controls. Azimuth rotation works from the keyboard.
 - Bolt rotation comes from the cursor angle on the graph, not a timer.
 - Materials use a brushed-metal look with subdued mottling and lowered exposure.
@@ -56,7 +56,9 @@ Every status carries a symbol and a label next to its colour. Status and body te
 ## Motion
 
 - Playback moves the cursor and the bolt. The sea-glass accent marks that motion and nothing else.
-- Under `prefers-reduced-motion` playback stays available but transitions stop.
+- Playback loops: the last pose holds for one second, then the cursor restarts. Tour is opt-in and any user action ends it.
+- The selected curve is bold in its status colour up to the cursor and faint and dashed after it. The cursor head turns sea-glass with a halo only while playing. An evidence strip lights once as the cursor enters it.
+- Under `prefers-reduced-motion` nothing starts by itself and Tour is disabled. Play and Loop still work and transitions stop.
 - While a dialog is open, global keyboard shortcuts pause.
 
 ## Source skills reviewed

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import Toolbar from './components/Toolbar.jsx';
 import CountStrip from './components/CountStrip.jsx';
 import Ledger from './components/Ledger.jsx';
@@ -9,7 +9,9 @@ import About from './components/About.jsx';
 import usePlayback from './usePlayback.js';
 import { inputsSnapshot, isStale } from './stale.js';
 import SceneBoundary from './scene/SceneBoundary.jsx';
-import { initialState, selectionReducer, selectedRundown, parseSpecInputs, specToInputs, SAMPLE_SPEC, EMPTY_SPEC } from './state.js';
+import { initialState, selectionReducer, selectedRundown, parseSpecInputs, specToInputs, SAMPLE_SPEC, EMPTY_SPEC, isFlagged } from './state.js';
+import { defaultPackId, packBolts, showUploadControls } from './packs.js';
+import { useReducedMotion } from './motion.js';
 import { listSamples, analyseSample, analyseUpload } from './api.js';
 
 const JointScene = lazy(() => import('./scene/JointScene.jsx'));
@@ -27,6 +29,12 @@ export default function App() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [computedFrom, setComputedFrom] = useState(null);
   const ticket = useRef(0);
+  const reducedMotion = useReducedMotion();
+  const autoplay = !reducedMotion;
+  const showUpload = useMemo(() => showUploadControls(window.location.search), []);
+  const autoplayRef = useRef(autoplay);
+  autoplayRef.current = autoplay;
+  const select = useCallback((id) => dispatch({ type: 'SELECT', rundownId: id, autoplay }), [autoplay]);
 
   usePlayback(state, dispatch);
 
@@ -38,7 +46,7 @@ export default function App() {
     try {
       const result = await job();
       if (mine === ticket.current) {
-        dispatch({ type: 'LOAD_RESULT', result });
+        dispatch({ type: 'LOAD_RESULT', result, autoplay: autoplayRef.current });
         setComputedFrom(snap);
       }
     } catch (e) {
@@ -64,7 +72,7 @@ export default function App() {
       .then((list) => {
         if (!live) return;
         setSamples(list);
-        const first = list.find((s) => s.id === 'mixed') ?? list[0];
+        const first = list.find((s) => s.id === defaultPackId(list));
         if (first) loadSample(first.id, first);
       })
       .catch((e) => live && setError(e?.error ? e : { error: 'Could not load sample packs.', fix: 'Reload the page.' }));
@@ -114,6 +122,9 @@ export default function App() {
   const resultSeen = useRef({ result: null, n: 0 });
   if (resultSeen.current.result !== state.result) resultSeen.current = { result: state.result, n: resultSeen.current.n + 1 };
   const resultKey = resultSeen.current.n;
+  const pack = samples.find((p) => p.id === sampleId);
+  const packSpec = pack?.spec;
+  const canTour = rundowns.some(isFlagged);
   const canRerun = parsed !== 'partial' && Boolean(readingsFile || sampleId);
 
   return (
@@ -128,7 +139,8 @@ export default function App() {
         onReference={onReference}
         specInputs={specInputs}
         onSpecChange={(k, v) => setSpecInputs((s) => ({ ...s, [k]: v }))}
-        onUseSampleSpec={() => setSpecInputs(specToInputs(SAMPLE_SPEC))}
+        onUseSampleSpec={() => setSpecInputs(specToInputs(packSpec ?? SAMPLE_SPEC))}
+        showUpload={showUpload}
         onRerun={onRerun}
         canRerun={canRerun}
         busy={busy}
@@ -157,6 +169,7 @@ export default function App() {
                 cursor={state.cursor}
                 mode={mode}
                 onMode={setMode}
+                playing={state.playing}
                 onCursor={(i) => dispatch({ type: 'SET_CURSOR', i })}
               />
             </div>
@@ -171,18 +184,19 @@ export default function App() {
                 result={state.result}
                 selected={selected}
                 cursor={state.cursor}
-                onSelect={(id) => dispatch({ type: 'SELECT', rundownId: id })}
+                onSelect={select}
+                bolts={packBolts(pack)}
               />
             </Suspense>
             </SceneBoundary>
           </div>
           <div className="slot slot-playback" data-slot="playback">
-            <PlaybackBar selected={selected} cursor={state.cursor} playing={state.playing} speed={state.speed} dispatch={dispatch} />
+            <PlaybackBar selected={selected} cursor={state.cursor} playing={state.playing} speed={state.speed} loop={state.loop} tour={state.tour} canTour={canTour} reducedMotion={reducedMotion} dispatch={dispatch} />
           </div>
         </section>
 
         {rundowns.length > 0 && (
-          <Ledger rundowns={rundowns} selectedId={state.selectedId} onSelect={(id) => dispatch({ type: 'SELECT', rundownId: id })} />
+          <Ledger rundowns={rundowns} selectedId={state.selectedId} onSelect={select} />
         )}
         </div>
       </main>

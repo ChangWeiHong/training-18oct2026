@@ -109,3 +109,25 @@ test('tilt steps stay inside the polar limits', () => {
   for (let i = 0; i < 80; i += 1) p = orbitStep(p, target, { dPhi: 0.12 });
   assert.ok(Math.abs(phi(p) - ORBIT.maxPolar) < 1e-9);
 });
+
+test('bolt holes sit evenly around the circle for any bolt count', () => {
+  for (const n of [1, 2, 3, 4, 6]) {
+    for (let s = 0; s < n; s += 1) {
+      assert.ok(Math.abs(slotAngle(s, n) - (s * 2 * Math.PI) / n) < 1e-12);
+      const p = slotPosition(s, n);
+      assert.ok(Math.abs(Math.hypot(p.x, p.z) - 5.6) < 1e-9);
+    }
+  }
+  assert.equal(slotAngle(1), Math.PI / 3);
+});
+
+test('presets fit for 1 to 6 bolts', () => {
+  for (const n of [1, 2, 3, 4, 6]) {
+    for (const aspect of [0.6, 1.3, 2.4]) {
+      const pose = presetPose('flange', n - 1, aspect, n);
+      assert.ok(Number.isFinite(pose.position.x) && pose.position.length() > 0);
+      const pts = flangeBoundPoints(n);
+      assert.equal(pts.length, 48 + 10 * n);
+    }
+  }
+});

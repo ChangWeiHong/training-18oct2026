@@ -1,13 +1,16 @@
 import { useRef } from 'react';
-import { Upload, RotateCw, Download, Info } from 'lucide-react';
+import { Upload, RotateCw, Download, Info, FlaskConical } from 'lucide-react';
 import { SPEC_FIELDS } from '../state.js';
 import { TEMPLATE_URL } from '../api.js';
+import { groupPacks } from '../packs.js';
+
+export const DEMO_BADGE_TIP = 'Generated curves for training. Not from a real line.';
 
 export default function Toolbar({
   samples, sampleId, onPickSample,
   readingsFile, referenceFile, onReadings, onReference,
   specInputs, onSpecChange, onUseSampleSpec,
-  onRerun, canRerun, busy, error, specNote, referenceNote, onAbout,
+  onRerun, canRerun, busy, error, specNote, referenceNote, onAbout, showUpload = false,
 }) {
   const readingsRef = useRef(null);
   const referenceRef = useRef(null);
@@ -24,6 +27,10 @@ export default function Toolbar({
         <div className="brand">
           <span className="brand-name">Torque Signature</span>
           <span className="brand-sub">Analyser</span>
+          <span className="demo-badge" role="note" tabIndex={0} title={DEMO_BADGE_TIP} aria-label={`Synthetic demo data. ${DEMO_BADGE_TIP}`}>
+            <FlaskConical size={12} aria-hidden="true" />
+            <span>Synthetic demo data</span>
+          </span>
         </div>
 
         <label className="field">
@@ -36,27 +43,35 @@ export default function Toolbar({
             title={samples.find((s) => s.id === sampleId)?.description}
           >
             {sampleId == null && <option value="">Upload in use</option>}
-            {samples.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
+            {groupPacks(samples).map((g) => (
+              <optgroup key={g.joint} label={`${g.label} (illustrative spec)`}>
+                {g.packs.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </label>
 
         <div className="btn-group">
-          <input ref={readingsRef} type="file" accept=".csv,text/csv" hidden onChange={pick(onReadings)} aria-label="Readings CSV file" />
-          <input ref={referenceRef} type="file" accept=".csv,text/csv" hidden onChange={pick(onReference)} aria-label="Reference CSV file" />
-          <button type="button" className="btn" onClick={() => readingsRef.current?.click()}>
-            <Upload size={14} aria-hidden="true" />
-            <span>Upload readings</span>
-          </button>
-          <button type="button" className="btn" onClick={() => referenceRef.current?.click()}>
-            <Upload size={14} aria-hidden="true" />
-            <span>Upload reference</span>
-          </button>
-          <a className="btn btn-link" href={TEMPLATE_URL} download="torque-template.csv">
-            <Download size={14} aria-hidden="true" />
-            <span>Template</span>
-          </a>
+          {showUpload && (
+            <>
+              <input ref={readingsRef} type="file" accept=".csv,text/csv" hidden onChange={pick(onReadings)} aria-label="Readings CSV file" />
+              <input ref={referenceRef} type="file" accept=".csv,text/csv" hidden onChange={pick(onReference)} aria-label="Reference CSV file" />
+              <button type="button" className="btn" onClick={() => readingsRef.current?.click()}>
+                <Upload size={14} aria-hidden="true" />
+                <span>Upload readings</span>
+              </button>
+              <button type="button" className="btn" onClick={() => referenceRef.current?.click()}>
+                <Upload size={14} aria-hidden="true" />
+                <span>Upload reference</span>
+              </button>
+              <a className="btn btn-link" href={TEMPLATE_URL} download="torque-template.csv">
+                <Download size={14} aria-hidden="true" />
+                <span>Template</span>
+              </a>
+            </>
+          )}
           <button type="button" className="btn" onClick={onAbout}>
             <Info size={14} aria-hidden="true" />
             <span>About</span>
@@ -87,7 +102,7 @@ export default function Toolbar({
             <span className="chip-unit">{f.unit}</span>
           </label>
         ))}
-        <button type="button" className="btn" onClick={onUseSampleSpec}>Use sample spec (M12)</button>
+        <button type="button" className="btn" onClick={onUseSampleSpec}>Use sample spec</button>
         <button type="button" className="btn btn-primary" onClick={onRerun} disabled={!canRerun || busy}>
           <RotateCw size={14} aria-hidden="true" />
           <span>Re-run</span>

@@ -7,7 +7,7 @@ import { presetPose, orbitStep, ORBIT } from './camera.js';
 /** Bounded orbit (no pan, no auto-rotate) with preset moves. Orbiting never touches the cursor. */
 const STEP = { rotate: 0.2, tilt: 0.12, zoom: 0.85 };
 
-export default function CameraRig({ preset, focus, reducedMotion, apiRef }) {
+export default function CameraRig({ preset, focus, count = 6, reducedMotion, apiRef }) {
   const { camera, invalidate, size } = useThree();
   const aspect = size.width / Math.max(1, size.height);
   const lastAspect = useRef(aspect);
@@ -16,7 +16,7 @@ export default function CameraRig({ preset, focus, reducedMotion, apiRef }) {
   const first = useRef(true);
 
   useEffect(() => {
-    const to = presetPose(preset, focus, aspect);
+    const to = presetPose(preset, focus, aspect, count);
     const resized = lastAspect.current !== aspect;
     lastAspect.current = aspect;
     const c = controls.current;
@@ -32,7 +32,7 @@ export default function CameraRig({ preset, focus, reducedMotion, apiRef }) {
     }
     anim.current = { t: 0, fromPos: camera.position.clone(), fromTarget: c.target.clone(), to };
     invalidate();
-  }, [preset, focus, aspect, reducedMotion, camera, invalidate]);
+  }, [preset, focus, count, aspect, reducedMotion, camera, invalidate]);
 
   // Keyboard / button inspection: same bounds as the mouse, never touches the cursor or pans.
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function CameraRig({ preset, focus, reducedMotion, apiRef }) {
       reset: () => {
         const c = controls.current;
         if (!c) return;
-        const to = presetPose(preset, focus, aspect);
+        const to = presetPose(preset, focus, aspect, count);
         if (reducedMotion) {
           anim.current = null;
           camera.position.copy(to.position);
@@ -68,16 +68,16 @@ export default function CameraRig({ preset, focus, reducedMotion, apiRef }) {
       },
     };
     return () => { apiRef.current = null; };
-  }, [apiRef, camera, invalidate, preset, focus, aspect, reducedMotion]);
+  }, [apiRef, camera, invalidate, preset, focus, count, aspect, reducedMotion]);
 
   useEffect(() => {
     if (!import.meta.env?.DEV) return undefined;
     window.__tsaCam = () => ({
       pos: camera.position.toArray(), target: controls.current?.target.toArray(), aspect, size: [size.width, size.height],
-      anim: Boolean(anim.current), expected: Object.fromEntries(Object.entries(presetPose(preset, focus, aspect)).map(([k, v]) => [k, v.toArray()])),
+      anim: Boolean(anim.current), expected: Object.fromEntries(Object.entries(presetPose(preset, focus, aspect, count)).map(([k, v]) => [k, v.toArray()])),
     });
     return () => { delete window.__tsaCam; };
-  }, [camera, aspect, size.width, size.height, preset, focus]);
+  }, [camera, aspect, size.width, size.height, preset, focus, count]);
 
   useFrame((_, dt) => {
     const a = anim.current;
