@@ -88,8 +88,8 @@ export function createMaterials(cut) {
   const rough = roughnessTexture();
   const steelF0 = F0(0.56, 0.57, 0.58);
   hatchCache ??= {
-    top: hatchTexture(tokenColor('--color-alu', '#bbb').multiplyScalar(0.8), tokenColor('--color-surface', '#222')),
-    base: hatchTexture(tokenColor('--color-steel', '#99a').multiplyScalar(0.6), tokenColor('--color-surface', '#222')),
+    top: hatchTexture(tokenColor('--color-alu', '#bbb').multiplyScalar(0.22), tokenColor('--color-surface', '#222')),
+    base: hatchTexture(tokenColor('--color-steel', '#99a').multiplyScalar(0.16), tokenColor('--color-surface', '#222')),
   };
   const hatch = hatchCache.top;
   const hatchDark = hatchCache.base;
@@ -108,7 +108,7 @@ export function createMaterials(cut) {
   const hub = new THREE.MeshStandardMaterial({ color: F0(0.34, 0.35, 0.38), metalness: 0.9, roughness: 0.6, roughnessMap: rough });
   const capTop = new THREE.MeshStandardMaterial({ map: hatch, metalness: 0, roughness: 0.9 });
   const capBase = new THREE.MeshStandardMaterial({ map: hatchDark, metalness: 0, roughness: 0.9 });
-  const capBolt = new THREE.MeshStandardMaterial({ color: tokenColor('--color-steel', '#aab').multiplyScalar(0.55), metalness: 0, roughness: 0.8 });
+  const capBolt = new THREE.MeshStandardMaterial({ color: tokenColor('--color-steel', '#aab').multiplyScalar(0.13), metalness: 0, roughness: 0.8 });
   const edge = new THREE.MeshBasicMaterial({ color: tokenColor('--color-motion', '#3df5d2'), toneMapped: false, transparent: true, opacity: 0.9, clippingPlanes: single });
 
   const gapMat = new THREE.MeshBasicMaterial({ color: tokenColor('--color-motion', '#3df5d2'), transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, clippingPlanes: single });

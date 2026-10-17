@@ -54,6 +54,8 @@ function threadGeometry() {
     return new THREE.TubeGeometry(new Helix(), Math.round(turns * 14), 0.07, 5, false);
   });
 }
+// Socket: lower part only (hex sleeve plus a short open collar, no lid) so the hex top and its index stripe stay visible.
+const SOCKET = { ring: 0.85, collar: 0.35 };
 function socketGeometry(detail) {
   return once(`socket${detail}`, () => {
     const outer = hexShape(1.27);
@@ -65,16 +67,14 @@ function socketGeometry(detail) {
     }
     hole.closePath();
     outer.holes.push(hole);
-    const ring = new THREE.ExtrudeGeometry(outer, { depth: 1.05, bevelEnabled: false });
+    const y0 = BOLT.flangeT + 0.04;
+    const ring = new THREE.ExtrudeGeometry(outer, { depth: SOCKET.ring, bevelEnabled: false });
     ring.rotateX(-Math.PI / 2);
-    ring.translate(0, BOLT.flangeT + 0.04, 0);
+    ring.translate(0, y0, 0);
     const seg = detail === 'full' ? 32 : 14;
-    const drive = new THREE.CylinderGeometry(0.85, 0.95, 1.2, seg, 1, true);
-    drive.translate(0, BOLT.flangeT + 0.04 + 1.05 + 0.6, 0);
-    const lid = new THREE.CircleGeometry(0.95, seg);
-    lid.rotateX(-Math.PI / 2);
-    lid.translate(0, BOLT.flangeT + 0.04 + 1.05, 0);
-    return { ring, drive, lid };
+    const collar = new THREE.CylinderGeometry(1.0, 1.12, SOCKET.collar, seg, 1, true);
+    collar.translate(0, y0 + SOCKET.ring + SOCKET.collar / 2, 0);
+    return { ring, collar };
   });
 }
 function washerGeometry(seg) {
@@ -87,6 +87,9 @@ function washerGeometry(seg) {
 const ringGeo = () => once('ringGeo', () => new THREE.TorusGeometry(1.14, 0.055, 8, 48));
 const edgeGeo = () => once('edgeGeo', () => new THREE.TorusGeometry(1.3, 0.03, 6, 64));
 const planeGeo = () => once('plane', () => new THREE.PlaneGeometry(1, 1));
+// Top of the bevelled hex, and the direction of the index mark (radians about +y; pi = towards -x, on the cut line).
+const HEX_TOP = BOLT.flangeT + 0.04 + BOLT.hexH - 0.08 + 0.04;
+const MARK_ANGLE = (5 * Math.PI) / 6;
 
 /** Half-width of the regular hex head along the world cut line, for a bolt turned by `rot` radians about y. */
 export function hexHalfWidth(rot) {
@@ -134,14 +137,19 @@ export default function Bolt({ materials, status, rotation = 0, cut = false, det
         <mesh geometry={hex} material={zinc} />
         <mesh geometry={shank} material={zinc} />
         {thread && <mesh geometry={thread} material={zinc} />}
+        {sock && (
+          <>
+            <mesh geometry={sock.ring} material={materials.socket} />
+            <mesh geometry={sock.collar} material={materials.socket} />
+          </>
+        )}
         {cut && (
-          <group rotation={[0, Math.PI / 4, 0]}>
-            {/* Index marks: bright stripe over the hex top and down the vertex edge, on a dark underlay, so turning reads in 3/4 view. */}
-            <mesh geometry={plane} material={materials.markBack} position={[0.5, BOLT.flangeT + BOLT.hexH + 0.011, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[1.0, 0.3, 1]} />
-            <mesh geometry={plane} material={materials.mark} position={[0.5, BOLT.flangeT + BOLT.hexH + 0.014, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[0.96, 0.17, 1]} />
-            <mesh geometry={plane} material={materials.markBack} position={[0.795, BOLT.flangeT + BOLT.hexH / 2 + 0.04, -0.459]} rotation={[0, (2 * Math.PI) / 3, 0]} scale={[0.36, BOLT.hexH, 1]} />
-            <mesh geometry={plane} material={materials.mark} position={[0.799, BOLT.flangeT + BOLT.hexH / 2 + 0.04, -0.461]} rotation={[0, (2 * Math.PI) / 3, 0]} scale={[0.2, BOLT.hexH, 1]} />
-            <mesh geometry={plane} material={materials.mark} position={[1.17, BOLT.flangeT + 0.013, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[0.2, 0.1, 1]} />
+          <group rotation={[0, MARK_ANGLE, 0]}>
+            {/* Index marks on the kept (far) half: a radial stripe on the hex top and a notch on the socket rim, on a
+                dark underlay. At 150 deg they stay in view for the first ~150 deg of turn. */}
+            <mesh geometry={plane} material={materials.markBack} position={[0.45, HEX_TOP + 0.006, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[0.9, 0.5, 1]} />
+            <mesh geometry={plane} material={materials.mark} position={[0.47, HEX_TOP + 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[0.84, 0.3, 1]} />
+            {sock && <mesh geometry={plane} material={materials.mark} position={[1.01, BOLT.flangeT + 0.04 + SOCKET.ring + 0.006, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[0.17, 0.3, 1]} />}
           </group>
         )}
       </group>

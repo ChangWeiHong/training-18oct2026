@@ -12,6 +12,8 @@ import { boltSlots, jointPose, statusKind } from './kinematics.js';
 // R15: starting head-to-washer gap is 30% of the head height; compression cap is 10% of the top plate.
 const GAP_MAX = 0.3 * 0.95;
 const MAX_COMPRESSION = 0.1 * FLANGE.topT;
+// Lifted exposure so plates, washer and bolt read against the graphite background.
+const EXPOSURE = 1.45;
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
@@ -76,8 +78,8 @@ function Scene({ focus, siblings, selected, pose, preset, detail, lit, reducedMo
       <directionalLight position={[-6, 12, 8]} intensity={1.6} color="#fff2df" />
       <directionalLight position={[8, 5, -4]} intensity={0.9} color="#aec7df" />
       <directionalLight position={[3, 6, 12]} intensity={1.2} color="#fff6ea" />
-      <Environment resolution={256} frames={1}>
-        <color attach="background" args={['#0b0d0e']} />
+      <Environment resolution={256} frames={1} environmentIntensity={1.4}>
+        <color attach="background" args={['#2a3036']} />
         <Lightformer form="rect" intensity={14} position={[-5, 4.2, 4.8]} scale={[5.2, 3.9]} color="#fff4e2" />
         <Lightformer form="rect" intensity={5} position={[6, 1.6, 2]} scale={[3, 5.4]} color="#b4d0ee" />
         <Lightformer form="rect" intensity={7} position={[2.5, 2.2, -5.5]} scale={[2, 4.6]} color="#ffe2b8" />
@@ -130,16 +132,19 @@ function JointView({ result, selected, cursor, onSelect }) {
     return () => ro.disconnect();
   }, []);
 
-  // Sea-glass accent only while the cursor is advancing.
+  // Sea-glass accent only while the cursor is advancing. The off-timer is restarted on each advance and is never
+  // dropped by a later cursor change, so the accent always resets; it is only cleared on unmount.
   const prev = useRef(cursor);
+  const litTimer = useRef(null);
+  useEffect(() => () => clearTimeout(litTimer.current), []);
   useEffect(() => {
     const advanced = cursor > prev.current;
     prev.current = cursor;
-    if (reducedMotion) { setLit(false); return undefined; }
-    if (!advanced) return undefined;
+    if (reducedMotion) { clearTimeout(litTimer.current); setLit(false); return; }
+    if (!advanced) return;
     setLit(true);
-    const t = setTimeout(() => setLit(false), 220);
-    return () => clearTimeout(t);
+    clearTimeout(litTimer.current);
+    litTimer.current = setTimeout(() => setLit(false), 220);
   }, [cursor, reducedMotion]);
 
   const rundowns = result?.rundowns ?? [];
@@ -177,6 +182,7 @@ function JointView({ result, selected, cursor, onSelect }) {
         frameloop="demand"
         camera={{ fov: 32, near: 0.5, far: 120, position: [0, 20, 18] }}
         gl={{ antialias: true }}
+        onCreated={({ gl }) => { gl.toneMappingExposure = EXPOSURE; }}
         aria-label="3D bolted joint, half section"
       >
         <Scene
