@@ -1,0 +1,53 @@
+- generic [ref=f36e3]:
+  - banner [ref=f36e4]:
+    - generic [ref=f36e5]:
+      - generic [ref=f36e6]:
+        - generic [ref=f36e7]: Torque Signature
+        - generic [ref=f36e8]: Analyser
+      - generic [ref=f36e9]:
+        - generic [ref=f36e10]: Sample pack
+        - combobox "Sample pack" [disabled] [ref=f36e11]:
+          - option "Upload in use" [selected]
+      - generic [ref=f36e12]:
+        - button "Upload readings" [ref=f36e13] [cursor=pointer]
+        - button "Upload reference" [ref=f36e18] [cursor=pointer]
+        - link "Template" [ref=f36e23] [cursor=pointer]:
+          - /url: /api/template.csv
+    - group "Specification" [ref=f36e28]:
+      - generic [ref=f36e29]: Spec
+      - generic [ref=f36e30]:
+        - generic [ref=f36e31]: Torque min
+        - textbox "Torque min Nm" [ref=f36e32]:
+          - /placeholder: none
+        - generic [ref=f36e33]: Nm
+      - generic [ref=f36e34]:
+        - generic [ref=f36e35]: Torque max
+        - textbox "Torque max Nm" [ref=f36e36]:
+          - /placeholder: none
+        - generic [ref=f36e37]: Nm
+      - generic [ref=f36e38]:
+        - generic [ref=f36e39]: Post-snug min
+        - textbox "Post-snug min °" [ref=f36e40]:
+          - /placeholder: none
+        - generic [ref=f36e41]: °
+      - generic [ref=f36e42]:
+        - generic [ref=f36e43]: Post-snug max
+        - textbox "Post-snug max °" [ref=f36e44]:
+          - /placeholder: none
+        - generic [ref=f36e45]: °
+      - generic [ref=f36e46]:
+        - generic [ref=f36e47]: Snug
+        - textbox "Snug Nm" [ref=f36e48]:
+          - /placeholder: none
+        - generic [ref=f36e49]: Nm
+      - button "Use sample spec (M12)" [ref=f36e50] [cursor=pointer]
+      - button "Re-run" [disabled] [ref=f36e51]
+      - status
+  - main [ref=f36e56]:
+    - region "Workspace" [ref=f36e57]:
+      - generic [ref=f36e58]:
+        - paragraph [ref=f36e61]: Load a pack to see its curves.
+        - complementary "Evidence" [ref=f36e62]:
+          - paragraph [ref=f36e63]: Select a rundown to see why it was flagged.
+      - paragraph [ref=f36e65]: Loading 3D view.
+      - paragraph [ref=f36e67]: Playback bar goes here.

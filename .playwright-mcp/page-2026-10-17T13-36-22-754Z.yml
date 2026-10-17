@@ -1,0 +1,1886 @@
+- generic [ref=f48e3]:
+  - banner [ref=f48e4]:
+    - generic [ref=f48e5]:
+      - generic [ref=f48e6]:
+        - generic [ref=f48e7]: Torque Signature
+        - generic [ref=f48e8]: Analyser
+      - generic [ref=f48e9]:
+        - generic [ref=f48e10]: Sample pack
+        - combobox "Sample pack" [ref=f48e11]:
+          - option "Clean shift"
+          - option "Mixed shift" [selected]
+          - option "Gradual drift"
+          - option "Hard cases"
+      - generic [ref=f48e12]:
+        - button "Upload readings" [ref=f48e13] [cursor=pointer]
+        - button "Upload reference" [ref=f48e18] [cursor=pointer]
+        - link "Template" [ref=f48e23] [cursor=pointer]:
+          - /url: /api/template.csv
+        - button "About" [ref=f48e28] [cursor=pointer]
+    - group "Specification" [ref=f48e32]:
+      - generic [ref=f48e33]: Spec
+      - generic [ref=f48e34]:
+        - generic [ref=f48e35]: Torque min
+        - textbox "Torque min Nm" [ref=f48e36]:
+          - /placeholder: none
+          - text: "99"
+        - generic [ref=f48e37]: Nm
+      - generic [ref=f48e38]:
+        - generic [ref=f48e39]: Torque max
+        - textbox "Torque max Nm" [ref=f48e40]:
+          - /placeholder: none
+          - text: "121"
+        - generic [ref=f48e41]: Nm
+      - generic [ref=f48e42]:
+        - generic [ref=f48e43]: Post-snug min
+        - textbox "Post-snug min °" [ref=f48e44]:
+          - /placeholder: none
+          - text: "20"
+        - generic [ref=f48e45]: °
+      - generic [ref=f48e46]:
+        - generic [ref=f48e47]: Post-snug max
+        - textbox "Post-snug max °" [ref=f48e48]:
+          - /placeholder: none
+          - text: "60"
+        - generic [ref=f48e49]: °
+      - generic [ref=f48e50]:
+        - generic [ref=f48e51]: Snug
+        - textbox "Snug Nm" [ref=f48e52]:
+          - /placeholder: none
+          - text: "30"
+        - generic [ref=f48e53]: Nm
+      - button "Use sample spec (M12)" [ref=f48e54] [cursor=pointer]
+      - button "Re-run" [ref=f48e55] [cursor=pointer]
+      - status
+  - dialog [ref=f48e98]:
+    - generic [ref=f48e99]:
+      - generic [ref=f48e100]:
+        - heading "How the analysis works" [level=2] [ref=f48e101]
+        - button "Close" [active] [ref=f48e102] [cursor=pointer]
+      - 'img "How the analysis works A readings CSV becomes features per rundown. Features are compared with a reference envelope and an Isolation Forest to give the signature result: typical, worth investigating or can''t assess. They are checked against your spec limits to give the spec result: within, outside, partly checked or not supplied." [ref=f48e107]':
+        - generic [ref=f48e114]: YOUR SPEC LIMITS
+        - generic [ref=f48e123]:
+          - generic [ref=f48e124]: Readings CSV
+          - generic [ref=f48e125]: Features
+          - generic [ref=f48e126]: Reference envelope
+          - generic [ref=f48e127]: Isolation Forest
+          - generic [ref=f48e128]: Signature result
+          - generic [ref=f48e129]: Spec result
+        - generic [ref=f48e130]:
+          - generic [ref=f48e131]: sample rows
+          - generic [ref=f48e132]: per rundown
+          - generic [ref=f48e133]: 5th to 95th pct band
+          - generic [ref=f48e134]: unusual combinations
+          - generic [ref=f48e135]: typical
+          - generic [ref=f48e136]: worth investigating
+          - generic [ref=f48e137]: can't assess
+          - generic [ref=f48e138]: within
+          - generic [ref=f48e139]: outside
+          - generic [ref=f48e140]: partly checked
+          - generic [ref=f48e141]: not supplied
+      - list [ref=f48e142]:
+        - listitem [ref=f48e143]: "Features. Each rundown becomes a short list: final and peak torque, snug angle, post-snug angle, elastic slope, torque drops, and how far the curve strays from the reference median."
+        - listitem [ref=f48e144]: Reference. The reference rundowns set the expected band, the 5th to 95th percentile at each angle after snug. The tool assumes they are good rundowns. Without a reference file, the upload is compared with itself, so a shift across the whole batch can hide.
+        - listitem [ref=f48e145]: Signature result. A rundown is worth investigating when one feature sits far outside the reference spread, the whole curve strays far from the median, the rotation runs past the reference curve, or the Isolation Forest finds the mix of features unusual. Typical means statistically similar to the reference. It does not approve the fastening. Can't assess means the reference or the trace gave too little to compare.
+        - listitem [ref=f48e146]: Spec result. Torque and post-snug angle are checked against the limits you enter. The reference plays no part. A rundown is within only when every limit you entered was checked and passed. Partly checked means a limit could not be tested. Not supplied means you entered no limits.
+      - heading "Limits" [level=3] [ref=f48e147]
+      - list [ref=f48e148]:
+        - listitem [ref=f48e149]: The tool reads continuous-drive tightening traces only.
+        - listitem [ref=f48e150]: All sample data is synthetic.
+        - listitem [ref=f48e151]: The detector was checked on 3 held-out synthetic seeds. Each had only 3 to 5 abnormal rundowns that were still in spec, so the recall figures rest on very few cases.
+        - listitem [ref=f48e152]: A flag means worth checking. It does not confirm a fault.
+        - listitem [ref=f48e153]: Real nutrunner traces may differ from the synthetic ones.
+        - listitem [ref=f48e154]: In the 3D view, rotation is measured. Travel and compression are illustrative.
+      - heading "Keys" [level=3] [ref=f48e155]
+      - paragraph [ref=f48e156]: Left and Right step one sample, with Shift ten. In the 3D view, Q and E rotate, W and S tilt, plus and minus zoom, 0 resets.
+  - main [ref=f48e60]:
+    - generic [ref=f48e61]:
+      - region "Summary" [ref=f48e157]:
+        - list [ref=f48e158]:
+          - listitem [ref=f48e159]:
+            - generic [ref=f48e160]: "240"
+            - text: rundowns
+          - listitem [ref=f48e161]:
+            - generic [ref=f48e162]: "17"
+            - generic [ref=f48e163]: outside spec
+          - listitem [ref=f48e167]:
+            - generic [ref=f48e168]: "22"
+            - generic [ref=f48e169]: worth investigating
+          - listitem [ref=f48e173]:
+            - generic [ref=f48e174]: "0"
+            - generic [ref=f48e175]: can't assess
+        - paragraph [ref=f48e180]: "Reference: built-in sample, 120 rundowns."
+      - region "Workspace" [ref=f48e62]:
+        - generic [ref=f48e63]:
+          - generic [ref=f48e65]:
+            - generic [ref=f48e181]:
+              - group "Graph x axis" [ref=f48e182]:
+                - button "Absolute angle" [pressed] [ref=f48e183] [cursor=pointer]
+                - button "Aligned at snug" [ref=f48e184] [cursor=pointer]
+              - button "Show all rundowns" [ref=f48e185] [cursor=pointer]
+            - paragraph [ref=f48e186]:
+              - text: Sample 0 · angle
+              - generic [ref=f48e187]: 0.0°
+              - text: · torque
+              - generic [ref=f48e188]: 5.3 Nm
+            - slider "Sample cursor on the torque-angle graph for A27-3" [ref=f48e190]:
+              - generic [ref=f48e191]: "0"
+              - generic [ref=f48e193]: "50"
+              - generic [ref=f48e195]: "100"
+              - generic [ref=f48e197]: "0"
+              - generic [ref=f48e199]: "20"
+              - generic [ref=f48e201]: "40"
+              - generic [ref=f48e203]: "60"
+              - generic [ref=f48e205]: "80"
+              - generic [ref=f48e207]: "100"
+              - generic [ref=f48e209]: "120"
+              - generic [ref=f48e211]: Angle (°)
+              - generic [ref=f48e212]: Torque (Nm)
+              - generic [ref=f48e226]: Torque max 121 Nm
+              - generic [ref=f48e228]: Torque min 99 Nm
+              - generic [ref=f48e230]: Angle min 20° after snug
+              - generic [ref=f48e232]: Angle max 60° after snug
+              - generic [ref=f48e234]: Torque drop after peak
+              - generic [ref=f48e237]: Rotation past the reference curve
+            - list [ref=f48e242]:
+              - listitem [ref=f48e243]: A27-3
+              - listitem [ref=f48e245]: Reference before snug (5th to 95th percentile), median dashed
+              - listitem [ref=f48e247]: Reference after snug (aligned at this rundown's snug), median dashed
+              - listitem [ref=f48e249]: Evidence interval
+              - listitem [ref=f48e251]: Same assembly (5)
+          - complementary "Evidence" [ref=f48e67]:
+            - generic [ref=f48e253]:
+              - paragraph [ref=f48e254]: A27-3
+              - paragraph [ref=f48e255]:
+                - generic [ref=f48e256]: Signature
+                - generic [ref=f48e257]: worth investigating
+              - paragraph [ref=f48e261]:
+                - generic [ref=f48e262]: Spec
+                - generic [ref=f48e263]: outside spec
+              - list [ref=f48e267]:
+                - listitem [ref=f48e268]: "Torque drop after peak: 51.5 Nm. Reference range: 1–1.6 Nm."
+                - listitem [ref=f48e269]: "Slope roughness: 13.5 Nm. Reference range: 0.5–0.7 Nm."
+                - listitem [ref=f48e270]: "Rotation past the reference curve: 40°. Reference range: 0–0°."
+              - paragraph [ref=f48e271]: "Looks like: double hit"
+              - paragraph [ref=f48e272]: Worth investigating, not a confirmed fault.
+        - note [ref=f48e273]: 3D view needs WebGL. The graph, evidence and ledger still work.
+        - group "Playback" [ref=f48e72]:
+          - generic [ref=f48e73]:
+            - button "Play" [ref=f48e74] [cursor=pointer]
+            - group "Step" [ref=f48e78]:
+              - button "Back 10 samples" [ref=f48e79] [cursor=pointer]
+              - button "Back 1 sample" [ref=f48e82] [cursor=pointer]
+              - button "Forward 1 sample" [ref=f48e85] [cursor=pointer]
+              - button "Forward 10 samples" [ref=f48e88] [cursor=pointer]
+            - group "Speed" [ref=f48e91]:
+              - button "0.25x" [ref=f48e92] [cursor=pointer]
+              - button "0.5x" [ref=f48e93] [cursor=pointer]
+              - button "1x" [pressed] [ref=f48e94] [cursor=pointer]
+              - button "2x" [ref=f48e95] [cursor=pointer]
+              - button "4x" [ref=f48e96] [cursor=pointer]
+          - paragraph [ref=f48e97]:
+            - text: Sample 0 of 237 · angle
+            - generic [ref=f48e274]: 0.0°
+            - text: · torque
+            - generic [ref=f48e275]: 5.3 Nm
+          - paragraph [ref=f48e276]: Real time from time_ms
+      - region "Rundown ledger" [ref=f48e277]:
+        - generic [ref=f48e278]:
+          - heading "Ledger" [level=2] [ref=f48e279]
+          - generic [ref=f48e280]: Sorted by importance by default. Select a row to inspect it.
+          - button "Answer key" [ref=f48e281] [cursor=pointer]
+        - grid [ref=f48e283]:
+          - rowgroup [ref=f48e284]:
+            - row [ref=f48e285]:
+              - columnheader [ref=f48e286]:
+                - button "Rank" [ref=f48e287] [cursor=pointer]
+              - columnheader [ref=f48e291]:
+                - button "Assembly" [ref=f48e292] [cursor=pointer]
+              - columnheader [ref=f48e294]:
+                - button "Position" [ref=f48e295] [cursor=pointer]
+              - columnheader [ref=f48e297]:
+                - button "Spec" [ref=f48e298] [cursor=pointer]
+              - columnheader [ref=f48e300]:
+                - button "Signature" [ref=f48e301] [cursor=pointer]
+              - columnheader "First evidence" [ref=f48e303]
+          - rowgroup [ref=f48e304]:
+            - row [selected] [ref=f48e305] [cursor=pointer]:
+              - gridcell "1" [ref=f48e306]
+              - gridcell "A27" [ref=f48e307]
+              - gridcell "3" [ref=f48e308]
+              - gridcell "outside spec" [ref=f48e309]
+              - gridcell "worth investigating" [ref=f48e314]
+              - gridcell "Torque drop after peak 51.5 Nm, reference 1 to 1.6 Nm" [ref=f48e319]
+            - row [ref=f48e320] [cursor=pointer]:
+              - gridcell "2" [ref=f48e321]
+              - gridcell "A09" [ref=f48e322]
+              - gridcell "1" [ref=f48e323]
+              - gridcell "outside spec" [ref=f48e324]
+              - gridcell "worth investigating" [ref=f48e329]
+              - gridcell "Torque drop after peak 48.1 Nm, reference 1 to 1.6 Nm" [ref=f48e334]
+            - row [ref=f48e335] [cursor=pointer]:
+              - gridcell "3" [ref=f48e336]
+              - gridcell "A21" [ref=f48e337]
+              - gridcell "4" [ref=f48e338]
+              - gridcell "outside spec" [ref=f48e339]
+              - gridcell "worth investigating" [ref=f48e344]
+              - gridcell "Torque drop after peak 29.3 Nm, reference 1 to 1.6 Nm" [ref=f48e349]
+            - row [ref=f48e350] [cursor=pointer]:
+              - gridcell "4" [ref=f48e351]
+              - gridcell "A24" [ref=f48e352]
+              - gridcell "1" [ref=f48e353]
+              - gridcell "outside spec" [ref=f48e354]
+              - gridcell "worth investigating" [ref=f48e359]
+              - gridcell "Torque drop after peak 23.7 Nm, reference 1 to 1.6 Nm" [ref=f48e364]
+            - row [ref=f48e365] [cursor=pointer]:
+              - gridcell "5" [ref=f48e366]
+              - gridcell "A09" [ref=f48e367]
+              - gridcell "5" [ref=f48e368]
+              - gridcell "outside spec" [ref=f48e369]
+              - gridcell "worth investigating" [ref=f48e374]
+              - gridcell "Torque drop after peak 17.7 Nm, reference 1 to 1.6 Nm" [ref=f48e379]
+            - row [ref=f48e380] [cursor=pointer]:
+              - gridcell "6" [ref=f48e381]
+              - gridcell "A12" [ref=f48e382]
+              - gridcell "6" [ref=f48e383]
+              - gridcell "outside spec" [ref=f48e384]
+              - gridcell "worth investigating" [ref=f48e389]
+              - gridcell "Torque drop after peak 13.5 Nm, reference 1 to 1.6 Nm" [ref=f48e394]
+            - row [ref=f48e395] [cursor=pointer]:
+              - gridcell "7" [ref=f48e396]
+              - gridcell "A17" [ref=f48e397]
+              - gridcell "2" [ref=f48e398]
+              - gridcell "outside spec" [ref=f48e399]
+              - gridcell "worth investigating" [ref=f48e404]
+              - gridcell "Slope after snug 7 Nm/°, reference 2 to 2.4 Nm/°" [ref=f48e409]
+            - row [ref=f48e410] [cursor=pointer]:
+              - gridcell "8" [ref=f48e411]
+              - gridcell "A20" [ref=f48e412]
+              - gridcell "1" [ref=f48e413]
+              - gridcell "outside spec" [ref=f48e414]
+              - gridcell "worth investigating" [ref=f48e419]
+              - gridcell "Slope after snug 6.5 Nm/°, reference 2 to 2.4 Nm/°" [ref=f48e424]
+            - row [ref=f48e425] [cursor=pointer]:
+              - gridcell "9" [ref=f48e426]
+              - gridcell "A07" [ref=f48e427]
+              - gridcell "6" [ref=f48e428]
+              - gridcell "outside spec" [ref=f48e429]
+              - gridcell "worth investigating" [ref=f48e434]
+              - gridcell "Final torque 49.7 Nm, reference 106.5 to 115 Nm" [ref=f48e439]
+            - row [ref=f48e440] [cursor=pointer]:
+              - gridcell "10" [ref=f48e441]
+              - gridcell "A06" [ref=f48e442]
+              - gridcell "6" [ref=f48e443]
+              - gridcell "outside spec" [ref=f48e444]
+              - gridcell "worth investigating" [ref=f48e449]
+              - gridcell "Post-snug rotation 101.5°, reference 33.5 to 42°" [ref=f48e454]
+            - row [ref=f48e455] [cursor=pointer]:
+              - gridcell "11" [ref=f48e456]
+              - gridcell "A13" [ref=f48e457]
+              - gridcell "5" [ref=f48e458]
+              - gridcell "outside spec" [ref=f48e459]
+              - gridcell "worth investigating" [ref=f48e464]
+              - gridcell "Final torque 57.8 Nm, reference 106.5 to 115 Nm" [ref=f48e469]
+            - row [ref=f48e470] [cursor=pointer]:
+              - gridcell "12" [ref=f48e471]
+              - gridcell "A21" [ref=f48e472]
+              - gridcell "1" [ref=f48e473]
+              - gridcell "outside spec" [ref=f48e474]
+              - gridcell "worth investigating" [ref=f48e479]
+              - gridcell "Total rotation 5.5°, reference 62.5 to 73.5°" [ref=f48e484]
+            - row [ref=f48e485] [cursor=pointer]:
+              - gridcell "13" [ref=f48e486]
+              - gridcell "A15" [ref=f48e487]
+              - gridcell "2" [ref=f48e488]
+              - gridcell "outside spec" [ref=f48e489]
+              - gridcell "worth investigating" [ref=f48e494]
+              - gridcell "Total rotation 6.5°, reference 62.5 to 73.5°" [ref=f48e499]
+            - row [ref=f48e500] [cursor=pointer]:
+              - gridcell "14" [ref=f48e501]
+              - gridcell "A33" [ref=f48e502]
+              - gridcell "4" [ref=f48e503]
+              - gridcell "outside spec" [ref=f48e504]
+              - gridcell "worth investigating" [ref=f48e509]
+              - gridcell "Post-snug rotation 86°, reference 33.5 to 42°" [ref=f48e514]
+            - row [ref=f48e515] [cursor=pointer]:
+              - gridcell "15" [ref=f48e516]
+              - gridcell "A02" [ref=f48e517]
+              - gridcell "3" [ref=f48e518]
+              - gridcell "outside spec" [ref=f48e519]
+              - gridcell "worth investigating" [ref=f48e524]
+              - gridcell "Final torque 74.3 Nm, reference 106.5 to 115 Nm" [ref=f48e529]
+            - row [ref=f48e530] [cursor=pointer]:
+              - gridcell "16" [ref=f48e531]
+              - gridcell "A17" [ref=f48e532]
+              - gridcell "1" [ref=f48e533]
+              - gridcell "outside spec" [ref=f48e534]
+              - gridcell "worth investigating" [ref=f48e539]
+              - gridcell "Final torque 82.4 Nm, reference 106.5 to 115 Nm" [ref=f48e544]
+            - row [ref=f48e545] [cursor=pointer]:
+              - gridcell "17" [ref=f48e546]
+              - gridcell "A22" [ref=f48e547]
+              - gridcell "5" [ref=f48e548]
+              - gridcell "outside spec" [ref=f48e549]
+              - gridcell "worth investigating" [ref=f48e554]
+              - gridcell "Final torque 95.5 Nm, reference 106.5 to 115 Nm" [ref=f48e559]
+            - row [ref=f48e560] [cursor=pointer]:
+              - gridcell "18" [ref=f48e561]
+              - gridcell "A10" [ref=f48e562]
+              - gridcell "4" [ref=f48e563]
+              - gridcell "within spec" [ref=f48e564]
+              - gridcell "worth investigating" [ref=f48e569]
+              - gridcell "Torque drop after peak 7.4 Nm, reference 1 to 1.6 Nm" [ref=f48e574]
+            - row [ref=f48e575] [cursor=pointer]:
+              - gridcell "19" [ref=f48e576]
+              - gridcell "A10" [ref=f48e577]
+              - gridcell "5" [ref=f48e578]
+              - gridcell "within spec" [ref=f48e579]
+              - gridcell "worth investigating" [ref=f48e584]
+              - gridcell "Snug point 65°, reference 25.5 to 34.5°" [ref=f48e589]
+            - row [ref=f48e590] [cursor=pointer]:
+              - gridcell "20" [ref=f48e591]
+              - gridcell "A39" [ref=f48e592]
+              - gridcell "1" [ref=f48e593]
+              - gridcell "within spec" [ref=f48e594]
+              - gridcell "worth investigating" [ref=f48e599]
+              - gridcell "Snug point 63°, reference 25.5 to 34.5°" [ref=f48e604]
+            - row [ref=f48e605] [cursor=pointer]:
+              - gridcell "21" [ref=f48e606]
+              - gridcell "A36" [ref=f48e607]
+              - gridcell "5" [ref=f48e608]
+              - gridcell "within spec" [ref=f48e609]
+              - gridcell "worth investigating" [ref=f48e614]
+              - gridcell "Torque drop after peak 2.1 Nm, reference 1 to 1.6 Nm" [ref=f48e619]
+            - row [ref=f48e620] [cursor=pointer]:
+              - gridcell "22" [ref=f48e621]
+              - gridcell "A35" [ref=f48e622]
+              - gridcell "5" [ref=f48e623]
+              - gridcell "within spec" [ref=f48e624]
+              - gridcell "worth investigating" [ref=f48e629]
+              - gridcell "Combined pattern, no single feature stands out" [ref=f48e634]
+            - row [ref=f48e635] [cursor=pointer]:
+              - gridcell "23" [ref=f48e636]
+              - gridcell "A01" [ref=f48e637]
+              - gridcell "6" [ref=f48e638]
+              - gridcell "within spec" [ref=f48e639]
+              - gridcell "typical" [ref=f48e644]
+              - gridcell "None" [ref=f48e649]
+            - row [ref=f48e650] [cursor=pointer]:
+              - gridcell "24" [ref=f48e651]
+              - gridcell "A11" [ref=f48e652]
+              - gridcell "1" [ref=f48e653]
+              - gridcell "within spec" [ref=f48e654]
+              - gridcell "typical" [ref=f48e659]
+              - gridcell "None" [ref=f48e664]
+            - row [ref=f48e665] [cursor=pointer]:
+              - gridcell "25" [ref=f48e666]
+              - gridcell "A35" [ref=f48e667]
+              - gridcell "1" [ref=f48e668]
+              - gridcell "within spec" [ref=f48e669]
+              - gridcell "typical" [ref=f48e674]
+              - gridcell "None" [ref=f48e679]
+            - row [ref=f48e680] [cursor=pointer]:
+              - gridcell "26" [ref=f48e681]
+              - gridcell "A39" [ref=f48e682]
+              - gridcell "5" [ref=f48e683]
+              - gridcell "within spec" [ref=f48e684]
+              - gridcell "typical" [ref=f48e689]
+              - gridcell "None" [ref=f48e694]
+            - row [ref=f48e695] [cursor=pointer]:
+              - gridcell "27" [ref=f48e696]
+              - gridcell "A06" [ref=f48e697]
+              - gridcell "1" [ref=f48e698]
+              - gridcell "within spec" [ref=f48e699]
+              - gridcell "typical" [ref=f48e704]
+              - gridcell "None" [ref=f48e709]
+            - row [ref=f48e710] [cursor=pointer]:
+              - gridcell "28" [ref=f48e711]
+              - gridcell "A14" [ref=f48e712]
+              - gridcell "6" [ref=f48e713]
+              - gridcell "within spec" [ref=f48e714]
+              - gridcell "typical" [ref=f48e719]
+              - gridcell "None" [ref=f48e724]
+            - row [ref=f48e725] [cursor=pointer]:
+              - gridcell "29" [ref=f48e726]
+              - gridcell "A16" [ref=f48e727]
+              - gridcell "3" [ref=f48e728]
+              - gridcell "within spec" [ref=f48e729]
+              - gridcell "typical" [ref=f48e734]
+              - gridcell "None" [ref=f48e739]
+            - row [ref=f48e740] [cursor=pointer]:
+              - gridcell "30" [ref=f48e741]
+              - gridcell "A21" [ref=f48e742]
+              - gridcell "3" [ref=f48e743]
+              - gridcell "within spec" [ref=f48e744]
+              - gridcell "typical" [ref=f48e749]
+              - gridcell "None" [ref=f48e754]
+            - row [ref=f48e755] [cursor=pointer]:
+              - gridcell "31" [ref=f48e756]
+              - gridcell "A24" [ref=f48e757]
+              - gridcell "5" [ref=f48e758]
+              - gridcell "within spec" [ref=f48e759]
+              - gridcell "typical" [ref=f48e764]
+              - gridcell "None" [ref=f48e769]
+            - row [ref=f48e770] [cursor=pointer]:
+              - gridcell "32" [ref=f48e771]
+              - gridcell "A12" [ref=f48e772]
+              - gridcell "1" [ref=f48e773]
+              - gridcell "within spec" [ref=f48e774]
+              - gridcell "typical" [ref=f48e779]
+              - gridcell "None" [ref=f48e784]
+            - row [ref=f48e785] [cursor=pointer]:
+              - gridcell "33" [ref=f48e786]
+              - gridcell "A18" [ref=f48e787]
+              - gridcell "6" [ref=f48e788]
+              - gridcell "within spec" [ref=f48e789]
+              - gridcell "typical" [ref=f48e794]
+              - gridcell "None" [ref=f48e799]
+            - row [ref=f48e800] [cursor=pointer]:
+              - gridcell "34" [ref=f48e801]
+              - gridcell "A22" [ref=f48e802]
+              - gridcell "2" [ref=f48e803]
+              - gridcell "within spec" [ref=f48e804]
+              - gridcell "typical" [ref=f48e809]
+              - gridcell "None" [ref=f48e814]
+            - row [ref=f48e815] [cursor=pointer]:
+              - gridcell "35" [ref=f48e816]
+              - gridcell "A26" [ref=f48e817]
+              - gridcell "1" [ref=f48e818]
+              - gridcell "within spec" [ref=f48e819]
+              - gridcell "typical" [ref=f48e824]
+              - gridcell "None" [ref=f48e829]
+            - row [ref=f48e830] [cursor=pointer]:
+              - gridcell "36" [ref=f48e831]
+              - gridcell "A15" [ref=f48e832]
+              - gridcell "5" [ref=f48e833]
+              - gridcell "within spec" [ref=f48e834]
+              - gridcell "typical" [ref=f48e839]
+              - gridcell "None" [ref=f48e844]
+            - row [ref=f48e845] [cursor=pointer]:
+              - gridcell "37" [ref=f48e846]
+              - gridcell "A40" [ref=f48e847]
+              - gridcell "4" [ref=f48e848]
+              - gridcell "within spec" [ref=f48e849]
+              - gridcell "typical" [ref=f48e854]
+              - gridcell "None" [ref=f48e859]
+            - row [ref=f48e860] [cursor=pointer]:
+              - gridcell "38" [ref=f48e861]
+              - gridcell "A08" [ref=f48e862]
+              - gridcell "1" [ref=f48e863]
+              - gridcell "within spec" [ref=f48e864]
+              - gridcell "typical" [ref=f48e869]
+              - gridcell "None" [ref=f48e874]
+            - row [ref=f48e875] [cursor=pointer]:
+              - gridcell "39" [ref=f48e876]
+              - gridcell "A20" [ref=f48e877]
+              - gridcell "2" [ref=f48e878]
+              - gridcell "within spec" [ref=f48e879]
+              - gridcell "typical" [ref=f48e884]
+              - gridcell "None" [ref=f48e889]
+            - row [ref=f48e890] [cursor=pointer]:
+              - gridcell "40" [ref=f48e891]
+              - gridcell "A07" [ref=f48e892]
+              - gridcell "4" [ref=f48e893]
+              - gridcell "within spec" [ref=f48e894]
+              - gridcell "typical" [ref=f48e899]
+              - gridcell "None" [ref=f48e904]
+            - row [ref=f48e905] [cursor=pointer]:
+              - gridcell "41" [ref=f48e906]
+              - gridcell "A01" [ref=f48e907]
+              - gridcell "3" [ref=f48e908]
+              - gridcell "within spec" [ref=f48e909]
+              - gridcell "typical" [ref=f48e914]
+              - gridcell "None" [ref=f48e919]
+            - row [ref=f48e920] [cursor=pointer]:
+              - gridcell "42" [ref=f48e921]
+              - gridcell "A10" [ref=f48e922]
+              - gridcell "6" [ref=f48e923]
+              - gridcell "within spec" [ref=f48e924]
+              - gridcell "typical" [ref=f48e929]
+              - gridcell "None" [ref=f48e934]
+            - row [ref=f48e935] [cursor=pointer]:
+              - gridcell "43" [ref=f48e936]
+              - gridcell "A12" [ref=f48e937]
+              - gridcell "4" [ref=f48e938]
+              - gridcell "within spec" [ref=f48e939]
+              - gridcell "typical" [ref=f48e944]
+              - gridcell "None" [ref=f48e949]
+            - row [ref=f48e950] [cursor=pointer]:
+              - gridcell "44" [ref=f48e951]
+              - gridcell "A24" [ref=f48e952]
+              - gridcell "6" [ref=f48e953]
+              - gridcell "within spec" [ref=f48e954]
+              - gridcell "typical" [ref=f48e959]
+              - gridcell "None" [ref=f48e964]
+            - row [ref=f48e965] [cursor=pointer]:
+              - gridcell "45" [ref=f48e966]
+              - gridcell "A28" [ref=f48e967]
+              - gridcell "5" [ref=f48e968]
+              - gridcell "within spec" [ref=f48e969]
+              - gridcell "typical" [ref=f48e974]
+              - gridcell "None" [ref=f48e979]
+            - row [ref=f48e980] [cursor=pointer]:
+              - gridcell "46" [ref=f48e981]
+              - gridcell "A36" [ref=f48e982]
+              - gridcell "1" [ref=f48e983]
+              - gridcell "within spec" [ref=f48e984]
+              - gridcell "typical" [ref=f48e989]
+              - gridcell "None" [ref=f48e994]
+            - row [ref=f48e995] [cursor=pointer]:
+              - gridcell "47" [ref=f48e996]
+              - gridcell "A38" [ref=f48e997]
+              - gridcell "2" [ref=f48e998]
+              - gridcell "within spec" [ref=f48e999]
+              - gridcell "typical" [ref=f48e1004]
+              - gridcell "None" [ref=f48e1009]
+            - row [ref=f48e1010] [cursor=pointer]:
+              - gridcell "48" [ref=f48e1011]
+              - gridcell "A30" [ref=f48e1012]
+              - gridcell "5" [ref=f48e1013]
+              - gridcell "within spec" [ref=f48e1014]
+              - gridcell "typical" [ref=f48e1019]
+              - gridcell "None" [ref=f48e1024]
+            - row [ref=f48e1025] [cursor=pointer]:
+              - gridcell "49" [ref=f48e1026]
+              - gridcell "A27" [ref=f48e1027]
+              - gridcell "4" [ref=f48e1028]
+              - gridcell "within spec" [ref=f48e1029]
+              - gridcell "typical" [ref=f48e1034]
+              - gridcell "None" [ref=f48e1039]
+            - row [ref=f48e1040] [cursor=pointer]:
+              - gridcell "50" [ref=f48e1041]
+              - gridcell "A03" [ref=f48e1042]
+              - gridcell "2" [ref=f48e1043]
+              - gridcell "within spec" [ref=f48e1044]
+              - gridcell "typical" [ref=f48e1049]
+              - gridcell "None" [ref=f48e1054]
+            - row [ref=f48e1055] [cursor=pointer]:
+              - gridcell "51" [ref=f48e1056]
+              - gridcell "A23" [ref=f48e1057]
+              - gridcell "5" [ref=f48e1058]
+              - gridcell "within spec" [ref=f48e1059]
+              - gridcell "typical" [ref=f48e1064]
+              - gridcell "None" [ref=f48e1069]
+            - row [ref=f48e1070] [cursor=pointer]:
+              - gridcell "52" [ref=f48e1071]
+              - gridcell "A35" [ref=f48e1072]
+              - gridcell "2" [ref=f48e1073]
+              - gridcell "within spec" [ref=f48e1074]
+              - gridcell "typical" [ref=f48e1079]
+              - gridcell "None" [ref=f48e1084]
+            - row [ref=f48e1085] [cursor=pointer]:
+              - gridcell "53" [ref=f48e1086]
+              - gridcell "A09" [ref=f48e1087]
+              - gridcell "4" [ref=f48e1088]
+              - gridcell "within spec" [ref=f48e1089]
+              - gridcell "typical" [ref=f48e1094]
+              - gridcell "None" [ref=f48e1099]
+            - row [ref=f48e1100] [cursor=pointer]:
+              - gridcell "54" [ref=f48e1101]
+              - gridcell "A05" [ref=f48e1102]
+              - gridcell "2" [ref=f48e1103]
+              - gridcell "within spec" [ref=f48e1104]
+              - gridcell "typical" [ref=f48e1109]
+              - gridcell "None" [ref=f48e1114]
+            - row [ref=f48e1115] [cursor=pointer]:
+              - gridcell "55" [ref=f48e1116]
+              - gridcell "A13" [ref=f48e1117]
+              - gridcell "6" [ref=f48e1118]
+              - gridcell "within spec" [ref=f48e1119]
+              - gridcell "typical" [ref=f48e1124]
+              - gridcell "None" [ref=f48e1129]
+            - row [ref=f48e1130] [cursor=pointer]:
+              - gridcell "56" [ref=f48e1131]
+              - gridcell "A17" [ref=f48e1132]
+              - gridcell "3" [ref=f48e1133]
+              - gridcell "within spec" [ref=f48e1134]
+              - gridcell "typical" [ref=f48e1139]
+              - gridcell "None" [ref=f48e1144]
+            - row [ref=f48e1145] [cursor=pointer]:
+              - gridcell "57" [ref=f48e1146]
+              - gridcell "A36" [ref=f48e1147]
+              - gridcell "3" [ref=f48e1148]
+              - gridcell "within spec" [ref=f48e1149]
+              - gridcell "typical" [ref=f48e1154]
+              - gridcell "None" [ref=f48e1159]
+            - row [ref=f48e1160] [cursor=pointer]:
+              - gridcell "58" [ref=f48e1161]
+              - gridcell "A07" [ref=f48e1162]
+              - gridcell "2" [ref=f48e1163]
+              - gridcell "within spec" [ref=f48e1164]
+              - gridcell "typical" [ref=f48e1169]
+              - gridcell "None" [ref=f48e1174]
+            - row [ref=f48e1175] [cursor=pointer]:
+              - gridcell "59" [ref=f48e1176]
+              - gridcell "A12" [ref=f48e1177]
+              - gridcell "5" [ref=f48e1178]
+              - gridcell "within spec" [ref=f48e1179]
+              - gridcell "typical" [ref=f48e1184]
+              - gridcell "None" [ref=f48e1189]
+            - row [ref=f48e1190] [cursor=pointer]:
+              - gridcell "60" [ref=f48e1191]
+              - gridcell "A23" [ref=f48e1192]
+              - gridcell "4" [ref=f48e1193]
+              - gridcell "within spec" [ref=f48e1194]
+              - gridcell "typical" [ref=f48e1199]
+              - gridcell "None" [ref=f48e1204]
+            - row [ref=f48e1205] [cursor=pointer]:
+              - gridcell "61" [ref=f48e1206]
+              - gridcell "A26" [ref=f48e1207]
+              - gridcell "3" [ref=f48e1208]
+              - gridcell "within spec" [ref=f48e1209]
+              - gridcell "typical" [ref=f48e1214]
+              - gridcell "None" [ref=f48e1219]
+            - row [ref=f48e1220] [cursor=pointer]:
+              - gridcell "62" [ref=f48e1221]
+              - gridcell "A29" [ref=f48e1222]
+              - gridcell "3" [ref=f48e1223]
+              - gridcell "within spec" [ref=f48e1224]
+              - gridcell "typical" [ref=f48e1229]
+              - gridcell "None" [ref=f48e1234]
+            - row [ref=f48e1235] [cursor=pointer]:
+              - gridcell "63" [ref=f48e1236]
+              - gridcell "A30" [ref=f48e1237]
+              - gridcell "2" [ref=f48e1238]
+              - gridcell "within spec" [ref=f48e1239]
+              - gridcell "typical" [ref=f48e1244]
+              - gridcell "None" [ref=f48e1249]
+            - row [ref=f48e1250] [cursor=pointer]:
+              - gridcell "64" [ref=f48e1251]
+              - gridcell "A30" [ref=f48e1252]
+              - gridcell "6" [ref=f48e1253]
+              - gridcell "within spec" [ref=f48e1254]
+              - gridcell "typical" [ref=f48e1259]
+              - gridcell "None" [ref=f48e1264]
+            - row [ref=f48e1265] [cursor=pointer]:
+              - gridcell "65" [ref=f48e1266]
+              - gridcell "A31" [ref=f48e1267]
+              - gridcell "3" [ref=f48e1268]
+              - gridcell "within spec" [ref=f48e1269]
+              - gridcell "typical" [ref=f48e1274]
+              - gridcell "None" [ref=f48e1279]
+            - row [ref=f48e1280] [cursor=pointer]:
+              - gridcell "66" [ref=f48e1281]
+              - gridcell "A40" [ref=f48e1282]
+              - gridcell "1" [ref=f48e1283]
+              - gridcell "within spec" [ref=f48e1284]
+              - gridcell "typical" [ref=f48e1289]
+              - gridcell "None" [ref=f48e1294]
+            - row [ref=f48e1295] [cursor=pointer]:
+              - gridcell "67" [ref=f48e1296]
+              - gridcell "A01" [ref=f48e1297]
+              - gridcell "5" [ref=f48e1298]
+              - gridcell "within spec" [ref=f48e1299]
+              - gridcell "typical" [ref=f48e1304]
+              - gridcell "None" [ref=f48e1309]
+            - row [ref=f48e1310] [cursor=pointer]:
+              - gridcell "68" [ref=f48e1311]
+              - gridcell "A29" [ref=f48e1312]
+              - gridcell "1" [ref=f48e1313]
+              - gridcell "within spec" [ref=f48e1314]
+              - gridcell "typical" [ref=f48e1319]
+              - gridcell "None" [ref=f48e1324]
+            - row [ref=f48e1325] [cursor=pointer]:
+              - gridcell "69" [ref=f48e1326]
+              - gridcell "A25" [ref=f48e1327]
+              - gridcell "6" [ref=f48e1328]
+              - gridcell "within spec" [ref=f48e1329]
+              - gridcell "typical" [ref=f48e1334]
+              - gridcell "None" [ref=f48e1339]
+            - row [ref=f48e1340] [cursor=pointer]:
+              - gridcell "70" [ref=f48e1341]
+              - gridcell "A08" [ref=f48e1342]
+              - gridcell "3" [ref=f48e1343]
+              - gridcell "within spec" [ref=f48e1344]
+              - gridcell "typical" [ref=f48e1349]
+              - gridcell "None" [ref=f48e1354]
+            - row [ref=f48e1355] [cursor=pointer]:
+              - gridcell "71" [ref=f48e1356]
+              - gridcell "A24" [ref=f48e1357]
+              - gridcell "4" [ref=f48e1358]
+              - gridcell "within spec" [ref=f48e1359]
+              - gridcell "typical" [ref=f48e1364]
+              - gridcell "None" [ref=f48e1369]
+            - row [ref=f48e1370] [cursor=pointer]:
+              - gridcell "72" [ref=f48e1371]
+              - gridcell "A34" [ref=f48e1372]
+              - gridcell "5" [ref=f48e1373]
+              - gridcell "within spec" [ref=f48e1374]
+              - gridcell "typical" [ref=f48e1379]
+              - gridcell "None" [ref=f48e1384]
+            - row [ref=f48e1385] [cursor=pointer]:
+              - gridcell "73" [ref=f48e1386]
+              - gridcell "A31" [ref=f48e1387]
+              - gridcell "4" [ref=f48e1388]
+              - gridcell "within spec" [ref=f48e1389]
+              - gridcell "typical" [ref=f48e1394]
+              - gridcell "None" [ref=f48e1399]
+            - row [ref=f48e1400] [cursor=pointer]:
+              - gridcell "74" [ref=f48e1401]
+              - gridcell "A09" [ref=f48e1402]
+              - gridcell "2" [ref=f48e1403]
+              - gridcell "within spec" [ref=f48e1404]
+              - gridcell "typical" [ref=f48e1409]
+              - gridcell "None" [ref=f48e1414]
+            - row [ref=f48e1415] [cursor=pointer]:
+              - gridcell "75" [ref=f48e1416]
+              - gridcell "A17" [ref=f48e1417]
+              - gridcell "6" [ref=f48e1418]
+              - gridcell "within spec" [ref=f48e1419]
+              - gridcell "typical" [ref=f48e1424]
+              - gridcell "None" [ref=f48e1429]
+            - row [ref=f48e1430] [cursor=pointer]:
+              - gridcell "76" [ref=f48e1431]
+              - gridcell "A28" [ref=f48e1432]
+              - gridcell "1" [ref=f48e1433]
+              - gridcell "within spec" [ref=f48e1434]
+              - gridcell "typical" [ref=f48e1439]
+              - gridcell "None" [ref=f48e1444]
+            - row [ref=f48e1445] [cursor=pointer]:
+              - gridcell "77" [ref=f48e1446]
+              - gridcell "A06" [ref=f48e1447]
+              - gridcell "3" [ref=f48e1448]
+              - gridcell "within spec" [ref=f48e1449]
+              - gridcell "typical" [ref=f48e1454]
+              - gridcell "None" [ref=f48e1459]
+            - row [ref=f48e1460] [cursor=pointer]:
+              - gridcell "78" [ref=f48e1461]
+              - gridcell "A36" [ref=f48e1462]
+              - gridcell "2" [ref=f48e1463]
+              - gridcell "within spec" [ref=f48e1464]
+              - gridcell "typical" [ref=f48e1469]
+              - gridcell "None" [ref=f48e1474]
+            - row [ref=f48e1475] [cursor=pointer]:
+              - gridcell "79" [ref=f48e1476]
+              - gridcell "A27" [ref=f48e1477]
+              - gridcell "2" [ref=f48e1478]
+              - gridcell "within spec" [ref=f48e1479]
+              - gridcell "typical" [ref=f48e1484]
+              - gridcell "None" [ref=f48e1489]
+            - row [ref=f48e1490] [cursor=pointer]:
+              - gridcell "80" [ref=f48e1491]
+              - gridcell "A34" [ref=f48e1492]
+              - gridcell "4" [ref=f48e1493]
+              - gridcell "within spec" [ref=f48e1494]
+              - gridcell "typical" [ref=f48e1499]
+              - gridcell "None" [ref=f48e1504]
+            - row [ref=f48e1505] [cursor=pointer]:
+              - gridcell "81" [ref=f48e1506]
+              - gridcell "A14" [ref=f48e1507]
+              - gridcell "1" [ref=f48e1508]
+              - gridcell "within spec" [ref=f48e1509]
+              - gridcell "typical" [ref=f48e1514]
+              - gridcell "None" [ref=f48e1519]
+            - row [ref=f48e1520] [cursor=pointer]:
+              - gridcell "82" [ref=f48e1521]
+              - gridcell "A25" [ref=f48e1522]
+              - gridcell "5" [ref=f48e1523]
+              - gridcell "within spec" [ref=f48e1524]
+              - gridcell "typical" [ref=f48e1529]
+              - gridcell "None" [ref=f48e1534]
+            - row [ref=f48e1535] [cursor=pointer]:
+              - gridcell "83" [ref=f48e1536]
+              - gridcell "A29" [ref=f48e1537]
+              - gridcell "2" [ref=f48e1538]
+              - gridcell "within spec" [ref=f48e1539]
+              - gridcell "typical" [ref=f48e1544]
+              - gridcell "None" [ref=f48e1549]
+            - row [ref=f48e1550] [cursor=pointer]:
+              - gridcell "84" [ref=f48e1551]
+              - gridcell "A01" [ref=f48e1552]
+              - gridcell "2" [ref=f48e1553]
+              - gridcell "within spec" [ref=f48e1554]
+              - gridcell "typical" [ref=f48e1559]
+              - gridcell "None" [ref=f48e1564]
+            - row [ref=f48e1565] [cursor=pointer]:
+              - gridcell "85" [ref=f48e1566]
+              - gridcell "A03" [ref=f48e1567]
+              - gridcell "5" [ref=f48e1568]
+              - gridcell "within spec" [ref=f48e1569]
+              - gridcell "typical" [ref=f48e1574]
+              - gridcell "None" [ref=f48e1579]
+            - row [ref=f48e1580] [cursor=pointer]:
+              - gridcell "86" [ref=f48e1581]
+              - gridcell "A11" [ref=f48e1582]
+              - gridcell "2" [ref=f48e1583]
+              - gridcell "within spec" [ref=f48e1584]
+              - gridcell "typical" [ref=f48e1589]
+              - gridcell "None" [ref=f48e1594]
+            - row [ref=f48e1595] [cursor=pointer]:
+              - gridcell "87" [ref=f48e1596]
+              - gridcell "A20" [ref=f48e1597]
+              - gridcell "4" [ref=f48e1598]
+              - gridcell "within spec" [ref=f48e1599]
+              - gridcell "typical" [ref=f48e1604]
+              - gridcell "None" [ref=f48e1609]
+            - row [ref=f48e1610] [cursor=pointer]:
+              - gridcell "88" [ref=f48e1611]
+              - gridcell "A27" [ref=f48e1612]
+              - gridcell "6" [ref=f48e1613]
+              - gridcell "within spec" [ref=f48e1614]
+              - gridcell "typical" [ref=f48e1619]
+              - gridcell "None" [ref=f48e1624]
+            - row [ref=f48e1625] [cursor=pointer]:
+              - gridcell "89" [ref=f48e1626]
+              - gridcell "A29" [ref=f48e1627]
+              - gridcell "5" [ref=f48e1628]
+              - gridcell "within spec" [ref=f48e1629]
+              - gridcell "typical" [ref=f48e1634]
+              - gridcell "None" [ref=f48e1639]
+            - row [ref=f48e1640] [cursor=pointer]:
+              - gridcell "90" [ref=f48e1641]
+              - gridcell "A37" [ref=f48e1642]
+              - gridcell "5" [ref=f48e1643]
+              - gridcell "within spec" [ref=f48e1644]
+              - gridcell "typical" [ref=f48e1649]
+              - gridcell "None" [ref=f48e1654]
+            - row [ref=f48e1655] [cursor=pointer]:
+              - gridcell "91" [ref=f48e1656]
+              - gridcell "A38" [ref=f48e1657]
+              - gridcell "3" [ref=f48e1658]
+              - gridcell "within spec" [ref=f48e1659]
+              - gridcell "typical" [ref=f48e1664]
+              - gridcell "None" [ref=f48e1669]
+            - row [ref=f48e1670] [cursor=pointer]:
+              - gridcell "92" [ref=f48e1671]
+              - gridcell "A39" [ref=f48e1672]
+              - gridcell "6" [ref=f48e1673]
+              - gridcell "within spec" [ref=f48e1674]
+              - gridcell "typical" [ref=f48e1679]
+              - gridcell "None" [ref=f48e1684]
+            - row [ref=f48e1685] [cursor=pointer]:
+              - gridcell "93" [ref=f48e1686]
+              - gridcell "A30" [ref=f48e1687]
+              - gridcell "1" [ref=f48e1688]
+              - gridcell "within spec" [ref=f48e1689]
+              - gridcell "typical" [ref=f48e1694]
+              - gridcell "None" [ref=f48e1699]
+            - row [ref=f48e1700] [cursor=pointer]:
+              - gridcell "94" [ref=f48e1701]
+              - gridcell "A40" [ref=f48e1702]
+              - gridcell "3" [ref=f48e1703]
+              - gridcell "within spec" [ref=f48e1704]
+              - gridcell "typical" [ref=f48e1709]
+              - gridcell "None" [ref=f48e1714]
+            - row [ref=f48e1715] [cursor=pointer]:
+              - gridcell "95" [ref=f48e1716]
+              - gridcell "A14" [ref=f48e1717]
+              - gridcell "3" [ref=f48e1718]
+              - gridcell "within spec" [ref=f48e1719]
+              - gridcell "typical" [ref=f48e1724]
+              - gridcell "None" [ref=f48e1729]
+            - row [ref=f48e1730] [cursor=pointer]:
+              - gridcell "96" [ref=f48e1731]
+              - gridcell "A40" [ref=f48e1732]
+              - gridcell "6" [ref=f48e1733]
+              - gridcell "within spec" [ref=f48e1734]
+              - gridcell "typical" [ref=f48e1739]
+              - gridcell "None" [ref=f48e1744]
+            - row [ref=f48e1745] [cursor=pointer]:
+              - gridcell "97" [ref=f48e1746]
+              - gridcell "A14" [ref=f48e1747]
+              - gridcell "2" [ref=f48e1748]
+              - gridcell "within spec" [ref=f48e1749]
+              - gridcell "typical" [ref=f48e1754]
+              - gridcell "None" [ref=f48e1759]
+            - row [ref=f48e1760] [cursor=pointer]:
+              - gridcell "98" [ref=f48e1761]
+              - gridcell "A28" [ref=f48e1762]
+              - gridcell "6" [ref=f48e1763]
+              - gridcell "within spec" [ref=f48e1764]
+              - gridcell "typical" [ref=f48e1769]
+              - gridcell "None" [ref=f48e1774]
+            - row [ref=f48e1775] [cursor=pointer]:
+              - gridcell "99" [ref=f48e1776]
+              - gridcell "A04" [ref=f48e1777]
+              - gridcell "2" [ref=f48e1778]
+              - gridcell "within spec" [ref=f48e1779]
+              - gridcell "typical" [ref=f48e1784]
+              - gridcell "None" [ref=f48e1789]
+            - row [ref=f48e1790] [cursor=pointer]:
+              - gridcell "100" [ref=f48e1791]
+              - gridcell "A16" [ref=f48e1792]
+              - gridcell "5" [ref=f48e1793]
+              - gridcell "within spec" [ref=f48e1794]
+              - gridcell "typical" [ref=f48e1799]
+              - gridcell "None" [ref=f48e1804]
+            - row [ref=f48e1805] [cursor=pointer]:
+              - gridcell "101" [ref=f48e1806]
+              - gridcell "A32" [ref=f48e1807]
+              - gridcell "6" [ref=f48e1808]
+              - gridcell "within spec" [ref=f48e1809]
+              - gridcell "typical" [ref=f48e1814]
+              - gridcell "None" [ref=f48e1819]
+            - row [ref=f48e1820] [cursor=pointer]:
+              - gridcell "102" [ref=f48e1821]
+              - gridcell "A21" [ref=f48e1822]
+              - gridcell "5" [ref=f48e1823]
+              - gridcell "within spec" [ref=f48e1824]
+              - gridcell "typical" [ref=f48e1829]
+              - gridcell "None" [ref=f48e1834]
+            - row [ref=f48e1835] [cursor=pointer]:
+              - gridcell "103" [ref=f48e1836]
+              - gridcell "A35" [ref=f48e1837]
+              - gridcell "4" [ref=f48e1838]
+              - gridcell "within spec" [ref=f48e1839]
+              - gridcell "typical" [ref=f48e1844]
+              - gridcell "None" [ref=f48e1849]
+            - row [ref=f48e1850] [cursor=pointer]:
+              - gridcell "104" [ref=f48e1851]
+              - gridcell "A25" [ref=f48e1852]
+              - gridcell "3" [ref=f48e1853]
+              - gridcell "within spec" [ref=f48e1854]
+              - gridcell "typical" [ref=f48e1859]
+              - gridcell "None" [ref=f48e1864]
+            - row [ref=f48e1865] [cursor=pointer]:
+              - gridcell "105" [ref=f48e1866]
+              - gridcell "A25" [ref=f48e1867]
+              - gridcell "1" [ref=f48e1868]
+              - gridcell "within spec" [ref=f48e1869]
+              - gridcell "typical" [ref=f48e1874]
+              - gridcell "None" [ref=f48e1879]
+            - row [ref=f48e1880] [cursor=pointer]:
+              - gridcell "106" [ref=f48e1881]
+              - gridcell "A35" [ref=f48e1882]
+              - gridcell "3" [ref=f48e1883]
+              - gridcell "within spec" [ref=f48e1884]
+              - gridcell "typical" [ref=f48e1889]
+              - gridcell "None" [ref=f48e1894]
+            - row [ref=f48e1895] [cursor=pointer]:
+              - gridcell "107" [ref=f48e1896]
+              - gridcell "A17" [ref=f48e1897]
+              - gridcell "4" [ref=f48e1898]
+              - gridcell "within spec" [ref=f48e1899]
+              - gridcell "typical" [ref=f48e1904]
+              - gridcell "None" [ref=f48e1909]
+            - row [ref=f48e1910] [cursor=pointer]:
+              - gridcell "108" [ref=f48e1911]
+              - gridcell "A18" [ref=f48e1912]
+              - gridcell "4" [ref=f48e1913]
+              - gridcell "within spec" [ref=f48e1914]
+              - gridcell "typical" [ref=f48e1919]
+              - gridcell "None" [ref=f48e1924]
+            - row [ref=f48e1925] [cursor=pointer]:
+              - gridcell "109" [ref=f48e1926]
+              - gridcell "A04" [ref=f48e1927]
+              - gridcell "5" [ref=f48e1928]
+              - gridcell "within spec" [ref=f48e1929]
+              - gridcell "typical" [ref=f48e1934]
+              - gridcell "None" [ref=f48e1939]
+            - row [ref=f48e1940] [cursor=pointer]:
+              - gridcell "110" [ref=f48e1941]
+              - gridcell "A07" [ref=f48e1942]
+              - gridcell "3" [ref=f48e1943]
+              - gridcell "within spec" [ref=f48e1944]
+              - gridcell "typical" [ref=f48e1949]
+              - gridcell "None" [ref=f48e1954]
+            - row [ref=f48e1955] [cursor=pointer]:
+              - gridcell "111" [ref=f48e1956]
+              - gridcell "A11" [ref=f48e1957]
+              - gridcell "4" [ref=f48e1958]
+              - gridcell "within spec" [ref=f48e1959]
+              - gridcell "typical" [ref=f48e1964]
+              - gridcell "None" [ref=f48e1969]
+            - row [ref=f48e1970] [cursor=pointer]:
+              - gridcell "112" [ref=f48e1971]
+              - gridcell "A12" [ref=f48e1972]
+              - gridcell "2" [ref=f48e1973]
+              - gridcell "within spec" [ref=f48e1974]
+              - gridcell "typical" [ref=f48e1979]
+              - gridcell "None" [ref=f48e1984]
+            - row [ref=f48e1985] [cursor=pointer]:
+              - gridcell "113" [ref=f48e1986]
+              - gridcell "A29" [ref=f48e1987]
+              - gridcell "4" [ref=f48e1988]
+              - gridcell "within spec" [ref=f48e1989]
+              - gridcell "typical" [ref=f48e1994]
+              - gridcell "None" [ref=f48e1999]
+            - row [ref=f48e2000] [cursor=pointer]:
+              - gridcell "114" [ref=f48e2001]
+              - gridcell "A32" [ref=f48e2002]
+              - gridcell "2" [ref=f48e2003]
+              - gridcell "within spec" [ref=f48e2004]
+              - gridcell "typical" [ref=f48e2009]
+              - gridcell "None" [ref=f48e2014]
+            - row [ref=f48e2015] [cursor=pointer]:
+              - gridcell "115" [ref=f48e2016]
+              - gridcell "A37" [ref=f48e2017]
+              - gridcell "6" [ref=f48e2018]
+              - gridcell "within spec" [ref=f48e2019]
+              - gridcell "typical" [ref=f48e2024]
+              - gridcell "None" [ref=f48e2029]
+            - row [ref=f48e2030] [cursor=pointer]:
+              - gridcell "116" [ref=f48e2031]
+              - gridcell "A38" [ref=f48e2032]
+              - gridcell "1" [ref=f48e2033]
+              - gridcell "within spec" [ref=f48e2034]
+              - gridcell "typical" [ref=f48e2039]
+              - gridcell "None" [ref=f48e2044]
+            - row [ref=f48e2045] [cursor=pointer]:
+              - gridcell "117" [ref=f48e2046]
+              - gridcell "A22" [ref=f48e2047]
+              - gridcell "3" [ref=f48e2048]
+              - gridcell "within spec" [ref=f48e2049]
+              - gridcell "typical" [ref=f48e2054]
+              - gridcell "None" [ref=f48e2059]
+            - row [ref=f48e2060] [cursor=pointer]:
+              - gridcell "118" [ref=f48e2061]
+              - gridcell "A16" [ref=f48e2062]
+              - gridcell "2" [ref=f48e2063]
+              - gridcell "within spec" [ref=f48e2064]
+              - gridcell "typical" [ref=f48e2069]
+              - gridcell "None" [ref=f48e2074]
+            - row [ref=f48e2075] [cursor=pointer]:
+              - gridcell "119" [ref=f48e2076]
+              - gridcell "A32" [ref=f48e2077]
+              - gridcell "3" [ref=f48e2078]
+              - gridcell "within spec" [ref=f48e2079]
+              - gridcell "typical" [ref=f48e2084]
+              - gridcell "None" [ref=f48e2089]
+            - row [ref=f48e2090] [cursor=pointer]:
+              - gridcell "120" [ref=f48e2091]
+              - gridcell "A11" [ref=f48e2092]
+              - gridcell "6" [ref=f48e2093]
+              - gridcell "within spec" [ref=f48e2094]
+              - gridcell "typical" [ref=f48e2099]
+              - gridcell "None" [ref=f48e2104]
+            - row [ref=f48e2105] [cursor=pointer]:
+              - gridcell "121" [ref=f48e2106]
+              - gridcell "A37" [ref=f48e2107]
+              - gridcell "3" [ref=f48e2108]
+              - gridcell "within spec" [ref=f48e2109]
+              - gridcell "typical" [ref=f48e2114]
+              - gridcell "None" [ref=f48e2119]
+            - row [ref=f48e2120] [cursor=pointer]:
+              - gridcell "122" [ref=f48e2121]
+              - gridcell "A04" [ref=f48e2122]
+              - gridcell "6" [ref=f48e2123]
+              - gridcell "within spec" [ref=f48e2124]
+              - gridcell "typical" [ref=f48e2129]
+              - gridcell "None" [ref=f48e2134]
+            - row [ref=f48e2135] [cursor=pointer]:
+              - gridcell "123" [ref=f48e2136]
+              - gridcell "A21" [ref=f48e2137]
+              - gridcell "6" [ref=f48e2138]
+              - gridcell "within spec" [ref=f48e2139]
+              - gridcell "typical" [ref=f48e2144]
+              - gridcell "None" [ref=f48e2149]
+            - row [ref=f48e2150] [cursor=pointer]:
+              - gridcell "124" [ref=f48e2151]
+              - gridcell "A06" [ref=f48e2152]
+              - gridcell "2" [ref=f48e2153]
+              - gridcell "within spec" [ref=f48e2154]
+              - gridcell "typical" [ref=f48e2159]
+              - gridcell "None" [ref=f48e2164]
+            - row [ref=f48e2165] [cursor=pointer]:
+              - gridcell "125" [ref=f48e2166]
+              - gridcell "A18" [ref=f48e2167]
+              - gridcell "2" [ref=f48e2168]
+              - gridcell "within spec" [ref=f48e2169]
+              - gridcell "typical" [ref=f48e2174]
+              - gridcell "None" [ref=f48e2179]
+            - row [ref=f48e2180] [cursor=pointer]:
+              - gridcell "126" [ref=f48e2181]
+              - gridcell "A27" [ref=f48e2182]
+              - gridcell "5" [ref=f48e2183]
+              - gridcell "within spec" [ref=f48e2184]
+              - gridcell "typical" [ref=f48e2189]
+              - gridcell "None" [ref=f48e2194]
+            - row [ref=f48e2195] [cursor=pointer]:
+              - gridcell "127" [ref=f48e2196]
+              - gridcell "A19" [ref=f48e2197]
+              - gridcell "1" [ref=f48e2198]
+              - gridcell "within spec" [ref=f48e2199]
+              - gridcell "typical" [ref=f48e2204]
+              - gridcell "None" [ref=f48e2209]
+            - row [ref=f48e2210] [cursor=pointer]:
+              - gridcell "128" [ref=f48e2211]
+              - gridcell "A02" [ref=f48e2212]
+              - gridcell "4" [ref=f48e2213]
+              - gridcell "within spec" [ref=f48e2214]
+              - gridcell "typical" [ref=f48e2219]
+              - gridcell "None" [ref=f48e2224]
+            - row [ref=f48e2225] [cursor=pointer]:
+              - gridcell "129" [ref=f48e2226]
+              - gridcell "A37" [ref=f48e2227]
+              - gridcell "4" [ref=f48e2228]
+              - gridcell "within spec" [ref=f48e2229]
+              - gridcell "typical" [ref=f48e2234]
+              - gridcell "None" [ref=f48e2239]
+            - row [ref=f48e2240] [cursor=pointer]:
+              - gridcell "130" [ref=f48e2241]
+              - gridcell "A02" [ref=f48e2242]
+              - gridcell "1" [ref=f48e2243]
+              - gridcell "within spec" [ref=f48e2244]
+              - gridcell "typical" [ref=f48e2249]
+              - gridcell "None" [ref=f48e2254]
+            - row [ref=f48e2255] [cursor=pointer]:
+              - gridcell "131" [ref=f48e2256]
+              - gridcell "A03" [ref=f48e2257]
+              - gridcell "1" [ref=f48e2258]
+              - gridcell "within spec" [ref=f48e2259]
+              - gridcell "typical" [ref=f48e2264]
+              - gridcell "None" [ref=f48e2269]
+            - row [ref=f48e2270] [cursor=pointer]:
+              - gridcell "132" [ref=f48e2271]
+              - gridcell "A05" [ref=f48e2272]
+              - gridcell "1" [ref=f48e2273]
+              - gridcell "within spec" [ref=f48e2274]
+              - gridcell "typical" [ref=f48e2279]
+              - gridcell "None" [ref=f48e2284]
+            - row [ref=f48e2285] [cursor=pointer]:
+              - gridcell "133" [ref=f48e2286]
+              - gridcell "A23" [ref=f48e2287]
+              - gridcell "1" [ref=f48e2288]
+              - gridcell "within spec" [ref=f48e2289]
+              - gridcell "typical" [ref=f48e2294]
+              - gridcell "None" [ref=f48e2299]
+            - row [ref=f48e2300] [cursor=pointer]:
+              - gridcell "134" [ref=f48e2301]
+              - gridcell "A26" [ref=f48e2302]
+              - gridcell "4" [ref=f48e2303]
+              - gridcell "within spec" [ref=f48e2304]
+              - gridcell "typical" [ref=f48e2309]
+              - gridcell "None" [ref=f48e2314]
+            - row [ref=f48e2315] [cursor=pointer]:
+              - gridcell "135" [ref=f48e2316]
+              - gridcell "A37" [ref=f48e2317]
+              - gridcell "1" [ref=f48e2318]
+              - gridcell "within spec" [ref=f48e2319]
+              - gridcell "typical" [ref=f48e2324]
+              - gridcell "None" [ref=f48e2329]
+            - row [ref=f48e2330] [cursor=pointer]:
+              - gridcell "136" [ref=f48e2331]
+              - gridcell "A39" [ref=f48e2332]
+              - gridcell "2" [ref=f48e2333]
+              - gridcell "within spec" [ref=f48e2334]
+              - gridcell "typical" [ref=f48e2339]
+              - gridcell "None" [ref=f48e2344]
+            - row [ref=f48e2345] [cursor=pointer]:
+              - gridcell "137" [ref=f48e2346]
+              - gridcell "A33" [ref=f48e2347]
+              - gridcell "6" [ref=f48e2348]
+              - gridcell "within spec" [ref=f48e2349]
+              - gridcell "typical" [ref=f48e2354]
+              - gridcell "None" [ref=f48e2359]
+            - row [ref=f48e2360] [cursor=pointer]:
+              - gridcell "138" [ref=f48e2361]
+              - gridcell "A04" [ref=f48e2362]
+              - gridcell "1" [ref=f48e2363]
+              - gridcell "within spec" [ref=f48e2364]
+              - gridcell "typical" [ref=f48e2369]
+              - gridcell "None" [ref=f48e2374]
+            - row [ref=f48e2375] [cursor=pointer]:
+              - gridcell "139" [ref=f48e2376]
+              - gridcell "A33" [ref=f48e2377]
+              - gridcell "2" [ref=f48e2378]
+              - gridcell "within spec" [ref=f48e2379]
+              - gridcell "typical" [ref=f48e2384]
+              - gridcell "None" [ref=f48e2389]
+            - row [ref=f48e2390] [cursor=pointer]:
+              - gridcell "140" [ref=f48e2391]
+              - gridcell "A10" [ref=f48e2392]
+              - gridcell "3" [ref=f48e2393]
+              - gridcell "within spec" [ref=f48e2394]
+              - gridcell "typical" [ref=f48e2399]
+              - gridcell "None" [ref=f48e2404]
+            - row [ref=f48e2405] [cursor=pointer]:
+              - gridcell "141" [ref=f48e2406]
+              - gridcell "A13" [ref=f48e2407]
+              - gridcell "2" [ref=f48e2408]
+              - gridcell "within spec" [ref=f48e2409]
+              - gridcell "typical" [ref=f48e2414]
+              - gridcell "None" [ref=f48e2419]
+            - row [ref=f48e2420] [cursor=pointer]:
+              - gridcell "142" [ref=f48e2421]
+              - gridcell "A36" [ref=f48e2422]
+              - gridcell "4" [ref=f48e2423]
+              - gridcell "within spec" [ref=f48e2424]
+              - gridcell "typical" [ref=f48e2429]
+              - gridcell "None" [ref=f48e2434]
+            - row [ref=f48e2435] [cursor=pointer]:
+              - gridcell "143" [ref=f48e2436]
+              - gridcell "A20" [ref=f48e2437]
+              - gridcell "5" [ref=f48e2438]
+              - gridcell "within spec" [ref=f48e2439]
+              - gridcell "typical" [ref=f48e2444]
+              - gridcell "None" [ref=f48e2449]
+            - row [ref=f48e2450] [cursor=pointer]:
+              - gridcell "144" [ref=f48e2451]
+              - gridcell "A25" [ref=f48e2452]
+              - gridcell "2" [ref=f48e2453]
+              - gridcell "within spec" [ref=f48e2454]
+              - gridcell "typical" [ref=f48e2459]
+              - gridcell "None" [ref=f48e2464]
+            - row [ref=f48e2465] [cursor=pointer]:
+              - gridcell "145" [ref=f48e2466]
+              - gridcell "A22" [ref=f48e2467]
+              - gridcell "1" [ref=f48e2468]
+              - gridcell "within spec" [ref=f48e2469]
+              - gridcell "typical" [ref=f48e2474]
+              - gridcell "None" [ref=f48e2479]
+            - row [ref=f48e2480] [cursor=pointer]:
+              - gridcell "146" [ref=f48e2481]
+              - gridcell "A26" [ref=f48e2482]
+              - gridcell "5" [ref=f48e2483]
+              - gridcell "within spec" [ref=f48e2484]
+              - gridcell "typical" [ref=f48e2489]
+              - gridcell "None" [ref=f48e2494]
+            - row [ref=f48e2495] [cursor=pointer]:
+              - gridcell "147" [ref=f48e2496]
+              - gridcell "A16" [ref=f48e2497]
+              - gridcell "4" [ref=f48e2498]
+              - gridcell "within spec" [ref=f48e2499]
+              - gridcell "typical" [ref=f48e2504]
+              - gridcell "None" [ref=f48e2509]
+            - row [ref=f48e2510] [cursor=pointer]:
+              - gridcell "148" [ref=f48e2511]
+              - gridcell "A40" [ref=f48e2512]
+              - gridcell "5" [ref=f48e2513]
+              - gridcell "within spec" [ref=f48e2514]
+              - gridcell "typical" [ref=f48e2519]
+              - gridcell "None" [ref=f48e2524]
+            - row [ref=f48e2525] [cursor=pointer]:
+              - gridcell "149" [ref=f48e2526]
+              - gridcell "A32" [ref=f48e2527]
+              - gridcell "1" [ref=f48e2528]
+              - gridcell "within spec" [ref=f48e2529]
+              - gridcell "typical" [ref=f48e2534]
+              - gridcell "None" [ref=f48e2539]
+            - row [ref=f48e2540] [cursor=pointer]:
+              - gridcell "150" [ref=f48e2541]
+              - gridcell "A33" [ref=f48e2542]
+              - gridcell "3" [ref=f48e2543]
+              - gridcell "within spec" [ref=f48e2544]
+              - gridcell "typical" [ref=f48e2549]
+              - gridcell "None" [ref=f48e2554]
+            - row [ref=f48e2555] [cursor=pointer]:
+              - gridcell "151" [ref=f48e2556]
+              - gridcell "A23" [ref=f48e2557]
+              - gridcell "6" [ref=f48e2558]
+              - gridcell "within spec" [ref=f48e2559]
+              - gridcell "typical" [ref=f48e2564]
+              - gridcell "None" [ref=f48e2569]
+            - row [ref=f48e2570] [cursor=pointer]:
+              - gridcell "152" [ref=f48e2571]
+              - gridcell "A08" [ref=f48e2572]
+              - gridcell "6" [ref=f48e2573]
+              - gridcell "within spec" [ref=f48e2574]
+              - gridcell "typical" [ref=f48e2579]
+              - gridcell "None" [ref=f48e2584]
+            - row [ref=f48e2585] [cursor=pointer]:
+              - gridcell "153" [ref=f48e2586]
+              - gridcell "A19" [ref=f48e2587]
+              - gridcell "4" [ref=f48e2588]
+              - gridcell "within spec" [ref=f48e2589]
+              - gridcell "typical" [ref=f48e2594]
+              - gridcell "None" [ref=f48e2599]
+            - row [ref=f48e2600] [cursor=pointer]:
+              - gridcell "154" [ref=f48e2601]
+              - gridcell "A02" [ref=f48e2602]
+              - gridcell "5" [ref=f48e2603]
+              - gridcell "within spec" [ref=f48e2604]
+              - gridcell "typical" [ref=f48e2609]
+              - gridcell "None" [ref=f48e2614]
+            - row [ref=f48e2615] [cursor=pointer]:
+              - gridcell "155" [ref=f48e2616]
+              - gridcell "A15" [ref=f48e2617]
+              - gridcell "3" [ref=f48e2618]
+              - gridcell "within spec" [ref=f48e2619]
+              - gridcell "typical" [ref=f48e2624]
+              - gridcell "None" [ref=f48e2629]
+            - row [ref=f48e2630] [cursor=pointer]:
+              - gridcell "156" [ref=f48e2631]
+              - gridcell "A29" [ref=f48e2632]
+              - gridcell "6" [ref=f48e2633]
+              - gridcell "within spec" [ref=f48e2634]
+              - gridcell "typical" [ref=f48e2639]
+              - gridcell "None" [ref=f48e2644]
+            - row [ref=f48e2645] [cursor=pointer]:
+              - gridcell "157" [ref=f48e2646]
+              - gridcell "A34" [ref=f48e2647]
+              - gridcell "6" [ref=f48e2648]
+              - gridcell "within spec" [ref=f48e2649]
+              - gridcell "typical" [ref=f48e2654]
+              - gridcell "None" [ref=f48e2659]
+            - row [ref=f48e2660] [cursor=pointer]:
+              - gridcell "158" [ref=f48e2661]
+              - gridcell "A15" [ref=f48e2662]
+              - gridcell "6" [ref=f48e2663]
+              - gridcell "within spec" [ref=f48e2664]
+              - gridcell "typical" [ref=f48e2669]
+              - gridcell "None" [ref=f48e2674]
+            - row [ref=f48e2675] [cursor=pointer]:
+              - gridcell "159" [ref=f48e2676]
+              - gridcell "A05" [ref=f48e2677]
+              - gridcell "6" [ref=f48e2678]
+              - gridcell "within spec" [ref=f48e2679]
+              - gridcell "typical" [ref=f48e2684]
+              - gridcell "None" [ref=f48e2689]
+            - row [ref=f48e2690] [cursor=pointer]:
+              - gridcell "160" [ref=f48e2691]
+              - gridcell "A01" [ref=f48e2692]
+              - gridcell "1" [ref=f48e2693]
+              - gridcell "within spec" [ref=f48e2694]
+              - gridcell "typical" [ref=f48e2699]
+              - gridcell "None" [ref=f48e2704]
+            - row [ref=f48e2705] [cursor=pointer]:
+              - gridcell "161" [ref=f48e2706]
+              - gridcell "A05" [ref=f48e2707]
+              - gridcell "3" [ref=f48e2708]
+              - gridcell "within spec" [ref=f48e2709]
+              - gridcell "typical" [ref=f48e2714]
+              - gridcell "None" [ref=f48e2719]
+            - row [ref=f48e2720] [cursor=pointer]:
+              - gridcell "162" [ref=f48e2721]
+              - gridcell "A11" [ref=f48e2722]
+              - gridcell "5" [ref=f48e2723]
+              - gridcell "within spec" [ref=f48e2724]
+              - gridcell "typical" [ref=f48e2729]
+              - gridcell "None" [ref=f48e2734]
+            - row [ref=f48e2735] [cursor=pointer]:
+              - gridcell "163" [ref=f48e2736]
+              - gridcell "A21" [ref=f48e2737]
+              - gridcell "2" [ref=f48e2738]
+              - gridcell "within spec" [ref=f48e2739]
+              - gridcell "typical" [ref=f48e2744]
+              - gridcell "None" [ref=f48e2749]
+            - row [ref=f48e2750] [cursor=pointer]:
+              - gridcell "164" [ref=f48e2751]
+              - gridcell "A26" [ref=f48e2752]
+              - gridcell "6" [ref=f48e2753]
+              - gridcell "within spec" [ref=f48e2754]
+              - gridcell "typical" [ref=f48e2759]
+              - gridcell "None" [ref=f48e2764]
+            - row [ref=f48e2765] [cursor=pointer]:
+              - gridcell "165" [ref=f48e2766]
+              - gridcell "A38" [ref=f48e2767]
+              - gridcell "6" [ref=f48e2768]
+              - gridcell "within spec" [ref=f48e2769]
+              - gridcell "typical" [ref=f48e2774]
+              - gridcell "None" [ref=f48e2779]
+            - row [ref=f48e2780] [cursor=pointer]:
+              - gridcell "166" [ref=f48e2781]
+              - gridcell "A39" [ref=f48e2782]
+              - gridcell "3" [ref=f48e2783]
+              - gridcell "within spec" [ref=f48e2784]
+              - gridcell "typical" [ref=f48e2789]
+              - gridcell "None" [ref=f48e2794]
+            - row [ref=f48e2795] [cursor=pointer]:
+              - gridcell "167" [ref=f48e2796]
+              - gridcell "A04" [ref=f48e2797]
+              - gridcell "4" [ref=f48e2798]
+              - gridcell "within spec" [ref=f48e2799]
+              - gridcell "typical" [ref=f48e2804]
+              - gridcell "None" [ref=f48e2809]
+            - row [ref=f48e2810] [cursor=pointer]:
+              - gridcell "168" [ref=f48e2811]
+              - gridcell "A07" [ref=f48e2812]
+              - gridcell "1" [ref=f48e2813]
+              - gridcell "within spec" [ref=f48e2814]
+              - gridcell "typical" [ref=f48e2819]
+              - gridcell "None" [ref=f48e2824]
+            - row [ref=f48e2825] [cursor=pointer]:
+              - gridcell "169" [ref=f48e2826]
+              - gridcell "A34" [ref=f48e2827]
+              - gridcell "1" [ref=f48e2828]
+              - gridcell "within spec" [ref=f48e2829]
+              - gridcell "typical" [ref=f48e2834]
+              - gridcell "None" [ref=f48e2839]
+            - row [ref=f48e2840] [cursor=pointer]:
+              - gridcell "170" [ref=f48e2841]
+              - gridcell "A14" [ref=f48e2842]
+              - gridcell "4" [ref=f48e2843]
+              - gridcell "within spec" [ref=f48e2844]
+              - gridcell "typical" [ref=f48e2849]
+              - gridcell "None" [ref=f48e2854]
+            - row [ref=f48e2855] [cursor=pointer]:
+              - gridcell "171" [ref=f48e2856]
+              - gridcell "A15" [ref=f48e2857]
+              - gridcell "1" [ref=f48e2858]
+              - gridcell "within spec" [ref=f48e2859]
+              - gridcell "typical" [ref=f48e2864]
+              - gridcell "None" [ref=f48e2869]
+            - row [ref=f48e2870] [cursor=pointer]:
+              - gridcell "172" [ref=f48e2871]
+              - gridcell "A07" [ref=f48e2872]
+              - gridcell "5" [ref=f48e2873]
+              - gridcell "within spec" [ref=f48e2874]
+              - gridcell "typical" [ref=f48e2879]
+              - gridcell "None" [ref=f48e2884]
+            - row [ref=f48e2885] [cursor=pointer]:
+              - gridcell "173" [ref=f48e2886]
+              - gridcell "A22" [ref=f48e2887]
+              - gridcell "6" [ref=f48e2888]
+              - gridcell "within spec" [ref=f48e2889]
+              - gridcell "typical" [ref=f48e2894]
+              - gridcell "None" [ref=f48e2899]
+            - row [ref=f48e2900] [cursor=pointer]:
+              - gridcell "174" [ref=f48e2901]
+              - gridcell "A25" [ref=f48e2902]
+              - gridcell "4" [ref=f48e2903]
+              - gridcell "within spec" [ref=f48e2904]
+              - gridcell "typical" [ref=f48e2909]
+              - gridcell "None" [ref=f48e2914]
+            - row [ref=f48e2915] [cursor=pointer]:
+              - gridcell "175" [ref=f48e2916]
+              - gridcell "A12" [ref=f48e2917]
+              - gridcell "3" [ref=f48e2918]
+              - gridcell "within spec" [ref=f48e2919]
+              - gridcell "typical" [ref=f48e2924]
+              - gridcell "None" [ref=f48e2929]
+            - row [ref=f48e2930] [cursor=pointer]:
+              - gridcell "176" [ref=f48e2931]
+              - gridcell "A18" [ref=f48e2932]
+              - gridcell "3" [ref=f48e2933]
+              - gridcell "within spec" [ref=f48e2934]
+              - gridcell "typical" [ref=f48e2939]
+              - gridcell "None" [ref=f48e2944]
+            - row [ref=f48e2945] [cursor=pointer]:
+              - gridcell "177" [ref=f48e2946]
+              - gridcell "A10" [ref=f48e2947]
+              - gridcell "2" [ref=f48e2948]
+              - gridcell "within spec" [ref=f48e2949]
+              - gridcell "typical" [ref=f48e2954]
+              - gridcell "None" [ref=f48e2959]
+            - row [ref=f48e2960] [cursor=pointer]:
+              - gridcell "178" [ref=f48e2961]
+              - gridcell "A30" [ref=f48e2962]
+              - gridcell "4" [ref=f48e2963]
+              - gridcell "within spec" [ref=f48e2964]
+              - gridcell "typical" [ref=f48e2969]
+              - gridcell "None" [ref=f48e2974]
+            - row [ref=f48e2975] [cursor=pointer]:
+              - gridcell "179" [ref=f48e2976]
+              - gridcell "A28" [ref=f48e2977]
+              - gridcell "4" [ref=f48e2978]
+              - gridcell "within spec" [ref=f48e2979]
+              - gridcell "typical" [ref=f48e2984]
+              - gridcell "None" [ref=f48e2989]
+            - row [ref=f48e2990] [cursor=pointer]:
+              - gridcell "180" [ref=f48e2991]
+              - gridcell "A05" [ref=f48e2992]
+              - gridcell "5" [ref=f48e2993]
+              - gridcell "within spec" [ref=f48e2994]
+              - gridcell "typical" [ref=f48e2999]
+              - gridcell "None" [ref=f48e3004]
+            - row [ref=f48e3005] [cursor=pointer]:
+              - gridcell "181" [ref=f48e3006]
+              - gridcell "A03" [ref=f48e3007]
+              - gridcell "6" [ref=f48e3008]
+              - gridcell "within spec" [ref=f48e3009]
+              - gridcell "typical" [ref=f48e3014]
+              - gridcell "None" [ref=f48e3019]
+            - row [ref=f48e3020] [cursor=pointer]:
+              - gridcell "182" [ref=f48e3021]
+              - gridcell "A37" [ref=f48e3022]
+              - gridcell "2" [ref=f48e3023]
+              - gridcell "within spec" [ref=f48e3024]
+              - gridcell "typical" [ref=f48e3029]
+              - gridcell "None" [ref=f48e3034]
+            - row [ref=f48e3035] [cursor=pointer]:
+              - gridcell "183" [ref=f48e3036]
+              - gridcell "A24" [ref=f48e3037]
+              - gridcell "3" [ref=f48e3038]
+              - gridcell "within spec" [ref=f48e3039]
+              - gridcell "typical" [ref=f48e3044]
+              - gridcell "None" [ref=f48e3049]
+            - row [ref=f48e3050] [cursor=pointer]:
+              - gridcell "184" [ref=f48e3051]
+              - gridcell "A16" [ref=f48e3052]
+              - gridcell "6" [ref=f48e3053]
+              - gridcell "within spec" [ref=f48e3054]
+              - gridcell "typical" [ref=f48e3059]
+              - gridcell "None" [ref=f48e3064]
+            - row [ref=f48e3065] [cursor=pointer]:
+              - gridcell "185" [ref=f48e3066]
+              - gridcell "A30" [ref=f48e3067]
+              - gridcell "3" [ref=f48e3068]
+              - gridcell "within spec" [ref=f48e3069]
+              - gridcell "typical" [ref=f48e3074]
+              - gridcell "None" [ref=f48e3079]
+            - row [ref=f48e3080] [cursor=pointer]:
+              - gridcell "186" [ref=f48e3081]
+              - gridcell "A34" [ref=f48e3082]
+              - gridcell "2" [ref=f48e3083]
+              - gridcell "within spec" [ref=f48e3084]
+              - gridcell "typical" [ref=f48e3089]
+              - gridcell "None" [ref=f48e3094]
+            - row [ref=f48e3095] [cursor=pointer]:
+              - gridcell "187" [ref=f48e3096]
+              - gridcell "A10" [ref=f48e3097]
+              - gridcell "1" [ref=f48e3098]
+              - gridcell "within spec" [ref=f48e3099]
+              - gridcell "typical" [ref=f48e3104]
+              - gridcell "None" [ref=f48e3109]
+            - row [ref=f48e3110] [cursor=pointer]:
+              - gridcell "188" [ref=f48e3111]
+              - gridcell "A03" [ref=f48e3112]
+              - gridcell "4" [ref=f48e3113]
+              - gridcell "within spec" [ref=f48e3114]
+              - gridcell "typical" [ref=f48e3119]
+              - gridcell "None" [ref=f48e3124]
+            - row [ref=f48e3125] [cursor=pointer]:
+              - gridcell "189" [ref=f48e3126]
+              - gridcell "A33" [ref=f48e3127]
+              - gridcell "5" [ref=f48e3128]
+              - gridcell "within spec" [ref=f48e3129]
+              - gridcell "typical" [ref=f48e3134]
+              - gridcell "None" [ref=f48e3139]
+            - row [ref=f48e3140] [cursor=pointer]:
+              - gridcell "190" [ref=f48e3141]
+              - gridcell "A24" [ref=f48e3142]
+              - gridcell "2" [ref=f48e3143]
+              - gridcell "within spec" [ref=f48e3144]
+              - gridcell "typical" [ref=f48e3149]
+              - gridcell "None" [ref=f48e3154]
+            - row [ref=f48e3155] [cursor=pointer]:
+              - gridcell "191" [ref=f48e3156]
+              - gridcell "A11" [ref=f48e3157]
+              - gridcell "3" [ref=f48e3158]
+              - gridcell "within spec" [ref=f48e3159]
+              - gridcell "typical" [ref=f48e3164]
+              - gridcell "None" [ref=f48e3169]
+            - row [ref=f48e3170] [cursor=pointer]:
+              - gridcell "192" [ref=f48e3171]
+              - gridcell "A33" [ref=f48e3172]
+              - gridcell "1" [ref=f48e3173]
+              - gridcell "within spec" [ref=f48e3174]
+              - gridcell "typical" [ref=f48e3179]
+              - gridcell "None" [ref=f48e3184]
+            - row [ref=f48e3185] [cursor=pointer]:
+              - gridcell "193" [ref=f48e3186]
+              - gridcell "A15" [ref=f48e3187]
+              - gridcell "4" [ref=f48e3188]
+              - gridcell "within spec" [ref=f48e3189]
+              - gridcell "typical" [ref=f48e3194]
+              - gridcell "None" [ref=f48e3199]
+            - row [ref=f48e3200] [cursor=pointer]:
+              - gridcell "194" [ref=f48e3201]
+              - gridcell "A02" [ref=f48e3202]
+              - gridcell "6" [ref=f48e3203]
+              - gridcell "within spec" [ref=f48e3204]
+              - gridcell "typical" [ref=f48e3209]
+              - gridcell "None" [ref=f48e3214]
+            - row [ref=f48e3215] [cursor=pointer]:
+              - gridcell "195" [ref=f48e3216]
+              - gridcell "A09" [ref=f48e3217]
+              - gridcell "6" [ref=f48e3218]
+              - gridcell "within spec" [ref=f48e3219]
+              - gridcell "typical" [ref=f48e3224]
+              - gridcell "None" [ref=f48e3229]
+            - row [ref=f48e3230] [cursor=pointer]:
+              - gridcell "196" [ref=f48e3231]
+              - gridcell "A31" [ref=f48e3232]
+              - gridcell "2" [ref=f48e3233]
+              - gridcell "within spec" [ref=f48e3234]
+              - gridcell "typical" [ref=f48e3239]
+              - gridcell "None" [ref=f48e3244]
+            - row [ref=f48e3245] [cursor=pointer]:
+              - gridcell "197" [ref=f48e3246]
+              - gridcell "A32" [ref=f48e3247]
+              - gridcell "5" [ref=f48e3248]
+              - gridcell "within spec" [ref=f48e3249]
+              - gridcell "typical" [ref=f48e3254]
+              - gridcell "None" [ref=f48e3259]
+            - row [ref=f48e3260] [cursor=pointer]:
+              - gridcell "198" [ref=f48e3261]
+              - gridcell "A38" [ref=f48e3262]
+              - gridcell "4" [ref=f48e3263]
+              - gridcell "within spec" [ref=f48e3264]
+              - gridcell "typical" [ref=f48e3269]
+              - gridcell "None" [ref=f48e3274]
+            - row [ref=f48e3275] [cursor=pointer]:
+              - gridcell "199" [ref=f48e3276]
+              - gridcell "A03" [ref=f48e3277]
+              - gridcell "3" [ref=f48e3278]
+              - gridcell "within spec" [ref=f48e3279]
+              - gridcell "typical" [ref=f48e3284]
+              - gridcell "None" [ref=f48e3289]
+            - row [ref=f48e3290] [cursor=pointer]:
+              - gridcell "200" [ref=f48e3291]
+              - gridcell "A01" [ref=f48e3292]
+              - gridcell "4" [ref=f48e3293]
+              - gridcell "within spec" [ref=f48e3294]
+              - gridcell "typical" [ref=f48e3299]
+              - gridcell "None" [ref=f48e3304]
+            - row [ref=f48e3305] [cursor=pointer]:
+              - gridcell "201" [ref=f48e3306]
+              - gridcell "A16" [ref=f48e3307]
+              - gridcell "1" [ref=f48e3308]
+              - gridcell "within spec" [ref=f48e3309]
+              - gridcell "typical" [ref=f48e3314]
+              - gridcell "None" [ref=f48e3319]
+            - row [ref=f48e3320] [cursor=pointer]:
+              - gridcell "202" [ref=f48e3321]
+              - gridcell "A08" [ref=f48e3322]
+              - gridcell "4" [ref=f48e3323]
+              - gridcell "within spec" [ref=f48e3324]
+              - gridcell "typical" [ref=f48e3329]
+              - gridcell "None" [ref=f48e3334]
+            - row [ref=f48e3335] [cursor=pointer]:
+              - gridcell "203" [ref=f48e3336]
+              - gridcell "A05" [ref=f48e3337]
+              - gridcell "4" [ref=f48e3338]
+              - gridcell "within spec" [ref=f48e3339]
+              - gridcell "typical" [ref=f48e3344]
+              - gridcell "None" [ref=f48e3349]
+            - row [ref=f48e3350] [cursor=pointer]:
+              - gridcell "204" [ref=f48e3351]
+              - gridcell "A08" [ref=f48e3352]
+              - gridcell "2" [ref=f48e3353]
+              - gridcell "within spec" [ref=f48e3354]
+              - gridcell "typical" [ref=f48e3359]
+              - gridcell "None" [ref=f48e3364]
+            - row [ref=f48e3365] [cursor=pointer]:
+              - gridcell "205" [ref=f48e3366]
+              - gridcell "A14" [ref=f48e3367]
+              - gridcell "5" [ref=f48e3368]
+              - gridcell "within spec" [ref=f48e3369]
+              - gridcell "typical" [ref=f48e3374]
+              - gridcell "None" [ref=f48e3379]
+            - row [ref=f48e3380] [cursor=pointer]:
+              - gridcell "206" [ref=f48e3381]
+              - gridcell "A17" [ref=f48e3382]
+              - gridcell "5" [ref=f48e3383]
+              - gridcell "within spec" [ref=f48e3384]
+              - gridcell "typical" [ref=f48e3389]
+              - gridcell "None" [ref=f48e3394]
+            - row [ref=f48e3395] [cursor=pointer]:
+              - gridcell "207" [ref=f48e3396]
+              - gridcell "A31" [ref=f48e3397]
+              - gridcell "6" [ref=f48e3398]
+              - gridcell "within spec" [ref=f48e3399]
+              - gridcell "typical" [ref=f48e3404]
+              - gridcell "None" [ref=f48e3409]
+            - row [ref=f48e3410] [cursor=pointer]:
+              - gridcell "208" [ref=f48e3411]
+              - gridcell "A38" [ref=f48e3412]
+              - gridcell "5" [ref=f48e3413]
+              - gridcell "within spec" [ref=f48e3414]
+              - gridcell "typical" [ref=f48e3419]
+              - gridcell "None" [ref=f48e3424]
+            - row [ref=f48e3425] [cursor=pointer]:
+              - gridcell "209" [ref=f48e3426]
+              - gridcell "A32" [ref=f48e3427]
+              - gridcell "4" [ref=f48e3428]
+              - gridcell "within spec" [ref=f48e3429]
+              - gridcell "typical" [ref=f48e3434]
+              - gridcell "None" [ref=f48e3439]
+            - row [ref=f48e3440] [cursor=pointer]:
+              - gridcell "210" [ref=f48e3441]
+              - gridcell "A06" [ref=f48e3442]
+              - gridcell "5" [ref=f48e3443]
+              - gridcell "within spec" [ref=f48e3444]
+              - gridcell "typical" [ref=f48e3449]
+              - gridcell "None" [ref=f48e3454]
+            - row [ref=f48e3455] [cursor=pointer]:
+              - gridcell "211" [ref=f48e3456]
+              - gridcell "A13" [ref=f48e3457]
+              - gridcell "1" [ref=f48e3458]
+              - gridcell "within spec" [ref=f48e3459]
+              - gridcell "typical" [ref=f48e3464]
+              - gridcell "None" [ref=f48e3469]
+            - row [ref=f48e3470] [cursor=pointer]:
+              - gridcell "212" [ref=f48e3471]
+              - gridcell "A19" [ref=f48e3472]
+              - gridcell "2" [ref=f48e3473]
+              - gridcell "within spec" [ref=f48e3474]
+              - gridcell "typical" [ref=f48e3479]
+              - gridcell "None" [ref=f48e3484]
+            - row [ref=f48e3485] [cursor=pointer]:
+              - gridcell "213" [ref=f48e3486]
+              - gridcell "A27" [ref=f48e3487]
+              - gridcell "1" [ref=f48e3488]
+              - gridcell "within spec" [ref=f48e3489]
+              - gridcell "typical" [ref=f48e3494]
+              - gridcell "None" [ref=f48e3499]
+            - row [ref=f48e3500] [cursor=pointer]:
+              - gridcell "214" [ref=f48e3501]
+              - gridcell "A31" [ref=f48e3502]
+              - gridcell "5" [ref=f48e3503]
+              - gridcell "within spec" [ref=f48e3504]
+              - gridcell "typical" [ref=f48e3509]
+              - gridcell "None" [ref=f48e3514]
+            - row [ref=f48e3515] [cursor=pointer]:
+              - gridcell "215" [ref=f48e3516]
+              - gridcell "A31" [ref=f48e3517]
+              - gridcell "1" [ref=f48e3518]
+              - gridcell "within spec" [ref=f48e3519]
+              - gridcell "typical" [ref=f48e3524]
+              - gridcell "None" [ref=f48e3529]
+            - row [ref=f48e3530] [cursor=pointer]:
+              - gridcell "216" [ref=f48e3531]
+              - gridcell "A39" [ref=f48e3532]
+              - gridcell "4" [ref=f48e3533]
+              - gridcell "within spec" [ref=f48e3534]
+              - gridcell "typical" [ref=f48e3539]
+              - gridcell "None" [ref=f48e3544]
+            - row [ref=f48e3545] [cursor=pointer]:
+              - gridcell "217" [ref=f48e3546]
+              - gridcell "A26" [ref=f48e3547]
+              - gridcell "2" [ref=f48e3548]
+              - gridcell "within spec" [ref=f48e3549]
+              - gridcell "typical" [ref=f48e3554]
+              - gridcell "None" [ref=f48e3559]
+            - row [ref=f48e3560] [cursor=pointer]:
+              - gridcell "218" [ref=f48e3561]
+              - gridcell "A22" [ref=f48e3562]
+              - gridcell "4" [ref=f48e3563]
+              - gridcell "within spec" [ref=f48e3564]
+              - gridcell "typical" [ref=f48e3569]
+              - gridcell "None" [ref=f48e3574]
+            - row [ref=f48e3575] [cursor=pointer]:
+              - gridcell "219" [ref=f48e3576]
+              - gridcell "A13" [ref=f48e3577]
+              - gridcell "3" [ref=f48e3578]
+              - gridcell "within spec" [ref=f48e3579]
+              - gridcell "typical" [ref=f48e3584]
+              - gridcell "None" [ref=f48e3589]
+            - row [ref=f48e3590] [cursor=pointer]:
+              - gridcell "220" [ref=f48e3591]
+              - gridcell "A40" [ref=f48e3592]
+              - gridcell "2" [ref=f48e3593]
+              - gridcell "within spec" [ref=f48e3594]
+              - gridcell "typical" [ref=f48e3599]
+              - gridcell "None" [ref=f48e3604]
+            - row [ref=f48e3605] [cursor=pointer]:
+              - gridcell "221" [ref=f48e3606]
+              - gridcell "A09" [ref=f48e3607]
+              - gridcell "3" [ref=f48e3608]
+              - gridcell "within spec" [ref=f48e3609]
+              - gridcell "typical" [ref=f48e3614]
+              - gridcell "None" [ref=f48e3619]
+            - row [ref=f48e3620] [cursor=pointer]:
+              - gridcell "222" [ref=f48e3621]
+              - gridcell "A20" [ref=f48e3622]
+              - gridcell "3" [ref=f48e3623]
+              - gridcell "within spec" [ref=f48e3624]
+              - gridcell "typical" [ref=f48e3629]
+              - gridcell "None" [ref=f48e3634]
+            - row [ref=f48e3635] [cursor=pointer]:
+              - gridcell "223" [ref=f48e3636]
+              - gridcell "A19" [ref=f48e3637]
+              - gridcell "5" [ref=f48e3638]
+              - gridcell "within spec" [ref=f48e3639]
+              - gridcell "typical" [ref=f48e3644]
+              - gridcell "None" [ref=f48e3649]
+            - row [ref=f48e3650] [cursor=pointer]:
+              - gridcell "224" [ref=f48e3651]
+              - gridcell "A19" [ref=f48e3652]
+              - gridcell "6" [ref=f48e3653]
+              - gridcell "within spec" [ref=f48e3654]
+              - gridcell "typical" [ref=f48e3659]
+              - gridcell "None" [ref=f48e3664]
+            - row [ref=f48e3665] [cursor=pointer]:
+              - gridcell "225" [ref=f48e3666]
+              - gridcell "A18" [ref=f48e3667]
+              - gridcell "5" [ref=f48e3668]
+              - gridcell "within spec" [ref=f48e3669]
+              - gridcell "typical" [ref=f48e3674]
+              - gridcell "None" [ref=f48e3679]
+            - row [ref=f48e3680] [cursor=pointer]:
+              - gridcell "226" [ref=f48e3681]
+              - gridcell "A23" [ref=f48e3682]
+              - gridcell "3" [ref=f48e3683]
+              - gridcell "within spec" [ref=f48e3684]
+              - gridcell "typical" [ref=f48e3689]
+              - gridcell "None" [ref=f48e3694]
+            - row [ref=f48e3695] [cursor=pointer]:
+              - gridcell "227" [ref=f48e3696]
+              - gridcell "A20" [ref=f48e3697]
+              - gridcell "6" [ref=f48e3698]
+              - gridcell "within spec" [ref=f48e3699]
+              - gridcell "typical" [ref=f48e3704]
+              - gridcell "None" [ref=f48e3709]
+            - row [ref=f48e3710] [cursor=pointer]:
+              - gridcell "228" [ref=f48e3711]
+              - gridcell "A28" [ref=f48e3712]
+              - gridcell "3" [ref=f48e3713]
+              - gridcell "within spec" [ref=f48e3714]
+              - gridcell "typical" [ref=f48e3719]
+              - gridcell "None" [ref=f48e3724]
+            - row [ref=f48e3725] [cursor=pointer]:
+              - gridcell "229" [ref=f48e3726]
+              - gridcell "A23" [ref=f48e3727]
+              - gridcell "2" [ref=f48e3728]
+              - gridcell "within spec" [ref=f48e3729]
+              - gridcell "typical" [ref=f48e3734]
+              - gridcell "None" [ref=f48e3739]
+            - row [ref=f48e3740] [cursor=pointer]:
+              - gridcell "230" [ref=f48e3741]
+              - gridcell "A04" [ref=f48e3742]
+              - gridcell "3" [ref=f48e3743]
+              - gridcell "within spec" [ref=f48e3744]
+              - gridcell "typical" [ref=f48e3749]
+              - gridcell "None" [ref=f48e3754]
+            - row [ref=f48e3755] [cursor=pointer]:
+              - gridcell "231" [ref=f48e3756]
+              - gridcell "A34" [ref=f48e3757]
+              - gridcell "3" [ref=f48e3758]
+              - gridcell "within spec" [ref=f48e3759]
+              - gridcell "typical" [ref=f48e3764]
+              - gridcell "None" [ref=f48e3769]
+            - row [ref=f48e3770] [cursor=pointer]:
+              - gridcell "232" [ref=f48e3771]
+              - gridcell "A18" [ref=f48e3772]
+              - gridcell "1" [ref=f48e3773]
+              - gridcell "within spec" [ref=f48e3774]
+              - gridcell "typical" [ref=f48e3779]
+              - gridcell "None" [ref=f48e3784]
+            - row [ref=f48e3785] [cursor=pointer]:
+              - gridcell "233" [ref=f48e3786]
+              - gridcell "A36" [ref=f48e3787]
+              - gridcell "6" [ref=f48e3788]
+              - gridcell "within spec" [ref=f48e3789]
+              - gridcell "typical" [ref=f48e3794]
+              - gridcell "None" [ref=f48e3799]
+            - row [ref=f48e3800] [cursor=pointer]:
+              - gridcell "234" [ref=f48e3801]
+              - gridcell "A35" [ref=f48e3802]
+              - gridcell "6" [ref=f48e3803]
+              - gridcell "within spec" [ref=f48e3804]
+              - gridcell "typical" [ref=f48e3809]
+              - gridcell "None" [ref=f48e3814]
+            - row [ref=f48e3815] [cursor=pointer]:
+              - gridcell "235" [ref=f48e3816]
+              - gridcell "A06" [ref=f48e3817]
+              - gridcell "4" [ref=f48e3818]
+              - gridcell "within spec" [ref=f48e3819]
+              - gridcell "typical" [ref=f48e3824]
+              - gridcell "None" [ref=f48e3829]
+            - row [ref=f48e3830] [cursor=pointer]:
+              - gridcell "236" [ref=f48e3831]
+              - gridcell "A28" [ref=f48e3832]
+              - gridcell "2" [ref=f48e3833]
+              - gridcell "within spec" [ref=f48e3834]
+              - gridcell "typical" [ref=f48e3839]
+              - gridcell "None" [ref=f48e3844]
+            - row [ref=f48e3845] [cursor=pointer]:
+              - gridcell "237" [ref=f48e3846]
+              - gridcell "A19" [ref=f48e3847]
+              - gridcell "3" [ref=f48e3848]
+              - gridcell "within spec" [ref=f48e3849]
+              - gridcell "typical" [ref=f48e3854]
+              - gridcell "None" [ref=f48e3859]
+            - row [ref=f48e3860] [cursor=pointer]:
+              - gridcell "238" [ref=f48e3861]
+              - gridcell "A13" [ref=f48e3862]
+              - gridcell "4" [ref=f48e3863]
+              - gridcell "within spec" [ref=f48e3864]
+              - gridcell "typical" [ref=f48e3869]
+              - gridcell "None" [ref=f48e3874]
+            - row [ref=f48e3875] [cursor=pointer]:
+              - gridcell "239" [ref=f48e3876]
+              - gridcell "A02" [ref=f48e3877]
+              - gridcell "2" [ref=f48e3878]
+              - gridcell "within spec" [ref=f48e3879]
+              - gridcell "typical" [ref=f48e3884]
+              - gridcell "None" [ref=f48e3889]
+            - row [ref=f48e3890] [cursor=pointer]:
+              - gridcell "240" [ref=f48e3891]
+              - gridcell "A08" [ref=f48e3892]
+              - gridcell "5" [ref=f48e3893]
+              - gridcell "within spec" [ref=f48e3894]
+              - gridcell "typical" [ref=f48e3899]
+              - gridcell "None" [ref=f48e3904]

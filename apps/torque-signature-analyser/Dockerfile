@@ -8,11 +8,13 @@ RUN npm run build
 
 FROM python:3.13-slim
 WORKDIR /app
-ENV OMP_NUM_THREADS=1 PORT=8080 PYTHONUNBUFFERED=1
+ENV OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 PORT=8080 PYTHONUNBUFFERED=1
 COPY api/requirements.txt api/requirements.txt
 RUN pip install --no-cache-dir -r api/requirements.txt
 COPY api/__init__.py api/analysis.py api/features.py api/main.py api/parsing.py api/synth.py api/
 COPY api/samples api/samples
 COPY --from=web /web/dist web/dist
+RUN useradd --system --no-create-home --uid 10001 app
+USER app
 EXPOSE 8080
-CMD uvicorn api.main:app --host 0.0.0.0 --port ${PORT}
+CMD ["sh", "-c", "exec uvicorn api.main:app --host 0.0.0.0 --port ${PORT}"]

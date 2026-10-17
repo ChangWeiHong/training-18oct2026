@@ -1,0 +1,53 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]: Torque Signature
+        - generic [ref=e8]: Analyser
+      - generic [ref=e9]:
+        - generic [ref=e10]: Sample pack
+        - combobox "Sample pack" [disabled] [ref=e11]:
+          - option "Upload in use" [selected]
+      - generic [ref=e12]:
+        - button "Upload readings" [ref=e13] [cursor=pointer]
+        - button "Upload reference" [ref=e18] [cursor=pointer]
+        - link "Template" [ref=e23] [cursor=pointer]:
+          - /url: /api/template.csv
+    - group "Specification" [ref=e28]:
+      - generic [ref=e29]: Spec
+      - generic [ref=e30]:
+        - generic [ref=e31]: Torque min
+        - textbox "Torque min Nm" [ref=e32]:
+          - /placeholder: none
+        - generic [ref=e33]: Nm
+      - generic [ref=e34]:
+        - generic [ref=e35]: Torque max
+        - textbox "Torque max Nm" [ref=e36]:
+          - /placeholder: none
+        - generic [ref=e37]: Nm
+      - generic [ref=e38]:
+        - generic [ref=e39]: Post-snug min
+        - textbox "Post-snug min °" [ref=e40]:
+          - /placeholder: none
+        - generic [ref=e41]: °
+      - generic [ref=e42]:
+        - generic [ref=e43]: Post-snug max
+        - textbox "Post-snug max °" [ref=e44]:
+          - /placeholder: none
+        - generic [ref=e45]: °
+      - generic [ref=e46]:
+        - generic [ref=e47]: Snug
+        - textbox "Snug Nm" [ref=e48]:
+          - /placeholder: none
+        - generic [ref=e49]: Nm
+      - button "Use sample spec (M12)" [ref=e50] [cursor=pointer]
+      - button "Re-run" [disabled] [ref=e51]
+      - status
+  - main [ref=e56]:
+    - region "Workspace" [ref=e57]:
+      - generic [ref=e58]:
+        - paragraph [ref=e61]: Load a pack to see its curves.
+        - complementary "Evidence" [ref=e62]:
+          - paragraph [ref=e63]: Select a rundown to see why it was flagged.
+      - paragraph [ref=e65]: Loading 3D view.
+      - paragraph [ref=e67]: Playback bar goes here.

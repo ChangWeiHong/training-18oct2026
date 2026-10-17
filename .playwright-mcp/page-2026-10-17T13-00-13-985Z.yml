@@ -1,0 +1,61 @@
+- generic [ref=f29e3]:
+  - banner [ref=f29e4]:
+    - generic [ref=f29e5]:
+      - generic [ref=f29e6]:
+        - generic [ref=f29e7]: Torque Signature
+        - generic [ref=f29e8]: Analyser
+      - generic [ref=f29e9]:
+        - generic [ref=f29e10]: Sample pack
+        - combobox "Sample pack" [ref=f29e11]:
+          - option "Clean shift"
+          - option "Mixed shift" [selected]
+          - option "Gradual drift"
+          - option "Hard cases"
+      - generic [ref=f29e12]:
+        - button "Upload readings" [ref=f29e13] [cursor=pointer]
+        - button "Upload reference" [ref=f29e18] [cursor=pointer]
+        - link "Template" [ref=f29e23] [cursor=pointer]:
+          - /url: /api/template.csv
+    - group "Specification" [ref=f29e28]:
+      - generic [ref=f29e29]: Spec
+      - generic [ref=f29e30]:
+        - generic [ref=f29e31]: Torque min
+        - textbox "Torque min Nm" [ref=f29e32]:
+          - /placeholder: none
+          - text: "99"
+        - generic [ref=f29e33]: Nm
+      - generic [ref=f29e34]:
+        - generic [ref=f29e35]: Torque max
+        - textbox "Torque max Nm" [ref=f29e36]:
+          - /placeholder: none
+          - text: "121"
+        - generic [ref=f29e37]: Nm
+      - generic [ref=f29e38]:
+        - generic [ref=f29e39]: Post-snug min
+        - textbox "Post-snug min °" [ref=f29e40]:
+          - /placeholder: none
+          - text: "20"
+        - generic [ref=f29e41]: °
+      - generic [ref=f29e42]:
+        - generic [ref=f29e43]: Post-snug max
+        - textbox "Post-snug max °" [ref=f29e44]:
+          - /placeholder: none
+          - text: "60"
+        - generic [ref=f29e45]: °
+      - generic [ref=f29e46]:
+        - generic [ref=f29e47]: Snug
+        - textbox "Snug Nm" [ref=f29e48]:
+          - /placeholder: none
+          - text: "30"
+        - generic [ref=f29e49]: Nm
+      - button "Use sample spec (M12)" [ref=f29e50] [cursor=pointer]
+      - button "Re-run" [disabled] [ref=f29e51]
+      - status [ref=f29e56]: Analysing
+  - main [ref=f29e57]:
+    - region "Workspace" [ref=f29e58]:
+      - generic [ref=f29e59]:
+        - paragraph [ref=f29e62]: Load a pack to see its curves.
+        - complementary "Evidence" [ref=f29e63]:
+          - paragraph [ref=f29e64]: Select a rundown to see why it was flagged.
+      - paragraph [ref=f29e66]: Loading 3D view.
+      - paragraph [ref=f29e68]: Playback bar goes here.
