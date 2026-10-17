@@ -204,3 +204,19 @@ def test_json_explicit_null_spec_means_no_spec():
     assert {x["spec_result"] for x in d["rundowns"]} == {"not_supplied"}
     # Leaving the key out still uses the pack's own spec.
     assert client.post("/api/analyse", json={"sample_id": "mixed"}).json()["spec"] is not None
+
+
+def test_streamed_body_over_limit_rejected_without_content_length():
+    from api.main import BODY_LIMIT
+
+    def chunks():
+        yield b"--b\r\nContent-Disposition: form-data; name=\"readings\"; filename=\"a.csv\"\r\n\r\n"
+        for _ in range(BODY_LIMIT // 100_000 + 2):
+            yield b"x" * 100_000
+
+    r = client.post("/api/analyse", content=chunks(),
+                    headers={"content-type": "multipart/form-data; boundary=b"})
+    assert "content-length" not in r.request.headers
+    assert r.status_code == 400
+    assert r.json() == {"error": "The upload is too large.", "row": None, "column": None,
+                        "fix": "Keep each file under 5 MB."}

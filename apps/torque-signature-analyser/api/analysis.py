@@ -149,8 +149,9 @@ def _matrix(runs_feats: list[dict], medians: np.ndarray) -> np.ndarray:
 
 def _fit(runs: list[Run]) -> Ref:
     ref = Ref(n=len(runs))
-    ref.usable = sum(r.k is not None and r.feats["slope"] is not None for r in runs)
     ref.no_snug = sum(r.k is None for r in runs)
+    runs = [r for r in runs if r.k is not None]      # no-snug runs feed nothing below
+    ref.usable = sum(r.k is not None and r.feats["slope"] is not None for r in runs)
     cols = {}
     for f in FEATURES:
         vals = np.array([r.feats[f] for r in runs if r.feats[f] is not None], float)
@@ -197,21 +198,40 @@ def _spec_result(feats: dict, spec: dict | None) -> str:
     return "within" if checked else "not_supplied"
 
 
-def _overlap(r: Run, p50: np.ndarray) -> float:
-    """Share of the candidate's post-snug span that the reference envelope covers.
+def _covered(r: Run, p50: np.ndarray) -> tuple[int, np.ndarray]:
+    """(whole-degree count of the candidate's full post-snug span, envelope coverage of each degree).
 
-    The span is cut at the envelope's last covered point: running past the end of the
-    reference is a signature finding (a soft joint does it), not a lack of support.
-    Gaps before that point, or an empty envelope, count against the candidate.
+    Coverage is only evaluated on the grid; the span itself may be huge, so it is never allocated.
     """
+    span = float(np.max(r.a[:r.fi + 1]) - r.a[r.k])
+    n = int(min(math.floor(span), 1e12)) + 1
+    pts = np.arange(0, min(n, int(GRID[-1]) + 1))
+    return n, ~np.isnan(p50[pts - int(GRID[0])])
+
+
+def _overlap(r: Run, p50: np.ndarray) -> float:
+    """Share of the candidate's full post-snug span (snug to final angle) that the envelope covers."""
     if r.k is None or r.fi < r.k:
         return 0.0
-    covered = ~np.isnan(p50) & (GRID >= 0)
-    if not covered.any():
-        return 0.0
-    span = float(np.max(r.a[:r.fi + 1]) - r.a[r.k])
-    in_span = (GRID >= 0) & (GRID <= min(span, GRID[covered].max()))
-    return float((in_span & covered).sum() / max(in_span.sum(), 1))
+    n, cov = _covered(r, p50)
+    return float(cov.sum() / n)
+
+
+def _past_reference(r: Run, p50: np.ndarray) -> tuple[float, float] | None:
+    """(degrees past, last covered absolute angle) when the candidate runs past the reference's end.
+
+    Only when the shortfall is that tail: the span up to the last covered point is itself
+    at least MIN_OVERLAP covered. Gaps in the middle give None (can't assess).
+    """
+    if r.k is None or r.fi < r.k:
+        return None
+    n, cov = _covered(r, p50)
+    if not cov.any():
+        return None
+    last = int(np.flatnonzero(cov)[-1])
+    if last == n - 1 or cov[:last + 1].sum() / (last + 1) < MIN_OVERLAP:
+        return None
+    return float(n - 1 - last), float(r.a[r.k] + last)
 
 
 def _zscores(feats: dict, ref: Ref) -> dict:
@@ -282,21 +302,30 @@ def _score(runs: list[Run], ref: Ref, spec: dict | None) -> list[dict]:
         z_hit = any(abs(v) > Z_CUT for v in z.values())
         area_hit = area is not None and ref.area_p99 is not None and area > AREA_MARGIN * ref.area_p99
         # A rehit starts above snug (k == 0) and has no fit window, so it is still assessed.
-        reason = None
+        reason = past = None
         if r.feats["snug_angle"] is None or (r.feats["slope"] is None and r.k != 0):
             reason = "No snug point or slope."
         elif not ref_ok:
             reason = "Reference too small to compare."
         elif _overlap(r, p50) < MIN_OVERLAP:
-            reason = "Too little overlap with the reference curve."
+            past = _past_reference(r, p50)
+            if past is None:
+                reason = "Too little overlap with the reference curve."
         cant = reason is not None
-        flagged = z_hit or area_hit or bool(ih)
+        flagged = z_hit or area_hit or bool(ih) or past is not None
         sig = "cant_assess" if cant else "investigate" if flagged else "typical"
-        iforest_only = sig == "investigate" and not z_hit and not area_hit
+        iforest_only = sig == "investigate" and not z_hit and not area_hit and past is None
+        evidence = [] if sig != "investigate" or iforest_only else _evidence(r, z, ref)
+        if past is not None and sig == "investigate":
+            evidence = evidence[:MAX_EVIDENCE - 1]      # the past-reference line counts toward the cap
+            evidence.append({
+                "feature": "rotation_past_reference", "label": "Rotation past the reference curve",
+                "value": past[0], "unit": "°", "ref_lo": 0, "ref_hi": 0,
+                "interval": [past[1], float(r.a[r.fi])]})
         out.append({
             "cant_assess_reason": reason, "run": r, "z": z, "spec_result": _spec_result(r.feats, spec), "signature": sig,
             "iforest_only": iforest_only,
-            "evidence": [] if sig != "investigate" or iforest_only else _evidence(r, z, ref),
+            "evidence": evidence,
             "pattern_hint": None if cant else _hint(z, r.feats),
             "max_z": max((abs(v) for v in z.values()), default=0.0)})
     return out
