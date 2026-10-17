@@ -36,3 +36,20 @@ export function nextPosition(curve, pos, dtMs, speed) {
   if (hasTime(curve)) return posAtTime(curve.t, timeAt(curve.t, pos) + dtMs * speed);
   return Math.min(n - 1, pos + (UNIFORM_RATE * speed * dtMs) / 1000);
 }
+
+export const HOLD_MS = 1000; // time spent on the final pose before a loop restarts
+
+/**
+ * One playback frame. `hold` is null while the cursor travels, then the real time spent on the last sample.
+ * Returns { pos, hold, ended }; `ended` means the hold is over and the caller restarts, advances or stops.
+ */
+export function frameStep(curve, pos, hold, dtMs, speed) {
+  const n = curve?.angle?.length ?? 0;
+  if (n < 2) return { pos: 0, hold: null, ended: true };
+  if (hold != null) {
+    const h = hold + dtMs;
+    return { pos: n - 1, hold: h, ended: h >= HOLD_MS };
+  }
+  const p = nextPosition(curve, pos, dtMs, speed);
+  return p >= n - 1 ? { pos: n - 1, hold: 0, ended: false } : { pos: p, hold: null, ended: false };
+}
