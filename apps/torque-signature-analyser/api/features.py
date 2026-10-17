@@ -60,7 +60,7 @@ def drop_interval(angle: np.ndarray, torque: np.ndarray) -> tuple[float, float] 
     t = np.asarray(torque, dtype=float)
     if len(t) < 2 or len(a) != len(t):
         return None
-    size, i, j = _drawdown(t)
+    size, i, j = _drawdown(t[:final_index(a, t) + 1])
     if not size >= DROP_INTERVAL_MIN_NM:
         return None
     return float(a[i]), float(a[j])
@@ -120,7 +120,7 @@ def extract(angle: np.ndarray, torque: np.ndarray, snug_nm: float) -> dict[str, 
     out["final_torque"] = t[fi]
     out["peak_torque"] = np.max(t)
     out["total_angle"] = a[fi] - a[0]
-    size, _, _ = _drawdown(t)
+    size, _, _ = _drawdown(t[:fi + 1])
     out["max_drop"] = size
     out["unload_count"] = _unload_count(t)
 

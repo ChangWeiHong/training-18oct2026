@@ -49,6 +49,8 @@ def test_final_excludes_release_decay():
     t2[len(t) - 1] = 110.0
     assert extract(a2, t2, SNUG)["final_torque"] > 105
     assert final_index(a2, t2) == len(t) - 1
+    assert extract(a2, t2, SNUG)["max_drop"] < 5
+    assert drop_interval(a2, t2) is None
 
 
 def test_unload_count():
@@ -71,7 +73,9 @@ def test_max_drop_and_interval():
 def test_patterns_separate():
     def med(p, k):
         return float(np.median([extract(a, t, SNUG)[k] for a, t in runs(p)]))
-    assert med("soft_joint", "slope") < 1.3 < med(None, "slope") < 4 < med("hard_joint", "slope")
+    assert med("soft_joint", "slope") < 1.3
+    assert 1.3 < med(None, "slope") < 4
+    assert med("hard_joint", "slope") > 4
     assert med("cross_thread", "running_torque") > 15 > med(None, "running_torque")
     assert med("missing_washer", "snug_angle") > med(None, "snug_angle") + 20
     assert med("early_shutoff", "final_torque") < 99
