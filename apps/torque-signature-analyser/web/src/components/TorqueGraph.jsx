@@ -210,6 +210,9 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
           onKeyDown={onKey}
         >
           <defs>
+            <pattern id="pre-hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="5" className="pre-hatch-line" />
+            </pattern>
             <clipPath id="plot-clip"><rect x={plot.left} y={plot.top} width={plot.right - plot.left} height={plot.bottom - plot.top} /></clipPath>
           </defs>
 

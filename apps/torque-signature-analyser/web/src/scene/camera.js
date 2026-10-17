@@ -62,6 +62,8 @@ export function keyAction(e) {
   switch (e.key) {
     case 'q': case 'Q': return 'rotateLeft';
     case 'e': case 'E': return 'rotateRight';
+    case 'w': case 'W': return 'tiltUp';
+    case 's': case 'S': return 'tiltDown';
     case '+': case '=': return 'zoomIn';
     case '-': case '_': return 'zoomOut';
     case '0': return 'reset';

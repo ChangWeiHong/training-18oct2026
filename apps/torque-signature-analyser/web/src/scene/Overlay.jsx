@@ -1,4 +1,4 @@
-import { RotateCcw, RotateCw, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
+import { ChevronUp, ChevronDown, RotateCcw, RotateCw, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 import StatusMark from '../components/StatusMark.jsx';
 
 const KINDS = ['typical', 'investigate', 'outside', 'cant_assess'];
@@ -50,6 +50,8 @@ export function JointStrip() {
 const VIEW_ACTIONS = [
   ['rotateLeft', 'Rotate left', RotateCcw, 'Q'],
   ['rotateRight', 'Rotate right', RotateCw, 'E'],
+  ['tiltUp', 'Tilt up', ChevronUp, 'W'],
+  ['tiltDown', 'Tilt down', ChevronDown, 'S'],
   ['zoomIn', 'Zoom in', ZoomIn, '+'],
   ['zoomOut', 'Zoom out', ZoomOut, '-'],
   ['reset', 'Reset view', Maximize2, '0'],
@@ -77,7 +79,7 @@ export function JointHeader({ selected, preset, onPreset, slots, selectedId, onS
 
       <div className="joint-view" role="group" aria-label="Inspect the 3D view">
         {VIEW_ACTIONS.map(([k, label, Icon, key]) => (
-          <button key={k} type="button" className="btn-mini joint-view-btn" title={`${label} (${key})`} onClick={() => onView?.(k)}>
+          <button key={k} type="button" className="btn-mini joint-view-btn" title={`${label} (${key})`} aria-label={`${label}, key ${key}`} onClick={() => onView?.(k)}>
             <Icon size={14} aria-hidden="true" /> <span>{label}</span>
           </button>
         ))}

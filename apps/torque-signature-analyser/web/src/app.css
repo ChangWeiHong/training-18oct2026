@@ -22,7 +22,7 @@ button, input, select { font: inherit; color: inherit; }
 .app { min-height: 100vh; }
 .main { max-width: 1760px; margin: 0 auto; padding: var(--space-md); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-md); }
 .results { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-md); min-width: 0; transition: opacity var(--dur-base) var(--ease-out); }
-.results.is-stale { opacity: 0.55; }
+.results.is-stale { opacity: 0.9; filter: grayscale(0.75); } /* contrast kept: muted 6.7:1, faint 4.7:1 on surface */
 .stale-note { border: 1px solid var(--color-amber); background: var(--color-amber-bg); padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-sm); font-weight: 600; }
 
 /* Toolbar */
@@ -78,7 +78,7 @@ button, input, select { font: inherit; color: inherit; }
 .btn-small { min-height: 1.75rem; }
 @media (pointer: coarse) {
   .btn, .control, .chip-input, .sort-btn { min-height: 2.75rem; }
-  .btn-small { min-height: 2.25rem; }
+  .btn-small { min-height: 2.75rem; }
 }
 
 .chip { display: inline-flex; align-items: center; gap: var(--space-xs); color: var(--color-muted); white-space: nowrap; }
@@ -306,8 +306,9 @@ button, input, select { font: inherit; color: inherit; }
 .btn:disabled .lucide { opacity: 0.6; }
 
 /* Band before and after snug */
-.g-band-pre { fill-opacity: 0.12; }
-.key-band-pre { opacity: 0.22; }
+.g-band-pre { fill: url(#pre-hatch); fill-opacity: 1; }
+.pre-hatch-line { stroke: var(--color-steel); stroke-width: 1; stroke-opacity: 0.55; }
+.key-band-pre { opacity: 1; background: repeating-linear-gradient(45deg, var(--color-steel) 0 1px, transparent 1px 4px); outline: 1px solid var(--color-rule-strong); outline-offset: -1px; }
 
 /* About drawer */
 .about { margin: 0 0 0 auto; height: 100dvh; max-height: 100dvh; width: min(52rem, 100%); max-width: 100%; padding: 0; border: 0; border-left: 1px solid var(--color-rule-strong); background: var(--color-surface); color: var(--color-text); }
