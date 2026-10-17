@@ -3,3 +3,8 @@ dist/
 .DS_Store
 *.zip
 .env
+
+api/.venv/
+.venv/
+__pycache__/
+.pytest_cache/
