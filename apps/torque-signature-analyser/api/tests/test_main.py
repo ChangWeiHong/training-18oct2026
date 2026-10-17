@@ -220,3 +220,39 @@ def test_streamed_body_over_limit_rejected_without_content_length():
     assert r.status_code == 400
     assert r.json() == {"error": "The upload is too large.", "row": None, "column": None,
                         "fix": "Keep each file under 5 MB."}
+
+
+def test_busy_server_returns_503_when_two_analyses_running(monkeypatch):
+    import asyncio
+    import threading
+
+    import httpx
+
+    import api.main as m
+
+    release = threading.Event()
+    real = m.analyse
+
+    def slow(*a, **k):
+        release.wait(5)
+        return real(*a, **k)
+
+    monkeypatch.setattr(m, "analyse", slow)
+    monkeypatch.setattr(m, "ADMIT_TIMEOUT_S", 0.3)
+
+    async def run():
+        transport = httpx.ASGITransport(app=m.create_app(None))
+        async with httpx.AsyncClient(transport=transport, base_url="http://t") as c:
+            body = {"sample_id": "clean"}
+            first = [asyncio.create_task(c.post("/api/analyse", json=body)) for _ in range(2)]
+            await asyncio.sleep(0.2)
+            busy = await c.post("/api/analyse", json=body)
+            release.set()
+            done = await asyncio.gather(*first)
+            return busy, done
+
+    busy, done = asyncio.run(run())
+    assert busy.status_code == 503
+    assert busy.json() == {"error": "Server busy.", "row": None, "column": None,
+                           "fix": "Try again in a few seconds."}
+    assert [d.status_code for d in done] == [200, 200]

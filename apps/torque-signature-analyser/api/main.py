@@ -1,6 +1,7 @@
 """FastAPI app: samples, template, analyse, and the built web UI."""
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import math
@@ -39,6 +40,8 @@ def _err_response(status: int, error: str, fix: str = "", row=None, column=None)
     return JSONResponse({"error": error, "row": row, "column": column, "fix": fix}, status_code=status)
 
 
+MAX_CONCURRENT_ANALYSES = 2
+ADMIT_TIMEOUT_S = 10.0
 BODY_LIMIT = 2 * MAX_BYTES + 65536
 TOO_LARGE = ("The upload is too large.", "Keep each file under 5 MB.")
 
@@ -143,6 +146,7 @@ async def _parse_upload(data: bytes, reference: bool):
 def create_app(dist: Path | None = DEFAULT_DIST) -> FastAPI:
     app = FastAPI(title="Torque Signature Analyser")
     app.add_middleware(BodyLimitMiddleware)
+    admission = asyncio.Semaphore(MAX_CONCURRENT_ANALYSES)
 
     @app.exception_handler(ApiError)
     async def _api_error(_: Request, e: ApiError):
@@ -184,6 +188,16 @@ def create_app(dist: Path | None = DEFAULT_DIST) -> FastAPI:
 
     @app.post("/api/analyse")
     async def analyse_endpoint(request: Request):
+        try:
+            await asyncio.wait_for(admission.acquire(), ADMIT_TIMEOUT_S)
+        except asyncio.TimeoutError:
+            raise ApiError(503, "Server busy.", "Try again in a few seconds.")
+        try:
+            return await _analyse(request)
+        finally:
+            admission.release()
+
+    async def _analyse(request: Request):
         ctype = request.headers.get("content-type", "")
         reference_source = None
         if ctype.startswith("application/json"):
