@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 import io
+from collections import Counter
 
 import numpy as np
 import pandas as pd
@@ -10,6 +11,7 @@ import pandas as pd
 MAX_BYTES = 5_000_000
 MAX_RUNDOWNS = 500
 MAX_POINTS = 5000
+MAX_COLUMNS = 64
 RESET_TOLERANCE_DEG = 2.0
 ANGLE_MIN_DEG = -10.0
 ANGLE_MAX_DEG = 3600.0
@@ -20,6 +22,9 @@ OUTPUT_COLUMNS = [
     "rundown_id", "i", "angle_deg", "torque_nm", "time_ms",
     "assembly_id", "bolt_position", "seeded_pattern",
 ]
+
+KNOWN_COLUMNS = {"rundown_id", "sample_index", "angle_deg", "torque_nm", "time_ms",
+                 "assembly_id", "bolt_position", "seeded_pattern"}
 
 
 class ParseError(Exception):
@@ -65,25 +70,31 @@ def parse_readings(data: bytes) -> pd.DataFrame:
         sep = csv.Sniffer().sniff(text[:4096], delimiters=",;").delimiter
     except csv.Error:
         sep = ","
-    try:
-        df = pd.read_csv(io.StringIO(text), sep=sep, dtype=str, skipinitialspace=True,
-                         keep_default_na=False, na_values=[""])
-    except Exception as exc:  # malformed CSV
-        raise ParseError(f"Could not read CSV: {exc}", fix="Check the file is a valid CSV.")
-
-    # pandas renames repeated headers (a, a.1), so check the raw header line.
+    # Check the header alone before pandas allocates anything for it.
     try:
         raw_header = next(csv.reader(io.StringIO(text), delimiter=sep, skipinitialspace=True))
     except (StopIteration, csv.Error):
         raw_header = []
+    if len(raw_header) > MAX_COLUMNS:
+        raise ParseError(
+            f"Header has {len(raw_header)} columns; the limit is {MAX_COLUMNS}.",
+            fix=f"Keep only the columns you need (at most {MAX_COLUMNS}).",
+        )
     names = [h.strip().lower() for h in raw_header]
-    dupes = [c for c in dict.fromkeys(names) if names.count(c) > 1]
-    df.columns = [str(c).strip().lower() for c in df.columns]
+    counts = Counter(names)
+    dupes = [c for c in dict.fromkeys(names) if counts[c] > 1]
     if dupes:
         raise ParseError(
             f"Column '{dupes[0]}' appears more than once.", column=dupes[0],
             fix=f"Keep a single '{dupes[0]}' column (names are not case-sensitive).",
         )
+    try:
+        df = pd.read_csv(io.StringIO(text), sep=sep, dtype=str, skipinitialspace=True,
+                         keep_default_na=False, na_values=[""],
+                         usecols=lambda c: str(c).strip().lower() in KNOWN_COLUMNS)
+    except Exception as exc:  # malformed CSV
+        raise ParseError(f"Could not read CSV: {exc}", fix="Check the file is a valid CSV.")
+    df.columns = [str(c).strip().lower() for c in df.columns]
     for col in REQUIRED:
         if col not in df.columns:
             raise ParseError(
