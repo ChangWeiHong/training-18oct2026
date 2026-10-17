@@ -104,6 +104,7 @@ button, input, select { font: inherit; color: inherit; }
 .status-cant_assess { color: var(--color-hatch); }
 .status-within { color: var(--color-within); }
 .status-outside { color: var(--color-outside); font-weight: 600; }
+.status-incomplete { color: var(--color-incomplete); }
 .status-not_supplied { color: var(--color-notsupplied); }
 .status-label { color: var(--color-text); }
 

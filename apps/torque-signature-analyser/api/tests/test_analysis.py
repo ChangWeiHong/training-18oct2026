@@ -121,3 +121,68 @@ def test_within_upload_full_pack_flags_seeded():
     hit = sum(r["spec_result"] == "outside" or r["signature"] == "investigate" for r in seeded)
     assert hit / len(seeded) >= 0.8
     json.dumps(res, allow_nan=False)
+
+
+def _flat(rid, torque, n=8):
+    a = np.arange(n) * 1.0
+    return pd.DataFrame({"rundown_id": rid, "i": np.arange(n), "angle_deg": a,
+                         "torque_nm": np.full(n, torque), "time_ms": np.nan,
+                         "assembly_id": rid, "bolt_position": np.nan, "seeded_pattern": "normal"})
+
+
+def test_huge_angles_cannot_blow_up_grid():
+    df = _flat("H", 50.0)
+    df["angle_deg"] = [0, 1, 2, 3, 4, 5, 6, 1e9]
+    df["torque_nm"] = [2, 5, 10, 20, 31, 40, 60, 80.0]
+    res = analyse(df, make_reference(7), SAMPLE_SPEC)
+    assert len(res["envelope_pre"]["grid"]) <= 2000
+    huge = pd.concat([df, _frames([None] * 3)], ignore_index=True)
+    assert len(analyse(huge, None, SAMPLE_SPEC)["envelope_pre"]["grid"]) <= 2000
+
+
+def test_no_snug_110_with_spec_is_incomplete():
+    res = analyse(_flat("N", 110.0, n=2), make_reference(7), SAMPLE_SPEC)
+    r = res["rundowns"][0]
+    assert r["features"]["post_snug_angle"] is None
+    assert r["spec_result"] == "incomplete" and r["signature"] == "cant_assess"
+    assert res["summary"]["counts"]["spec_incomplete"] == 1
+
+
+def test_no_snug_70_is_outside_even_if_angle_unassessable():
+    res = analyse(_flat("N", 70.0, n=2), make_reference(7), SAMPLE_SPEC)
+    assert res["rundowns"][0]["spec_result"] == "outside"
+
+
+def test_reference_too_small_cant_assess():
+    ref = make_reference(7)
+    ids = ref["rundown_id"].unique()[:10]
+    res = analyse(_frames([None] * 3), ref[ref["rundown_id"].isin(ids)], SAMPLE_SPEC)
+    assert {r["signature"] for r in res["rundowns"]} == {"cant_assess"}
+    assert "Reference too small to compare signatures (10 usable)." in res["warnings"]
+
+
+def test_reference_without_snug_cant_assess_and_warns():
+    ref = pd.concat([_flat(f"F{i}", 10.0) for i in range(30)], ignore_index=True)
+    res = analyse(_frames([None] * 3), ref, SAMPLE_SPEC)
+    assert {r["signature"] for r in res["rundowns"]} == {"cant_assess"}
+    assert "Reference: 30 of 30 rundowns had no snug point and were left out." in res["warnings"]
+
+
+def test_reference_partly_excluded_warns_but_still_assesses():
+    ref = pd.concat([make_reference(7), _flat("F0", 10.0), _flat("F1", 10.0)], ignore_index=True)
+    n = ref["rundown_id"].nunique()
+    res = analyse(_frames([None] * 3), ref, SAMPLE_SPEC)
+    assert f"Reference: 2 of {n} rundowns had no snug point and were left out." in res["warnings"]
+    assert not any(w.startswith("Reference too small") for w in res["warnings"])
+    assert {r["signature"] for r in res["rundowns"]} <= {"typical", "investigate"}
+
+
+def test_overlap_counts_gaps_and_empty_envelope():
+    from api.analysis import GRID, _overlap, _prep
+    run = _prep(_frames([None]), 30.0)[0]
+    full = np.where(GRID >= 0, 1.0, np.nan)
+    assert _overlap(run, full) == 1.0
+    assert _overlap(run, np.full(len(GRID), np.nan)) == 0.0
+    holed = full.copy()
+    holed[(GRID >= 3) & (GRID < 30)] = np.nan     # hole in the middle of the span
+    assert _overlap(run, holed) < 0.5

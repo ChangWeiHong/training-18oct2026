@@ -1,5 +1,5 @@
 import StatusMark from './StatusMark.jsx';
-import { evidenceLine } from '../format.js';
+import { evidenceLine, IF_ONLY_TEXT, AREA_ONLY_TEXT } from '../format.js';
 
 export default function EvidencePanel({ selected }) {
   if (!selected) return <p className="slot-empty">Select a rundown to see why it was flagged.</p>;
@@ -13,6 +13,9 @@ export default function EvidencePanel({ selected }) {
       <p className="evidence-status"><span className="evidence-key">Signature</span> <StatusMark kind={signature} /></p>
       <p className="evidence-status"><span className="evidence-key">Spec</span> <StatusMark kind={spec} /></p>
 
+      {spec === 'incomplete' && (
+        <p className="evidence-note">Spec partly checked: a limit could not be assessed because the curve has no post-snug rotation.</p>
+      )}
       {signature === 'cant_assess' && (
         <p className="evidence-note">Not enough of the curve to compare: no snug point or slope.</p>
       )}
@@ -22,8 +25,8 @@ export default function EvidencePanel({ selected }) {
         </ul>
       )}
       {hint && <p className="evidence-hint">Looks like: {hint}</p>}
-      {ifOnly && <p className="evidence-note">Unusual combination of features; no single value outside the reference range.</p>}
-      {shape && <p className="evidence-note">Curve shape sits outside the reference band; no single value outside the reference range.</p>}
+      {ifOnly && <p className="evidence-note">{IF_ONLY_TEXT}</p>}
+      {shape && <p className="evidence-note">{AREA_ONLY_TEXT}</p>}
       {flagged && <p className="evidence-flag">Worth investigating, not a confirmed fault.</p>}
     </div>
   );

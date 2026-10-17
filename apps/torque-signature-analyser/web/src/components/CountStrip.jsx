@@ -22,6 +22,9 @@ export default function CountStrip({ result }) {
         ) : (
           <li className="count"><b>{counts.outside_spec}</b><StatusMark kind="outside" /></li>
         )}
+        {counts.spec_incomplete > 0 && (
+          <li className="count"><b>{counts.spec_incomplete}</b><StatusMark kind="incomplete" /></li>
+        )}
         <li className="count"><b>{counts.investigate}</b><StatusMark kind="investigate" /></li>
         <li className="count"><b>{counts.cant_assess}</b><StatusMark kind="cant_assess" /></li>
       </ul>

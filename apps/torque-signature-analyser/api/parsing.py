@@ -11,6 +11,8 @@ MAX_BYTES = 5_000_000
 MAX_RUNDOWNS = 500
 MAX_POINTS = 5000
 RESET_TOLERANCE_DEG = 2.0
+ANGLE_MIN_DEG = -10.0
+ANGLE_MAX_DEG = 3600.0
 
 REQUIRED = ["rundown_id", "angle_deg", "torque_nm"]
 OUTPUT_COLUMNS = [
@@ -33,6 +35,7 @@ def _numeric(df: pd.DataFrame, col: str, required: bool) -> pd.Series:
     raw = df[col]
     num = pd.to_numeric(raw, errors="coerce")
     bad = num.isna() if required else (num.isna() & raw.notna())
+    bad = bad | np.isinf(num.to_numpy(float))
     if bad.any():
         pos = int(np.flatnonzero(bad.to_numpy())[0])
         shown = raw.iloc[pos]
@@ -63,6 +66,12 @@ def parse_readings(data: bytes) -> pd.DataFrame:
         raise ParseError(f"Could not read CSV: {exc}", fix="Check the file is a valid CSV.")
 
     df.columns = [str(c).strip().lower() for c in df.columns]
+    dupes = [c for c in dict.fromkeys(df.columns) if list(df.columns).count(c) > 1]
+    if dupes:
+        raise ParseError(
+            f"Column '{dupes[0]}' appears more than once.", column=dupes[0],
+            fix=f"Keep a single '{dupes[0]}' column (names are not case-sensitive).",
+        )
     for col in REQUIRED:
         if col not in df.columns:
             raise ParseError(
@@ -73,8 +82,24 @@ def parse_readings(data: bytes) -> pd.DataFrame:
         raise ParseError("File has a header but no data rows.", fix="Add data rows.")
 
     df["file_row"] = np.arange(1, len(df) + 1)
+    blank = df["rundown_id"].isna() | (df["rundown_id"].astype(str).str.strip() == "")
+    if blank.any():
+        pos = int(np.flatnonzero(blank.to_numpy())[0])
+        raise ParseError(
+            f"Row {pos + 1}: 'rundown_id' is blank.", row=pos + 1, column="rundown_id",
+            fix="Give every row a rundown_id.",
+        )
     df["rundown_id"] = df["rundown_id"].astype(str).str.strip()
     df["angle_deg"] = _numeric(df, "angle_deg", True)
+    out_of_range = (df["angle_deg"] > ANGLE_MAX_DEG) | (df["angle_deg"] < ANGLE_MIN_DEG)
+    if out_of_range.any():
+        pos = int(np.flatnonzero(out_of_range.to_numpy())[0])
+        raise ParseError(
+            f"Row {pos + 1}: 'angle_deg' is {df['angle_deg'].iloc[pos]:g}, outside the "
+            f"supported range {ANGLE_MIN_DEG:g} to {ANGLE_MAX_DEG:g} deg.",
+            row=pos + 1, column="angle_deg",
+            fix=f"Use angles between {ANGLE_MIN_DEG:g} and {ANGLE_MAX_DEG:g} degrees.",
+        )
     df["torque_nm"] = _numeric(df, "torque_nm", True)
     df["time_ms"] = _numeric(df, "time_ms", False) if "time_ms" in df else np.nan
     if "sample_index" in df:
