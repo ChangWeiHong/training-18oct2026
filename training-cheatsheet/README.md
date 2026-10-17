@@ -1,10 +1,10 @@
 # AI Ideation Cheatsheet
 
-A one-page worksheet for a training session. You write one user story card, the page turns it into a RACE build prompt (Role, Action, Context, Expectation), and you paste it into your AI tool. It follows slides 43–48 of the *AI Ideation & Prototyping* deck. The worked example is an air compressor health monitor for plant maintenance technicians.
+A one-page worksheet for a training session. You write one user story card, the page turns it into a RACE build prompt (Role, Action, Context, Expectation), and you paste it into your AI tool. It follows slides 43–52 of the *AI Ideation & Prototyping* deck (v2.1). The worked example is the deck's robot arm maintenance viewer: six three.js robot arms whose maintenance records come from the trainer's CSV files.
 
 The page is one self-contained `index.html`: no build step, no backend, no external scripts or fonts.
 
-![Story card fields grouped by RACE letter, with the compressor example filled in](docs/screenshots/notepad.png)
+![Story card fields grouped by RACE letter, with the robot arm example filled in](docs/screenshots/notepad.png)
 
 ## Run it
 
@@ -16,18 +16,18 @@ python3 -m http.server 8080
 
 ## The four sections
 
-1. **Story card to RACE prompt.** The fields are grouped by letter: As a → Role, I want to → Action, So that + Given + samples → Context, Done when + review step → Expectation. The RACE prompt and the story card on the right update as you type. Empty fields stay as `[brackets]`, and the R A C E badges stay dashed until each letter has an answer ("check before you build").
-2. **Sample prompts.** Two finished RACE prompts: the compressor monitor, and a three.js robot arm maintenance viewer that works on the trainer's CSV files. Click to copy.
-3. **User stories.** Three story cards (As a / Given / Done when) for the same app. "Turn into prompt" loads a card into step 1; copy one or all three.
+1. **Story card to RACE prompt.** The fields are grouped by letter: As a → Role, I want to → Action, So that + Given + layout → Context, Done when + review step → Expectation. The RACE prompt and the story card on the right update as you type. Empty fields stay as `[brackets]`, and the R A C E badges stay dashed until each letter has an answer ("check before you build").
+2. **Sample prompt.** The live demo prompt from slide 52: the three.js robot arm viewer that loads the model from a link and works on the trainer's CSV files. Click to copy.
+3. **User stories.** The four story cards from slide 29 (As a / Given / Done when). The click story uses the slide 30 checks. "Turn into prompt" loads a card into step 1; copy one or all three.
 4. **Fix prompts.** Five one-change follow-ups (including "what I see vs expected"), plus the slide's Do / Avoid golden rules.
 
-![Sample prompt ending in a Do NOT block](docs/screenshots/sample-prompt.png)
+![Robot arm live demo prompt](docs/screenshots/sample-prompt.png)
 
 ![User stories and fix prompts](docs/screenshots/stories-and-fixes.png)
 
-The template and the compressor prompt ask for fictional sample datasets built into the app, with a dropdown to switch between them. Nobody has to prepare or upload a file to test it.
+The template follows slide 47: the data is provided, so the prompt says "do not generate sample data".
 
-The template and the compressor prompt end with a `Do NOT:` block. It keeps the generated app small: no login, no backend, no charts, no "AI" or "prediction" wording, no invented values for missing data.
+The template ends with a `Do NOT:` block. It keeps the generated app small: no login or backend, no invented values, no generated stand-in for the model, no extra features, no libraries besides three.js.
 
 ## Deploy to Cloud Run
 
