@@ -262,5 +262,3 @@ button, input, select { font: inherit; color: inherit; }
 
 .joint-view { display: flex; flex-wrap: wrap; gap: var(--space-2xs); }
 .joint-view-btn { display: inline-flex; align-items: center; gap: 0.3rem; }
-.joint .joint-view-btn, .joint:focus-visible { outline-offset: 2px; }
-.joint:focus-visible { outline: 2px solid var(--color-motion); }
