@@ -209,15 +209,15 @@ def _covered(r: Run, p50: np.ndarray) -> tuple[int, np.ndarray]:
     return n, ~np.isnan(p50[pts - int(GRID[0])])
 
 
-def _overlap(r: Run, p50: np.ndarray) -> float:
+def _overlap(r: Run, p50: np.ndarray, covered=None) -> float:
     """Share of the candidate's full post-snug span (snug to final angle) that the envelope covers."""
     if r.k is None or r.fi < r.k:
         return 0.0
-    n, cov = _covered(r, p50)
+    n, cov = covered or _covered(r, p50)
     return float(cov.sum() / n)
 
 
-def _past_reference(r: Run, p50: np.ndarray) -> tuple[float, float] | None:
+def _past_reference(r: Run, p50: np.ndarray, covered=None) -> tuple[float, float] | None:
     """(degrees past, last covered absolute angle) when the candidate runs past the reference's end.
 
     Only when the shortfall is that tail: the span up to the last covered point is itself
@@ -225,7 +225,7 @@ def _past_reference(r: Run, p50: np.ndarray) -> tuple[float, float] | None:
     """
     if r.k is None or r.fi < r.k:
         return None
-    n, cov = _covered(r, p50)
+    n, cov = covered or _covered(r, p50)
     if not cov.any():
         return None
     last = int(np.flatnonzero(cov)[-1])
@@ -307,8 +307,8 @@ def _score(runs: list[Run], ref: Ref, spec: dict | None) -> list[dict]:
             reason = "No snug point or slope."
         elif not ref_ok:
             reason = "Reference too small to compare."
-        elif _overlap(r, p50) < MIN_OVERLAP:
-            past = _past_reference(r, p50)
+        elif _overlap(r, p50, cov := _covered(r, p50)) < MIN_OVERLAP:
+            past = _past_reference(r, p50, cov)
             if past is None:
                 reason = "Too little overlap with the reference curve."
         cant = reason is not None

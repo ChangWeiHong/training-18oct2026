@@ -248,3 +248,15 @@ def test_reference_no_snug_runs_do_not_change_stats():
     assert a["envelope"] == b["envelope"] and a["envelope_pre"] == b["envelope_pre"]
     for x, y in zip(a["rundowns"], b["rundowns"]):
         assert (x["signature"], x["evidence"], x["iforest_only"]) == (y["signature"], y["evidence"], y["iforest_only"])
+
+
+def test_thin_tail_support_still_reads_as_past_reference():
+    # Snug-aligned coverage only ever shrinks with rotation, so a mid-span gap cannot arise from a
+    # real reference (the unit test above covers the gap rule). Thin tail support (8 of 33 runs
+    # reach 60 deg, under MIN_COVERAGE) therefore reads as running past the reference.
+    short = [_ramp(f"S{i}", 10) for i in range(25)]
+    long_ = [_ramp(f"L{i}", 60) for i in range(8)]
+    res = analyse(_ramp("C", 60), pd.concat(short + long_, ignore_index=True), None)
+    r = res["rundowns"][0]
+    assert r["signature"] == "investigate"
+    assert any(e["feature"] == "rotation_past_reference" for e in r["evidence"])
