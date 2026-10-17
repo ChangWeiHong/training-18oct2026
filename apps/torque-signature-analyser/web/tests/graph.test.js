@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { makeScales, alignAtSnug, nearestSampleIndex, decimateIndexes, decimateExtrema, bandRuns, lineRuns, niceTicks } from '../src/graph.js';
+import { makeScales, alignAtSnug, nearestSampleIndex, decimateExtrema, bandRuns, lineRuns, niceTicks } from '../src/graph.js';
 
 test('nearestSampleIndex returns the first index on repeated angles', () => {
   const c = { angle: [0, 5, 10, 10, 10, 15] };
@@ -24,14 +24,6 @@ test('makeScales invertX round-trips and y grows upward', () => {
   assert.ok(s.y(100) < s.y(10));
   assert.equal(s.x(-30), 50);
   assert.equal(s.y(0), 270);
-});
-
-test('decimateIndexes caps count and keeps ends', () => {
-  const d = decimateIndexes(1000, 150);
-  assert.equal(d.length, 150);
-  assert.equal(d[0], 0);
-  assert.equal(d.at(-1), 999);
-  assert.deepEqual(decimateIndexes(3, 150), [0, 1, 2]);
 });
 
 test('bandRuns splits at nulls and applies the shift', () => {

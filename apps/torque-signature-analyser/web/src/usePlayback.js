@@ -3,7 +3,7 @@ import { selectedRundown, curveLength } from './state.js';
 import { nextPosition } from './playback.js';
 
 /** Elements that own the arrow keys themselves. */
-const OWN_KEYS = 'input, select, textarea, [contenteditable="true"], [data-slot="3d"], .graph-svg, .ledger';
+const OWN_KEYS = 'input, select, textarea, [contenteditable="true"], [data-slot="3d"], .graph-svg, .ledger, dialog[open]';
 
 export function shouldStep(e) {
   if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return false;

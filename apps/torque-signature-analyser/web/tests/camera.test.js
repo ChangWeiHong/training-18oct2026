@@ -83,6 +83,9 @@ test('keyAction maps panel keys and ignores arrows and modified keys', () => {
   assert.equal(keyAction({ key: '+' }), 'zoomIn');
   assert.equal(keyAction({ key: '=' }), 'zoomIn');
   assert.equal(keyAction({ key: '-' }), 'zoomOut');
+  assert.equal(keyAction({ key: 'w' }), 'tiltUp');
+  assert.equal(keyAction({ key: 'S' }), 'tiltDown');
+  assert.equal(keyAction({ key: 'w', ctrlKey: true }), null);
   assert.equal(keyAction({ key: '0' }), 'reset');
   assert.equal(keyAction({ key: 'ArrowLeft' }), null);
   assert.equal(keyAction({ key: ' ' }), null);
@@ -95,4 +98,14 @@ test('hasWebGL2 requires a webgl2 context only', () => {
   assert.equal(hasWebGL2(doc((t) => (t === 'webgl2' ? {} : null))), true);
   assert.equal(hasWebGL2(doc((t) => (t === 'webgl' ? {} : null))), false);
   assert.equal(hasWebGL2(doc(() => { throw new Error('x'); })), false);
+});
+
+test('tilt steps stay inside the polar limits', () => {
+  const target = new THREE.Vector3(0, 1.5, 0);
+  const phi = (p) => new THREE.Spherical().setFromVector3(p.clone().sub(target)).phi;
+  let p = new THREE.Vector3(0, 10, 10);
+  for (let i = 0; i < 40; i += 1) p = orbitStep(p, target, { dPhi: -0.12 });
+  assert.ok(Math.abs(phi(p) - ORBIT.minPolar) < 1e-9);
+  for (let i = 0; i < 80; i += 1) p = orbitStep(p, target, { dPhi: 0.12 });
+  assert.ok(Math.abs(phi(p) - ORBIT.maxPolar) < 1e-9);
 });

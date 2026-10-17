@@ -12,7 +12,7 @@ test('arrow keys step from the page body', () => assert.equal(shouldStep(ev()), 
 test('other keys do not step', () => assert.equal(shouldStep(ev({ key: 'a' })), false));
 test('handled events are ignored', () => assert.equal(shouldStep(ev({ defaultPrevented: true })), false));
 test('inputs, the 3D panel, the graph and the ledger keep their own arrows', () => {
-  for (const sel of ['input', '[data-slot="3d"]', '.graph-svg', '.ledger']) {
+  for (const sel of ['input', '[data-slot="3d"]', '.graph-svg', '.ledger', 'dialog[open]']) {
     assert.equal(shouldStep(ev({}, sel)), false, sel);
   }
 });

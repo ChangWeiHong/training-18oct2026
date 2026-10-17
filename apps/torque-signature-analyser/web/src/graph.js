@@ -28,15 +28,6 @@ export function nearestSampleIndex(curve, angle) {
   return a.length - 1;
 }
 
-/** Keep at most `max` points, always including first and last. Returns the kept sample indexes. */
-export function decimateIndexes(n, max) {
-  if (n <= max) return Array.from({ length: n }, (_, i) => i);
-  const out = [];
-  const step = (n - 1) / (max - 1);
-  for (let k = 0; k < max; k++) out.push(Math.round(k * step));
-  return out;
-}
-
 /**
  * Keep roughly `max` points but never lose a narrow spike or drop: each bucket keeps its
  * lowest and highest value. First and last index are always kept. Returns ascending indexes.

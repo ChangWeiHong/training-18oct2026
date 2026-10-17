@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { presetPose, orbitStep, ORBIT } from './camera.js';
 
 /** Bounded orbit (no pan, no auto-rotate) with preset moves. Orbiting never touches the cursor. */
-const STEP = { rotate: 0.2, zoom: 0.85 };
+const STEP = { rotate: 0.2, tilt: 0.12, zoom: 0.85 };
 
 export default function CameraRig({ preset, focus, reducedMotion, apiRef }) {
   const { camera, invalidate, size } = useThree();
@@ -48,6 +48,8 @@ export default function CameraRig({ preset, focus, reducedMotion, apiRef }) {
     apiRef.current = {
       rotateLeft: () => move({ dTheta: -STEP.rotate }),
       rotateRight: () => move({ dTheta: STEP.rotate }),
+      tiltUp: () => move({ dPhi: -STEP.tilt }),
+      tiltDown: () => move({ dPhi: STEP.tilt }),
       zoomIn: () => move({ scale: STEP.zoom }),
       zoomOut: () => move({ scale: 1 / STEP.zoom }),
       reset: () => {
