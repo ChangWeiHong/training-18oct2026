@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ADAS 360° — Threat Detection Simulator</title>
+<style>
+:root{--bg:#030b13;--panel:#061622;--panel2:#05111c;--line:#0b5668;--sub:#7ea0ae;--cyan:#00eaf2;--cyan2:#63fff6;--green:#14f9ab;--amber:#ffbe48;--red:#ff5066;--white:#e8f5ff;--edge:rgba(13,206,231,.30)}
+*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--white);font-family:Inter,"Segoe UI",Arial,sans-serif}body{background-image:radial-gradient(ellipse at 49% 44%,rgba(0,130,156,.055),transparent 70%),linear-gradient(110deg,#03101b,#020913 70%)}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid #64fff1;outline-offset:3px}button:disabled{opacity:.5;cursor:not-allowed}
+#app{max-width:1920px;margin:auto;padding:15px 18px 18px;min-height:100vh}.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}.brand{display:flex;gap:14px;align-items:center;min-width:320px}.brand-symbol{font-size:31px;line-height:1;color:var(--cyan);font-weight:900;text-shadow:0 0 20px #00eaf2aa}.brand-name{font-weight:850;font-size:24px;letter-spacing:1.5px;line-height:1.04}.brand-sub{color:#6ee6f4;letter-spacing:2.1px;font-size:10px;font-weight:800;margin-top:5px}.topnav{font-size:11px;color:#739daa;text-transform:uppercase;letter-spacing:1.8px;padding:11px 25px;border-top:1px solid #0b6773;border-bottom:1px solid #0b3f54;clip-path:polygon(0 0,99% 0,100% 50%,99% 100%,0 100%,1% 50%)}.header-meta{display:flex;gap:10px;align-items:center}.live-pill{padding:9px 13px;color:#67ffdf;font-size:11px;border:1px solid #147a83;border-radius:20px;background:#002d36b8;white-space:nowrap;letter-spacing:1px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 9px var(--green);margin-right:7px}.date{font-size:11px;color:#81acbd;white-space:nowrap}.meta-note{font-size:10px;color:#8babb5}
+.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:12px}.metric{position:relative;overflow:hidden;min-height:91px;display:flex;align-items:center;gap:15px;padding:14px 15px;background:linear-gradient(135deg,#082234bd,#04111df7);border:1px solid var(--edge);border-radius:8px}.metric:after{content:"";position:absolute;width:80px;height:80px;border:1px solid rgba(0,247,255,.06);border-radius:50%;right:-42px;bottom:-42px}.metric-icon{font-size:30px;font-weight:300;line-height:1;color:var(--cyan);width:40px;text-align:center;filter:drop-shadow(0 0 9px #00e3fd66)}.metric-label{font-size:10px;color:#9ac7d7;letter-spacing:1.15px;font-weight:800;text-transform:uppercase}.metric-val{font-size:31px;font-weight:820;line-height:1.2;letter-spacing:.4px;font-variant-numeric:tabular-nums}.metric-unit{font-size:13px;font-weight:500;color:#a9bfcc}.metric-mini{font-size:10px;color:#76a9b0;white-space:nowrap}.metric.alert .metric-icon,.metric.alert .metric-val{color:var(--red)}.metric.warn .metric-icon,.metric.warn .metric-val{color:var(--amber)}
+.layout{display:grid;grid-template-columns:minmax(245px,285px) minmax(440px,1fr) minmax(260px,320px);gap:12px;align-items:stretch}.panel{background:linear-gradient(125deg,rgba(5,26,39,.98),rgba(3,14,25,.97));border:1px solid var(--edge);border-radius:9px;box-shadow:inset 0 1px #10566a30,0 4px 30px #0003;overflow:hidden}.panel-title{padding:12px 14px 11px;border-bottom:1px solid #0d4252;color:#5ce9ef;letter-spacing:1.25px;font-size:11px;font-weight:850;display:flex;align-items:center;justify-content:space-between;white-space:nowrap}.panel-title .mini{font-size:9px;color:#82bac1;letter-spacing:.7px}.side-controls{padding:13px 13px 15px}.block{margin-bottom:20px}.block:last-child{margin-bottom:0}.lbl{color:#91e5ee;font-size:10px;font-weight:800;letter-spacing:.95px;display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}.lbl b{font-size:12px;color:#e4f9ff;letter-spacing:0}.selection{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.choice{min-height:63px;padding:9px 4px 6px;text-align:center;border:1px solid #103e54;color:#83b4c6;border-radius:6px;background:#041622}.choice svg{display:block;margin:auto auto 6px;stroke:currentColor}.choice span{font-size:10px}.choice.active,.weather button.active,.seg button.active{background:linear-gradient(135deg,#064358,#043039);border-color:var(--cyan);color:#7bffff;box-shadow:0 0 15px #00d9e524,inset 0 0 18px #00e4f00d}.range{width:100%;height:6px;accent-color:var(--cyan);cursor:pointer}.scale{display:flex;justify-content:space-between;margin-top:5px;color:#527e92;font-size:10px}.seg{display:flex;gap:6px}.seg button{flex:1;background:#051929;border:1px solid #164057;color:#91b5c7;padding:10px 5px;border-radius:5px;font-size:10px}.weather{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.weather button{height:53px;background:#051727;border:1px solid #11374b;color:#7daab9;font-size:9px;border-radius:5px}.weather button .ico{display:block;font-size:20px;margin-bottom:4px}.btn-main{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:1px solid #00f3f2;box-shadow:0 0 22px #00e9ef3b,inset 0 0 14px #65fff333;color:#002531;background:linear-gradient(90deg,#01b9c9,#54ffff);padding:13px 12px;border-radius:6px;font-weight:900;font-size:12px;letter-spacing:.8px}.btn-main:hover{filter:brightness(1.14)}.btn-row{display:flex;gap:7px;margin-top:8px}.btn-sm{flex:1;background:#092439;color:#aed4e2;border:1px solid #1b5064;border-radius:5px;padding:11px 7px;font-size:11px;font-weight:750}.btn-sm:hover{background:#10435a}.btn-danger{width:100%;margin-top:8px;background:linear-gradient(100deg,#3a0b1b,#200918);color:#ff9daa;border:1px solid #cf344f;box-shadow:inset 0 0 12px #a51f4a24;border-radius:5px;padding:11px 6px;font-weight:850;font-size:11px;letter-spacing:.6px}.btn-danger:hover{background:#4d1021}.info{font-size:10px;color:#638796;line-height:1.55;margin-top:12px}.info strong{color:#aed7dd}
+.middle{display:flex;flex-direction:column;gap:10px;min-width:0}.stage{position:relative;flex:1;min-height:612px;overflow:hidden;background:#030f1b;border:1px solid #17677b;border-radius:9px}.stage:before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 85%,#07132155),linear-gradient(90deg,#010c1666,transparent 19%,transparent 80%,#010d1655)}canvas{display:block;width:100%;height:100%;position:absolute;inset:0}.stage-over{z-index:2;position:absolute;pointer-events:none}.stage-head{top:12px;left:14px;font-weight:800;letter-spacing:1.5px;font-size:10px;color:#6bc4d0}.stage-head span{display:block;margin-top:4px;color:#537c91;font-weight:500;letter-spacing:1px}.stage-controls{top:10px;right:12px;display:flex;gap:4px;pointer-events:auto}.stage-controls button{background:#031b2bf0;border:1px solid #135364;border-radius:4px;color:#72aabb;padding:7px 11px;font-size:10px;font-weight:750}.stage-controls button.active{color:var(--cyan);border-color:var(--cyan);background:#053c43}.compass{bottom:19px;left:17px;font-size:10px;line-height:1.9;color:#9ac1ce;letter-spacing:.3px}.legendbox{border:1px solid #164958a1;background:#02151cb8;padding:9px 10px;border-radius:5px}.legend{display:flex;align-items:center;gap:8px}.legend span:first-child{width:7px;height:7px;border-radius:2px;background:var(--cyan)}.legend:nth-child(1) span:first-child{background:var(--red)}.legend:nth-child(2) span:first-child{background:var(--amber)}.stage-mode{bottom:17px;right:15px;text-align:right;font-size:10px;color:#9cdeec;line-height:1.9;background:#031822b8;padding:10px;border:1px solid #164758;border-radius:5px}.stage-mode b{color:var(--green)}.stage-foot{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:2;pointer-events:none;font-size:10px;letter-spacing:1px;color:#427a8a;white-space:nowrap}
+.bottom-panels{display:grid;grid-template-columns:1.5fr 1fr;gap:10px;min-height:104px}.alert-box{display:flex;gap:13px;align-items:center;padding:15px;border-radius:8px;border:1px solid #af344d;background:linear-gradient(100deg,#250d20,#0b1c28)}.alert-box.safe{border-color:#1a817f;background:linear-gradient(100deg,#062f32,#0b1c28)}.alert-icon{font-size:30px;color:var(--red)}.alert-box.safe .alert-icon{color:var(--green)}.alert-copy{flex:1}.alert-label{font-weight:900;font-size:12px;color:#ff7589;letter-spacing:.6px}.alert-box.safe .alert-label{color:var(--green)}.alert-description{color:#cdaeba;font-size:10px;margin-top:7px}.alert-metric{text-align:center;border-left:1px solid #532c41;padding-left:11px}.alert-metric small{display:block;color:#9c788d;font-size:9px;white-space:nowrap}.alert-metric strong{display:block;font-size:18px;margin-top:5px;color:#ff8392}.brake-box{display:flex;align-items:center;gap:10px;padding:15px;border-radius:8px;border:1px solid var(--edge);background:#061d27}.brake-icon{font-size:30px;color:var(--cyan)}.brake-copy{flex:1}.brake-title{color:var(--cyan);font-weight:850;font-size:11px}.brake-state{font-size:15px;font-weight:850;margin-top:6px}.brake-note{color:#699dae;font-size:9px;margin-top:5px}.brake-tag{color:#59ffe1;border:1px solid #0fc6c9;border-radius:5px;padding:7px 8px;font-size:10px;font-weight:800;white-space:nowrap}
+.right{display:flex;flex-direction:column;gap:10px}.chart-panel{min-height:160px}.trend{height:113px;padding:5px 10px 8px;position:relative}.trend svg{width:100%;height:100%;overflow:visible}.object-panel{flex:1;min-height:245px}.objects{padding:4px 12px 12px;max-height:365px;overflow:auto}.object{display:grid;grid-template-columns:15px 1fr auto 65px;align-items:center;gap:8px;min-height:30px;font-size:10px;color:#9bbdca;border-bottom:1px solid #0c29361c}.object .object-icon{font-size:13px;color:var(--cyan)}.object .dist{font-weight:800;color:#d0eced;min-width:40px;text-align:right}.bar{height:6px;background:#133144;border-radius:1px;overflow:hidden}.bar div{height:100%;background:var(--cyan);box-shadow:0 0 8px currentColor}.object.risk .object-icon,.object.risk .dist{color:var(--red)}.object.risk .bar div{background:var(--red)}.object.warn .object-icon,.object.warn .dist{color:var(--amber)}.object.warn .bar div{background:var(--amber)}.empty{padding:30px 10px;color:#568292;font-size:11px;text-align:center}.confidence{padding:10px 15px 8px}.conf-row{display:grid;grid-template-columns:77px 35px 1fr;gap:9px;align-items:center;margin-bottom:10px;font-size:10px;color:#8eb3c3}.conf-row b{color:#cbf9fa;font-size:11px;text-align:right}.conf-row .bar div{background:var(--cyan)}.breakdown{display:flex;gap:20px;align-items:center;padding:14px 17px}.donut{height:105px;width:105px;flex:0 0 105px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:conic-gradient(var(--cyan) 0% 55%,#2f9ce7 55% 75%,var(--amber) 75% 90%,var(--red) 90% 100%);position:relative}.donut:after{content:"";inset:17px;background:#061824;border-radius:50%;position:absolute}.donut .donut-center{z-index:1;text-align:center}.donut-center b{font-size:25px;display:block}.donut-center span{color:#98b8c0;font-size:9px;letter-spacing:.7px}.break-list{flex:1;font-size:10px;color:#91afc0}.break-item{display:flex;justify-content:space-between;margin-bottom:9px}.break-item b{color:#ebfcff}.swatch{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:7px;background:var(--cyan)}.footnote{color:#608693;font-size:10px;line-height:1.4;padding:12px 4px 0}.footer-version{float:right}.section-help{color:#7895a2;font-size:9px;padding:7px 13px 0}.toggle{white-space:nowrap;color:#0ff1ca;font-size:9px}
+@media(max-width:1380px){.layout{grid-template-columns:255px minmax(400px,1fr) 270px}.topnav{display:none}.stage{min-height:580px}.metric{gap:8px;padding:12px}.metric-val{font-size:27px}.metric-icon{font-size:25px;width:28px}.object{grid-template-columns:15px 1fr auto 42px}.alert-metric{display:none}}
+@media(max-width:1080px){.layout{grid-template-columns:260px minmax(0,1fr)}.right{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.metrics{grid-template-columns:repeat(3,1fr)}.stage{min-height:620px}.brand{min-width:0}.date{display:none}}
+@media(max-width:720px){#app{padding:11px}.layout{display:flex;flex-direction:column}.metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.metric{min-height:67px;padding:9px}.metric-val{font-size:23px}.metric-icon{font-size:23px}.metric-label{font-size:8px}.metric-mini{font-size:8px}.brand-name{font-size:20px}.brand-sub{font-size:8px}.header-meta{display:none}.side-controls{display:grid;grid-template-columns:1fr 1fr;column-gap:18px}.side-controls>.actions,.side-controls>.info{grid-column:1/-1}.stage{min-height:520px}.right{display:flex}.bottom-panels{grid-template-columns:1fr}.alert-metric{display:block}.stage-head{font-size:9px}.stage-controls{top:40px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* v2: editorial HUD, reduced ornament, one focal visualization; no card drop shadows. */
+:root{--bg:#050d13;--panel:#091820;--panel2:#07131b;--line:#174752;--edge:#2452617d;--cyan:#4be8e7;--green:#68e5af;--amber:#ffc471;--red:#ff5e73;--white:#e5f0f2}
+body{font-family:Inter,"IBM Plex Sans",system-ui,sans-serif;background:#050b10;color:#e2f1f2}
+body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 53% 32%,#06425030,transparent 59%)}
+#app{max-width:2048px;padding:15px 20px 18px}.brand-name{font-size:24px;font-weight:780;letter-spacing:.5px}.brand-sub{font-size:10px;letter-spacing:1.2px}.brand-symbol{font-size:29px}
+.topnav{clip-path:none;padding:10px 14px;letter-spacing:1px;border-top:0;color:#74919c}.metric{box-shadow:none;border-radius:4px;background:#071822;border:1px solid #174455;min-height:86px;padding:11px 14px}.metric:after{display:none}.metric-val{font-size:30px;font-weight:760}.metric-label{color:#9bb9c3;font-size:10px;letter-spacing:1px}.metric-mini{color:#668e9a}.metric-icon{font-weight:500}
+.layout{grid-template-columns:minmax(232px,273px) minmax(500px,1fr) minmax(257px,310px);gap:11px}.panel{box-shadow:none;border-radius:5px;background:#081720;border-color:#1b4251}.panel-title{color:#d9eded;letter-spacing:1px}.side-controls{padding:12px}.block{margin-bottom:17px}.lbl{color:#b7d7de}.choice,.seg button,.weather button{border-radius:4px}.stage{border-radius:4px;min-height:596px;border:1px solid #2e7c8d;background:#030d15;box-shadow:inset 0 0 0 1px #091c25}.stage:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#04121b55,transparent 19%,transparent 75%,#05121a8c);z-index:1}.stage-over{z-index:3}.stage-head{color:#93dbe1}.stage-head span{font-size:9px}.stage-foot{z-index:3}.stage-mode{z-index:3}.orbit-hint{z-index:3;bottom:15px;left:50%;transform:translateX(-50%);color:#bdd4dd88;font-size:9px;letter-spacing:.6px;white-space:nowrap}.stage-foot{bottom:33px;color:#7192a0}.stage-controls button{background:#06121cee}.stage-controls button.active{background:#0a3c44;color:#a6ffff}.stage canvas{cursor:grab}.stage canvas:active{cursor:grabbing}
+.alert-box,.brake-box{border-radius:4px}.alert-box{min-width:0}.alert-copy{min-width:0}.alert-description{line-height:1.4}.btn-main,.btn-danger,.btn-sm{border-radius:4px}.btn-main{box-shadow:none;background:#43d4da;border-color:#3de0e9}.btn-danger{box-shadow:none}.live-pill{border-radius:3px}.footnote{line-height:1.6}
+.impact-modal[hidden]{display:none!important}.impact-modal{position:fixed;inset:0;background:#02050be8;backdrop-filter:blur(9px);z-index:99;display:grid;place-items:center;padding:20px}.impact-grid{position:absolute;inset:0;background:linear-gradient(#ff526610 1px,transparent 1px),linear-gradient(90deg,#ff526610 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse at 50% 50%,black,transparent 74%)}.impact-dialog{position:relative;width:min(100%,590px);border:1px solid #d74c60;background:#0c131ccf;padding:30px 34px 26px;box-shadow:0 0 70px #a62c3526}.impact-dialog:before,.impact-dialog:after{content:"";position:absolute;width:30px;height:2px;background:#fa687b}.impact-dialog:before{top:-2px;left:0}.impact-dialog:after{bottom:-2px;right:0}.impact-kicker{font-size:11px;letter-spacing:1.6px;color:#ff8494;font-weight:700}.impact-led{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff556c;box-shadow:0 0 9px #fb5268;margin-right:8px}.impact-emblem{font-size:54px;color:#ff596e;margin:17px 0 1px}.impact-heading{font-size:36px;font-weight:820;letter-spacing:-1px;color:#fff;line-height:1.1}.impact-text{font-size:14px;color:#a5b6c1;line-height:1.65;max-width:460px}.impact-details{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:25px 0 28px}.impact-details div{border-top:1px solid #40505c;padding-top:11px}.impact-details small{display:block;color:#718d9a;font-size:10px;letter-spacing:.8px}.impact-details strong{display:block;color:#f0f6f8;font-size:20px;margin-top:8px}.impact-foot{border-top:1px solid #344651;padding-top:21px;display:flex;justify-content:space-between;align-items:center;gap:12px}.impact-foot span{color:#e7798b;font-size:9px;letter-spacing:.7px;max-width:150px}.impact-restart{background:#e7546b;color:#101319;border:0;border-radius:3px;padding:14px 17px;font-size:11px;font-weight:900;letter-spacing:.8px}.impact-restart:hover{background:#ff8090}
+@media(max-width:1200px){.layout{grid-template-columns:230px minmax(0,1fr)}.right{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,1fr)}.stage{min-height:590px}.topnav{display:none}}
+@media(max-width:780px){#app{padding:12px}.layout{display:flex;flex-direction:column}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.stage{min-height:520px}.right{display:flex}.date{display:none}.brand{min-width:0}.brand-name{font-size:20px}.orbit-hint{display:none}.impact-foot{flex-direction:column;align-items:stretch}.impact-foot span{max-width:none}}
+</style>
+</head>
+<body>
+<div id="app">
+<header class="topbar"><div class="brand"><div class="brand-symbol">◈</div><div><div class="brand-name">ADAS 360°</div><div class="brand-sub">THREAT DETECTION RADAR / R&D LAB</div></div></div><div class="topnav">REAL-TIME PERCEPTION&nbsp;&nbsp; | &nbsp;&nbsp;SIMULATION&nbsp;&nbsp; | &nbsp;&nbsp;SCENARIO TESTING</div><div class="header-meta"><div class="date">CONCEPT SIMULATOR<br><span class="meta-note">SYNTHETIC DATA ONLY</span></div><div class="live-pill"><span class="dot" id="statusDot"></span><span id="statusPill">SIMULATION READY</span></div></div></header>
+<section class="metrics">
+<div class="metric"><div class="metric-icon">◴</div><div><div class="metric-label">Vehicle speed</div><div class="metric-val"><span id="kSpeed">72</span> <span class="metric-unit">km/h</span></div><div class="metric-mini">Ego vehicle / commanded</div></div></div>
+<div class="metric"><div class="metric-icon">⊙</div><div><div class="metric-label">Detected objects</div><div class="metric-val"><span id="kObjects">0</span> <span class="metric-unit">targets</span></div><div class="metric-mini">Within detection range</div></div></div>
+<div class="metric" id="nearestCard"><div class="metric-icon">⚠</div><div><div class="metric-label">Nearest object</div><div class="metric-val"><span id="kNearest">—</span> <span class="metric-unit">m</span></div><div class="metric-mini" id="kNearestType">Awaiting detection</div></div></div>
+<div class="metric" id="riskCard"><div class="metric-icon">⬡</div><div><div class="metric-label">Collision risk</div><div class="metric-val" id="kRisk">LOW</div><div class="metric-mini" id="kTtc">No immediate path conflict</div></div></div>
+<div class="metric"><div class="metric-icon" style="color:var(--green)">⬡</div><div><div class="metric-label">ADAS status</div><div class="metric-val" style="font-size:23px;color:var(--green)" id="kADAS">STANDBY</div><div class="metric-mini">Illustrative AEB logic</div></div></div>
+</section>
+<main class="layout">
+<aside class="panel"><div class="panel-title">☷ &nbsp;SIMULATION CONTROLS <span class="mini">CONFIG</span></div><div class="side-controls">
+<div class="block"><div class="lbl">DRIVING SCENARIO</div><div class="selection" id="scenarios"><button type="button" class="choice active" data-scenario="highway"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M8 3 4 21M16 3l4 18M12 3v4m0 4v4m0 4v2"/></svg><span>Highway</span></button><button type="button" class="choice" data-scenario="urban"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M3 21V10h6v11m2 0V3h8v18M5 13h2m-2 4h2M14 7h2m-2 4h2m-2 4h2"/></svg><span>Urban</span></button><button type="button" class="choice" data-scenario="parking"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="1.7"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M10 18V7h3a3 3 0 0 1 0 6h-3"/></svg><span>Parking</span></button></div></div>
+<div class="block"><label for="speed" class="lbl">VEHICLE SPEED <b id="speedVal">72 km/h</b></label><input class="range" id="speed" type="range" min="0" max="180" value="72" step="1"><div class="scale"><span>0</span><span>60</span><span>120</span><span>180</span></div></div>
+<div class="block"><label for="radius" class="lbl">DETECTION RADIUS <b id="radiusVal">120 m</b></label><input class="range" id="radius" type="range" min="20" max="200" value="120" step="5"><div class="scale"><span>20m</span><span>80m</span><span>140m</span><span>200m</span></div></div>
+<div class="block"><div class="lbl">TRAFFIC DENSITY <b id="densityVal">Medium</b></div><div class="seg" id="density"><button data-density="low">LOW</button><button data-density="medium" class="active">MEDIUM</button><button data-density="high">HIGH</button></div></div>
+<div class="block"><label class="lbl" for="sensitivity">COLLISION SENSITIVITY <b id="sensitivityVal">Normal</b></label><input class="range" id="sensitivity" type="range" min="1" max="3" value="2" step="1"><div class="scale"><span>Low</span><span>Normal</span><span>High</span></div></div>
+<div class="block"><div class="lbl">BRAKING RESPONSE <b id="brakingVal">Standard</b></div><div class="seg" id="braking"><button data-braking="comfort">COMFORT</button><button class="active" data-braking="standard">STANDARD</button><button data-braking="aggressive">AGGRESSIVE</button></div></div>
+<div class="block"><div class="lbl">WEATHER MODE <b id="weatherVal">Clear</b></div><div class="weather" id="weather"><button class="active" data-weather="clear"><span class="ico">☀</span>Clear</button><button data-weather="rain"><span class="ico">☂</span>Rain</button><button data-weather="fog"><span class="ico">≋</span>Fog</button><button data-weather="snow"><span class="ico">❄</span>Snow</button><button data-weather="night"><span class="ico">☾</span>Night</button></div></div>
+<div class="actions"><button class="btn-main" id="runBtn">▶ &nbsp; RUN SIMULATION</button><div class="btn-row"><button class="btn-sm" id="pauseBtn">Ⅱ &nbsp; PAUSE</button><button class="btn-sm" id="resetBtn">↻ &nbsp; RESET</button></div><button class="btn-danger" id="hazardBtn">⚠ &nbsp; TRIGGER COLLISION SCENARIO</button></div>
+<div class="info"><strong>Engineering demo:</strong> synthetic traffic and simplified time-to-collision rules. Not validated ADAS software, sensor perception, or real-world driving guidance.</div>
+</div></aside>
+<section class="middle">
+<div class="stage" id="stage"><canvas id="radar" aria-label="Animated schematic 360-degree radar scene showing a central vehicle and simulated traffic"></canvas><div class="stage-over stage-head">◉ SENSOR FUSION VIEW<span>ILLUSTRATIVE 360° PERCEPTION</span></div><div class="stage-over stage-controls"><button data-view="2d">TOP-DOWN</button><button data-view="3d" class="active">PERSPECTIVE 3D</button></div><div class="stage-over compass"><div class="legendbox"><div class="legend"><span></span> CRITICAL</div><div class="legend"><span></span> CAUTION</div><div class="legend"><span></span> TRACKED</div></div></div><div class="stage-over stage-mode">SCENE <b id="stageScenario">HIGHWAY</b><br>WEATHER <b id="stageWeather">CLEAR</b><br>TIME <b id="stageTime">00:00</b></div><div class="stage-over orbit-hint"><span id="cameraHint">DRAG TO ORBIT · SCROLL TO ZOOM</span></div><div class="stage-foot"><span id="projectionDescription">PERSPECTIVE 3D · SIMULATED TRAFFIC · NOT FOR SAFETY USE</span></div></div>
+<div class="bottom-panels"><div class="alert-box safe" id="alertBox"><div class="alert-icon">⚠</div><div class="alert-copy"><div class="alert-label" id="alertTitle">NO IMMINENT COLLISION</div><div class="alert-description" id="alertDesc">Start simulation or trigger a hazard scenario.</div></div><div class="alert-metric"><small>TIME TO COLLISION</small><strong id="alertTtc">—</strong></div></div><div class="brake-box"><div class="brake-icon">◎</div><div class="brake-copy"><div class="brake-title">AUTOMATIC EMERGENCY BRAKING</div><div class="brake-state" id="brakeState">STANDBY</div><div class="brake-note" id="brakeNote">Monitoring approach speed</div></div><div class="brake-tag" id="brakeTag">AEB READY</div></div></div>
+</section>
+<aside class="right">
+<div class="panel chart-panel"><div class="panel-title">◈ &nbsp;THREAT LEVEL TREND <span class="toggle">● LIVE</span></div><div class="trend"><svg id="trendSvg" viewBox="0 0 280 104" preserveAspectRatio="none"><defs><linearGradient id="trendFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#ff566e" stop-opacity=".28"/><stop offset="100%" stop-color="#00eaf2" stop-opacity="0"/></linearGradient></defs><path d="M28 10 V90 H272 M28 49H272 M28 10H272" stroke="#174050" stroke-width=".7" fill="none"/><text x="2" y="14" fill="#689bab" font-size="9">High</text><text x="2" y="52" fill="#689bab" font-size="9">Med</text><text x="2" y="91" fill="#689bab" font-size="9">Low</text><path id="trendArea" fill="url(#trendFill)" d=""/><path id="trendLine" stroke="#00eff2" stroke-width="2.3" fill="none" stroke-linejoin="round"/><circle cx="268" cy="85" r="3" fill="#00eff2" id="trendPoint"/><text x="25" y="102" fill="#638396" font-size="8">−60s</text><text x="246" y="102" fill="#638396" font-size="8">Now</text></svg></div></div>
+<div class="panel object-panel"><div class="panel-title">◈ &nbsp;OBJECT DISTANCE <span class="mini" id="objectCountCaption">NEAREST 8</span></div><div class="objects" id="objectList"><div class="empty">No targets detected</div></div></div>
+<div class="panel"><div class="panel-title">⊙ &nbsp;SENSOR CONFIDENCE <span class="mini">ILLUSTRATIVE</span></div><div class="confidence" id="confidenceRows"></div></div>
+<div class="panel"><div class="panel-title">◉ &nbsp;DETECTION BREAKDOWN <span class="mini">BY CLASS</span></div><div class="breakdown"><div class="donut" id="donut"><div class="donut-center"><b id="donutTotal">0</b><span>OBJECTS</span></div></div><div class="break-list" id="breakdownList"></div></div></div>
+</aside>
+</main><footer class="footnote">CONCEPT DEMONSTRATION — SYNTHETIC DATA ONLY. Object motion, classification, sensor confidence and braking logic are simplified. This is not an automotive safety system. <span class="footer-version">ADAS 360° / PROTOTYPE v3.0</span></footer>
+</div>
+<div class="impact-modal" id="impactModal" role="dialog" aria-modal="true" aria-labelledby="impactHeading" hidden>
+<div class="impact-grid"></div><div class="impact-dialog"><div class="impact-kicker"><span class="impact-led"></span> SIMULATION INTERRUPTED / EVENT 001</div><div class="impact-emblem">✳</div><div class="impact-heading" id="impactHeading">COLLISION DETECTED</div><p class="impact-text">The vehicle made contact with an obstacle. The simulation has stopped and will not resume until restarted.</p><div class="impact-details"><div><small>IMPACT VELOCITY</small><strong id="impactSpeed">—</strong></div><div><small>OBJECT</small><strong id="impactObject">—</strong></div><div><small>TIME ELAPSED</small><strong id="impactTime">—</strong></div></div><div class="impact-foot"><span>EVENT LATCHED · MANUAL RESTART REQUIRED</span><button id="restartImpact" class="impact-restart">↻ RESTART SIMULATION</button></div></div></div>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id),cv=$('radar'),ctx=cv.getContext('2d',{alpha:false});
+const TAU=Math.PI*2,clamp=(v,a,b)=>Math.min(b,Math.max(a,v)),lerp=(a,b,t)=>a+(b-a)*t;
+let seed=927; const rand=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
+const col={cyan:'#40e7e1',mint:'#8bfff1',blue:'#5aa9dc',amber:'#f8c06e',red:'#ff6079'};
+const state={scenario:'highway',speed:72,radius:120,density:'medium',sensitivity:2,braking:'standard',weather:'clear',view:'3d',running:false,terminal:false,elapsed:0,objects:[],risk:0,ttc:Infinity,threat:null,aeb:false,trend:Array(55).fill(4),trendClock:0,zoom:1.36,orbit:.44,cameraElevation:.54,collisionInfo:null};
+const preset={highway:{speed:72,lanes:[-8,-4,0,4,8]},urban:{speed:40,lanes:[-4,0,4]},parking:{speed:11,lanes:[-4,0,4]}};
+const names=['Vehicle','Motorcycle','Pedestrian','Barrier'],icons=['▰','◇','♙','△'];let uid=0;
+function freshObj(type,lane,z,kph,forced=false){return{id:++uid,type,lane,x:lane*4,z,speed:kph,length:type===0?4.7:type===1?2.2:type===2?.8:2.5,forced};}
+function resetTraffic(){const p=state.scenario;let list=[];
+const initial=p==='highway'?[[0,0,44,49],[0,-1,23,66],[0,1,32,62],[0,-2,37,58],[0,2,-19,91],[1,1,65,54],[0,-1,-24,93],[3,2,30,0]]:p==='urban'?[[0,0,46,24],[0,-1,29,32],[0,1,43,28],[0,0,-54,54],[2,2,41,2],[3,2,64,0]]:[[0,-1,21,1],[0,1,33,1],[2,1,23,3],[3,0,43,0]];
+for(const [t,l,z,v] of initial) list.push(freshObj(t,l,z,v));
+const required=state.density==='low'?0:state.density==='medium'?3:8;
+for(let i=0;i<required;i++){const lanes=preset[p].lanes;const lane=lanes[(i+3)%lanes.length]/4;let z=18+i*19+(i%3)*13;let tryCount=0;while(list.some(o=>o.lane===lane&&Math.abs(o.z-z)<19)&&tryCount++<15)z+=17;let v=p==='highway'?45+Math.floor(rand()*46):p==='urban'?16+Math.floor(rand()*20):2;list.push(freshObj(i%6===5?1:0,lane,z,v));}
+state.objects=list;state.aeb=false;state.risk=0;state.ttc=Infinity;state.threat=null;}
+function resetSimulation(autoRun=false){state.terminal=false;state.collisionInfo=null;$('impactModal').hidden=true;state.elapsed=0;state.speed=preset[state.scenario].speed;state.running=autoRun;state.trend=Array(55).fill(4);state.trendClock=0;resetTraffic();update();}
+function laneOccupancy(o){return Math.abs(o.x)<2.35 && o.type!==2;}
+function dist(o){return Math.hypot(o.x,o.z);}
+function detected(){return state.objects.filter(o=>dist(o)<=state.radius);}
+function timeToContact(o){let approach=state.speed/3.6-o.speed/3.6;let gap=o.z-(o.length+4.8)/2;return o.z>0&&laneOccupancy(o)&&approach>.01?Math.max(0,gap)/approach:Infinity;}
+function threatCalc(){let candidates=detected().filter(o=>laneOccupancy(o)&&o.z>0).map(o=>({o,ttc:timeToContact(o)})).sort((a,b)=>a.ttc-b.ttc);let nearest=candidates[0];let t=nearest?.ttc??Infinity;
+let risk=Number.isFinite(t)?clamp((6.8-t)/6.8*100,0,100):0;const weatherMult={clear:1,rain:1.08,fog:1.23,snow:1.22,night:1.12}[state.weather];risk=clamp(risk*weatherMult,0,100);return{risk,t,object:nearest?.o||null};}
+function collide(object){if(state.terminal)return;state.terminal=true;state.running=false;state.aeb=false;state.collisionInfo={object:names[object.type],speed:state.speed,time:state.elapsed};
+$('impactSpeed').textContent=`${Math.round(state.speed)} km/h`;$('impactObject').textContent=names[object.type];$('impactTime').textContent=state.elapsed.toFixed(1)+' s';$('impactModal').hidden=false;$('restartImpact').focus();update();}
+function freeSpawn(o,z){return state.objects.every(other=>other===o||other.lane!==o.lane||Math.abs(other.z-z)>Math.max(17,(other.length+o.length)/2+11))&&(o.lane!==0||Math.abs(z)>17);}
+function advance(dt){if(!state.running||state.terminal)return;state.elapsed+=dt;
+const threat=threatCalc();state.aeb=threat.t<([0,1.35,1.9,2.8][state.sensitivity])&&state.speed>0;
+if(state.aeb){let decel={comfort:2.2,standard:4.2,aggressive:6.2}[state.braking];state.speed=Math.max(0,state.speed-decel*3.6*dt);}
+const ego=state.speed/3.6;
+for(const o of state.objects) o.z+=(o.speed/3.6-ego)*dt;
+// Resolve same-lane traffic spacing. Cars follow at safe headway, rather than drawing on top of each other.
+for(const lane of [-2,-1,0,1,2]){const traffic=state.objects.filter(o=>o.lane===lane&&!o.forced).sort((a,b)=>b.z-a.z);
+for(let i=1;i<traffic.length;i++){const front=traffic[i-1],rear=traffic[i],gap=(front.length+rear.length)/2+5;if(front.z-rear.z<gap){rear.z=front.z-gap;rear.speed=Math.min(rear.speed,front.speed);}}
+}
+for(const o of state.objects){if(o.z<-155||o.z>205){let nz=o.z<-155?165:-135;if(freeSpawn(o,nz)){o.z=nz;if(!o.forced)o.speed=state.scenario==='highway'?48+rand()*38:state.scenario==='urban'?18+rand()*19:2;}}}
+// Collision is checked after updating positions, before objects may be recycled.
+for(const o of state.objects){if(Math.abs(o.x)<(o.type===0?2.2:1.6)&&Math.abs(o.z)<(o.length+4.8)*.5-.25){collide(o);break;}}
+const t=threatCalc();state.risk=t.risk;state.ttc=t.t;state.threat=t.object;state.trendClock+=dt;
+if(state.trendClock>.42){state.trend.shift();state.trend.push(state.risk);state.trendClock=0;}
+}
+// Mathematical perspective projection for volumetric 3D mesh geometry (no external JS dependencies).
+const add=(a,b)=>a.map((v,i)=>v+b[i]),sub=(a,b)=>a.map((v,i)=>v-b[i]),dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],norm=a=>{const k=Math.hypot(...a)||1;return a.map(v=>v/k)};
+let geom={};
+function camera(w,h){let p,fwd,up;
+if(state.view==='2d'){p=[0,48/state.zoom,.015];fwd=norm(sub([0,0,0],p));up=[0,0,1];}
+else {const alpha=state.orbit,elevation=state.cameraElevation,distance=57/state.zoom;p=[Math.sin(alpha)*Math.cos(elevation)*distance,Math.sin(elevation)*distance,-Math.cos(alpha)*Math.cos(elevation)*distance+9];fwd=norm(sub([0,0,8],p));up=[0,1,0];}
+const right=norm(cross(up,fwd)),vertical=norm(cross(fwd,right));return{p,fwd,right,vertical,focal:h*(state.view==='2d'?.9:1.26),w,h};}
+function proj(q){const v=sub(q,geom.cam.p),depth=dot(v,geom.cam.fwd);if(depth<.08)return null;let scale=geom.cam.focal/depth;return{x:geom.cam.w*.5+dot(v,geom.cam.right)*scale,y:geom.cam.h*.55-dot(v,geom.cam.vertical)*scale,z:depth,scale};}
+function poly(points,fill,stroke,width=1){const ps=points.map(proj);if(ps.some(p=>!p))return;const depth=ps.reduce((s,p)=>s+p.z,0)/ps.length;geom.faces.push({ps,fill,stroke,width,depth});}
+function line(a,b,color,width=1,opacity=1){const x=proj(a),y=proj(b);if(!x||!y)return;geom.lines.push({x,y,color,width,opacity});}
+function seg(a,b,color,width=1,opacity=1){const A=proj(a),B=proj(b);if(!A||!B)return;ctx.globalAlpha=opacity;ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.stroke();ctx.globalAlpha=1;}
+function circle(x,z,r,c,steps=90,alpha=.4,thick=1){let prev=null;for(let i=0;i<=steps;i++){let a=i*TAU/steps;let curr=[x+Math.cos(a)*r,.05,z+Math.sin(a)*r];if(prev){let opacity=alpha*(.55+.45*Math.sin(a*3+state.elapsed*.8));line(prev,curr,c,thick,opacity);}prev=curr;}}
+function box(x,y,z,w,h,l,colors,wire='#316778'){const min=[x-w/2,y,z-l/2],max=[x+w/2,y+h,z+l/2];const [a,b,c,d,e,f,g,H]=[[min[0],min[1],min[2]],[max[0],min[1],min[2]],[max[0],min[1],max[2]],[min[0],min[1],max[2]],[min[0],max[1],min[2]],[max[0],max[1],min[2]],[max[0],max[1],max[2]],[min[0],max[1],max[2]]];
+poly([a,b,f,e],colors[1],wire,.75);poly([b,c,g,f],colors[2],wire,.75);poly([d,c,g,H],colors[1],wire,.75);poly([d,a,e,H],colors[2],wire,.75);poly([e,f,g,H],colors[0],wire,.8);
+}
+function car3D(x,z,scale,kind=0,ego=false){if(kind===3){box(x,.0,z,1.8,1.2,2.5,['#7b6140','#493d36','#80603b'],'#ffc16a');return;}
+if(kind===2){box(x,.1,z,.57,1.5,.65,['#c69967','#92704d','#b38d60'],'#f3a3a3');return;}
+if(kind===1){box(x,.25,z,.7,.55,2.25,['#635c4c','#3a3430','#4d473d'],'#e5c079');box(x,1,z,.55,.55,.8,['#7c6755','#564333','#746155'],'#f7ca88');return;}
+const base=ego?'#093946':'#244052',top=ego?'#135565':'#35536a',edge=ego?'#75fff4':'#83bfe0';
+// Four black wheel assemblies, metallic rim caps and three-dimensional body.
+for(let sx of [-1,1])for(let sz of [-1,1]){box(x+sx*1.15,.25,z+sz*1.57,.5,.72,.88,['#080f17','#050b12','#141b23'],'#142a34');box(x+sx*1.29,.48,z+sz*1.57,.18,.2,.44,['#77808a','#4b626c','#3b555e'],'#617985');}
+box(x,.34,z,2.3,.72,4.7,[top,'#102836',base],edge);
+// Geometric canopy with roof, front/rear tinted glass planes and side glazing.
+const fz=z+1.46,bz=z-1.35;
+const low=[[-.91,1.06,-1.52],[.91,1.06,-1.52],[.91,1.06,1.54],[-.91,1.06,1.54]];
+const high=[[-.73,1.78,-.88],[.73,1.78,-.88],[.73,1.78,.75],[-.73,1.78,.75]];
+const v=q=>[x+q[0],q[1],z+q[2]];
+poly([v(low[0]),v(low[1]),v(high[1]),v(high[0])],'#081f2cbf',edge,.7);
+poly([v(low[3]),v(low[2]),v(high[2]),v(high[3])],'#081b28cf',edge,.7);
+poly([v(low[0]),v(low[3]),v(high[3]),v(high[0])],'#0b3648',edge,.7);
+poly([v(low[1]),v(low[2]),v(high[2]),v(high[1])],'#0b3648',edge,.7);
+poly([v(high[0]),v(high[1]),v(high[2]),v(high[3])],ego?'#247c8b':'#4e7281',edge,1);
+for(let sx of [-1,1]){box(x+sx*.74,1.04,z+2.15,.55,.05,.25,['#d8fff0','#7fb5a5','#a0ded4'],ego?'#d9ffff':'#9abcc5');box(x+sx*.77,.99,z-2.22,.49,.08,.16,['#ff4f6e','#ba3552','#ff4f6e'],'#fa7486');}
+if(ego){line([x-.9,.37,z-2.43],[x+.9,.37,z-2.43],'#48e7e5',2,.85);}
+}
+function background(){const {w,h}=geom.cam;const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,state.weather==='night'?'#030710':'#0b2430');bg.addColorStop(.5,state.weather==='night'?'#030e19':'#061722');bg.addColorStop(1,'#030d15');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+// The asphalt is a trapezoidal 3D plane in perspective and vehicles are real spatial meshes.
+poly([[-11.7,-.12,-135],[11.7,-.12,-135],[11.7,-.12,185],[-11.7,-.12,185]],state.weather==='night'?'#071722':'#0d232d',state.weather==='night'?'#193c49':'#1a3841',.6);
+for(let x of [-12,-8,-4,0,4,8,12]){
+for(let z=-125;z<200;z+=13){const offset=(state.elapsed*state.speed/3.6)%13;
+line([x,.04,z+offset],[x,.04,z+offset+5],x===-12||x===12?'#6dabb7':'#376779',x===-12||x===12?1.8:1.4,.6);}}
+for(let z=-120;z<160;z+=10){line([-16,.02,z],[16,.02,z],'#286070',.5,.11)}
+}
+function radar(){const r=clamp(state.radius*.21,8.4,34),t=state.elapsed;for(let n=1;n<=4;n++)circle(0,0,r*n/4,n===4?'#50fcf0':'#3cc3d2',90,n===4?.46:.18,n===4?1.5:.7);
+// 3D sphere-like meridian hoops; cyan orbital grid and dotted directional rays.
+for(let a=0;a<10;a++){const ang=a*TAU/10;line([0,.12,0],[Math.sin(ang)*r,.12,Math.cos(ang)*r],'#53d4d1',.7,.16);}
+for(let i=0;i<150;i++){let a=i*2.399,rad=Math.sqrt(i/150)*r;let x=Math.sin(a)*rad,z=Math.cos(a)*rad;let p=proj([x,.06,z]);if(p&&p.x>=0&&p.x<geom.cam.w&&p.y>=0&&p.y<geom.cam.h){ctx.fillStyle='rgba(47,238,222,.23)';ctx.fillRect(p.x,p.y,1,1)}}
+// Hero hologram dome is made of world-space 3D arcs.
+for(let phi of [0,Math.PI/4,Math.PI/2,Math.PI*3/4]){let last=null;for(let a=0;a<=Math.PI+.01;a+=.07){let q=[Math.cos(a)*Math.sin(phi)*r,Math.sin(a)*r*.24,Math.cos(a)*Math.cos(phi)*r];if(last)line(last,q,'#46e9e8',.8,.30);last=q;}}
+let phi=(t*.37)%(TAU);line([0,.09,0],[Math.sin(phi)*r,.09,Math.cos(phi)*r],'#8effe5',2,.55);
+for(let i=0;i<9;i++){let a=i*TAU/9+t*.17,r0=3.5,r1=4.1;line([Math.sin(a)*r0,.1,Math.cos(a)*r0],[Math.sin(a)*r1,.1,Math.cos(a)*r1],state.risk>=70?col.red:col.amber,2,.95)}
+}
+// Dedicated orthographic overhead renderer. Vehicles, road and radar all use ONE fixed map scale.
+function drawOverhead(now,w,h){
+ const s=Math.min(w/87,h/91)*state.zoom, cx=w*.5,cy=h*.54;
+ const P=(x,z)=>({x:cx+x*s,y:cy-z*s});
+ const tt=state.elapsed, r=clamp(state.radius*.21,8.4,34), rr=r*s;
+ ctx.fillStyle='#061521';ctx.fillRect(0,0,w,h);
+ // Plan-view asphalt. Lane markings remain parallel and stay the same size at any depth.
+ const lx=P(-12,0).x, rx=P(12,0).x;
+ const road=ctx.createLinearGradient(lx,0,rx,0);
+ road.addColorStop(0,state.weather==='night'?'#020e1a':'#061924');road.addColorStop(.15,state.weather==='night'?'#06151f':'#102935');road.addColorStop(.5,state.weather==='night'?'#06121e':'#0c2531');road.addColorStop(.85,state.weather==='night'?'#06151f':'#102935');road.addColorStop(1,state.weather==='night'?'#020e1a':'#061924');
+ ctx.fillStyle=road;ctx.fillRect(lx,0,rx-lx,h);
+ for(let x=-12;x<=12;x+=4){
+   const X=P(x,0).x;
+   ctx.strokeStyle=Math.abs(x)===12?'#2c899c88':'#3c7b8b6b';ctx.lineWidth=Math.abs(x)===12?2:1.2;
+   ctx.setLineDash(Math.abs(x)===12?[]:[11*s/4,9*s/4]);ctx.lineDashOffset=-(tt*state.speed/3.6*s)%((20*s)/4);
+   ctx.beginPath();ctx.moveTo(X,0);ctx.lineTo(X,h);ctx.stroke();ctx.setLineDash([]);
+ }
+ // Shoulder hatching for a grounded engineering map rather than an abstract polar chart.
+ ctx.strokeStyle='#20566660';ctx.lineWidth=1;
+ for(let y=0;y<h;y+=27){ctx.beginPath();ctx.moveTo(lx-24,y+24);ctx.lineTo(lx-4,y);ctx.moveTo(rx+5,y+24);ctx.lineTo(rx+26,y);ctx.stroke()}
+ // World-space circular coverage. Change detection-radius slider to change displayed coverage.
+ ctx.save();ctx.translate(cx,cy);
+ const bloom=ctx.createRadialGradient(0,0,rr*.12,0,0,rr);
+ bloom.addColorStop(0,'#00ffea03');bloom.addColorStop(.8,'#00fbe911');bloom.addColorStop(1,'#00e7e126');ctx.fillStyle=bloom;
+ ctx.beginPath();ctx.arc(0,0,rr,0,TAU);ctx.fill();
+ for(let i=1;i<=4;i++){
+   ctx.beginPath();ctx.arc(0,0,rr*i/4,0,TAU);ctx.strokeStyle=i===4?'#61fcde96':'#3be6dd45';ctx.lineWidth=i===4?1.6:.85;ctx.stroke();
+ }
+ for(let i=0;i<72;i++){const a=i*TAU/72;let from=rr+(i%6===0?4:1),to=rr+(i%6===0?12:5);ctx.beginPath();ctx.moveTo(Math.cos(a)*from,Math.sin(a)*from);ctx.lineTo(Math.cos(a)*to,Math.sin(a)*to);ctx.strokeStyle=i%6===0?'#79ffffb2':'#47c5cb70';ctx.lineWidth=i%6===0?1.35:.7;ctx.stroke()}
+ for(let k=0;k<10;k++){let a=k*TAU/10;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(rr*Math.cos(a),rr*Math.sin(a));ctx.strokeStyle='#1cceca21';ctx.lineWidth=.8;ctx.stroke();}
+ const a=-Math.PI*.5+now*.00045;
+ ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,rr,a,a+.35);ctx.closePath();
+ let fan=ctx.createRadialGradient(0,0,12,0,0,rr);fan.addColorStop(0,'#00fff200');fan.addColorStop(.7,'#00ffdf04');fan.addColorStop(1,'#14ffdb37');ctx.fillStyle=fan;ctx.fill();
+ ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);ctx.strokeStyle='#4bffe9bd';ctx.lineWidth=1.4;ctx.stroke();
+ for(let i=0;i<220;i++){let ang=i*2.3999632+now*.00002, rad=Math.sqrt((i+.6)/221)*rr;ctx.fillStyle=`rgba(71,243,229,${.07+(i%5)*.03})`;ctx.fillRect(Math.cos(ang)*rad,Math.sin(ang)*rad,1.15,1.15)}
+ ctx.restore();
+ // Overlay sensor detections and the traffic scene.
+ const all=detected().slice().sort((a,b)=>b.z-a.z);
+ const nearest=state.threat?.id;
+ for(const o of all){
+   const p=P(o.x,o.z), critical=(o.id===nearest&&state.risk>35)||Math.abs(o.z)<9&&Math.abs(o.x)<2.35;
+   const color=critical?(state.risk>65?col.red:col.amber):col.cyan;
+   const width=(o.type===0?2.35:o.type===1?.9:o.type===2?.6:1.9)*s;
+   const length=o.length*s;
+   ctx.save();ctx.strokeStyle=critical?color+'dc':'#35d4df8a';ctx.lineWidth=critical?1.5:1;
+   const bw=width+10,bh=length+10;
+   ctx.strokeRect(p.x-bw/2,p.y-bh/2,bw,bh);
+   ctx.beginPath();ctx.moveTo(p.x-bw/2,p.y-bh/2+8);ctx.lineTo(p.x-bw/2,p.y-bh/2);ctx.lineTo(p.x-bw/2+8,p.y-bh/2);ctx.stroke();
+   if(critical){ctx.fillStyle=state.risk>65?'#ff405015':'#ffb74b0e';ctx.fillRect(p.x-bw/2,p.y-bh/2,bw,bh)}
+   ctx.restore();
+   topCar(p.x,p.y,s,o.type,false,state.weather==='night');
+   if(p.x>28&&p.x<w-35&&p.y>50&&p.y<h-40){
+     const text=dist(o).toFixed(1)+' m';ctx.font='700 10px system-ui';const tw=ctx.measureText(text).width+15;
+     let tx=p.x+bw*.5+7,ty=p.y-length*.5-6;if(tx+tw>w-8)tx=p.x-bw*.5-tw-7;
+     ctx.fillStyle='#031923e8';ctx.fillRect(tx,ty-11,tw,18);ctx.strokeStyle=color;ctx.lineWidth=.85;ctx.strokeRect(tx,ty-11,tw,18);
+     ctx.fillStyle=color;ctx.textAlign='center';ctx.fillText(text,tx+tw*.5,ty+1);
+   }
+ }
+ topCar(cx,cy,s,0,true,state.weather==='night');
+ // Heading annotation is fixed to the map, not skewed by camera angle.
+ ctx.save();ctx.textAlign='center';ctx.font='700 10px system-ui';ctx.fillStyle='#75dfe6d0';
+ ctx.fillText('FRONT / 0°',cx,Math.max(35,cy-rr-19));ctx.fillText('REAR / 180°',cx,Math.min(h-19,cy+rr+22));ctx.restore();
+ if(state.weather==='night')drawNightIllumination(all,P,s,true);
+}
+function roundRectPath(x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function topCar(x,y,s,type,ego,night){
+ if(type===2){ctx.fillStyle='#efb885';ctx.beginPath();ctx.arc(x,y-2,Math.max(3,s*.34),0,TAU);ctx.fill();ctx.strokeStyle='#73e4ee';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y+1);ctx.lineTo(x,y+9);ctx.stroke();return;}
+ if(type===3){ctx.fillStyle='#ac7447';ctx.strokeStyle='#fac777';ctx.lineWidth=1;ctx.fillRect(x-s*.88,y-s*.9,s*1.76,s*1.8);ctx.strokeRect(x-s*.88,y-s*.9,s*1.76,s*1.8);return;}
+ if(type===1){ctx.fillStyle='#162d3d';roundRectPath(x-s*.40,y-s*1.05,s*.8,s*2.1,s*.18);ctx.fill();ctx.strokeStyle='#a6e8fa';ctx.stroke();ctx.strokeStyle='#efc176';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-s*.8,y-s*.55);ctx.lineTo(x+s*.8,y-s*.55);ctx.stroke();return;}
+ const ww=s*(ego?2.95:2.35),hh=s*(ego?5.7:4.7);
+ // Tyres sit outside body contours, cockpit glass / boot / bonnet read as a plan view.
+ ctx.fillStyle='#040d14';for(const sy of [-1,1])for(const sx of [-1,1]){roundRectPath(x+sx*ww*.46-ww*.10,y+sy*hh*.31-hh*.15,ww*.20,hh*.30,3);ctx.fill()}
+ const g=ctx.createLinearGradient(x-ww/2,y-hh/2,x+ww/2,y+hh/2);
+ g.addColorStop(0,ego?'#146d81':'#244b65');g.addColorStop(.52,ego?'#0e3a50':'#163244');g.addColorStop(1,ego?'#1e8294':'#365872');
+ ctx.shadowBlur=ego?19:9;ctx.shadowColor=ego?'#31ffea65':'#2aafff42';ctx.fillStyle=g;
+ roundRectPath(x-ww/2,y-hh/2,ww,hh,ww*.26);ctx.fill();ctx.shadowBlur=0;
+ ctx.strokeStyle=ego?'#88fff3':'#a3d5ea';ctx.lineWidth=ego?1.5:1;ctx.stroke();
+ ctx.fillStyle='#0a2738';roundRectPath(x-ww*.38,y-hh*.21,ww*.76,hh*.41,ww*.17);ctx.fill();
+ ctx.strokeStyle='#44acbe';ctx.lineWidth=1;ctx.stroke();
+ ctx.fillStyle='#13475b';roundRectPath(x-ww*.32,y-hh*.22,ww*.64,hh*.14,ww*.1);ctx.fill();
+ ctx.fillStyle='#0a1b2a';roundRectPath(x-ww*.33,y+hh*.10,ww*.66,hh*.14,ww*.10);ctx.fill();
+ ctx.strokeStyle='#87b6c6';ctx.lineWidth=.9;ctx.beginPath();ctx.moveTo(x-ww*.28,y-hh*.09);ctx.lineTo(x+ww*.28,y-hh*.09);ctx.stroke();
+ // FRONT is up. Lamp positions are fixed to real bonnet edge, never orbit with the viewer.
+ for(const sx of [-1,1]){
+   ctx.fillStyle=night?'#fff5bc':'#a8f3fa';ctx.fillRect(x+sx*ww*.33-ww*.1,y-hh*.47,ww*.2,Math.max(2,s*.1));
+   ctx.fillStyle='#f6536e';ctx.fillRect(x+sx*ww*.32-ww*.1,y+hh*.46,ww*.2,Math.max(2,s*.12));
+ }
+ if(ego){ctx.strokeStyle='#8bfff887';ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,ww*.77,0,TAU);ctx.stroke()}
+}
+// Projected beams originate at each moving car's front lamps; illumination persists in the correct camera direction.
+function drawNightIllumination(others,P,s,isTop){
+ const vehicles=[{x:0,z:0,type:0},...others.filter(o=>o.type===0).slice(0,11)];
+ ctx.save();ctx.globalCompositeOperation='screen';
+ for(const o of vehicles){
+   const start=P(o.x,o.z+2.25), end=P(o.x,o.z+Math.min(20,10+state.radius*.06));
+   if(!start||!end)continue;
+   const farL=P(o.x-4.9,o.z+16),farR=P(o.x+4.9,o.z+16);
+   if(!farL||!farR)continue;
+   const grad=ctx.createLinearGradient(start.x,start.y,end.x,end.y);
+   grad.addColorStop(0,'rgba(255,248,184,.36)');grad.addColorStop(.20,'rgba(255,229,143,.23)');grad.addColorStop(1,'rgba(255,226,144,0)');
+   ctx.fillStyle=grad;ctx.beginPath();ctx.moveTo(start.x-1.1*s*.24,start.y);ctx.lineTo(farL.x,farL.y);ctx.lineTo(farR.x,farR.y);ctx.lineTo(start.x+1.1*s*.24,start.y);ctx.closePath();ctx.fill();
+   for(const side of [-1,1]){
+     const lamp=P(o.x+side*.78,o.z+2.35);if(!lamp)continue;
+     const halo=ctx.createRadialGradient(lamp.x,lamp.y,0,lamp.x,lamp.y,isTop?17:12);
+     halo.addColorStop(0,'#fffde7');halo.addColorStop(.18,'#fff4afbb');halo.addColorStop(1,'#ffeb9200');
+     ctx.fillStyle=halo;ctx.beginPath();ctx.arc(lamp.x,lamp.y,isTop?17:12,0,TAU);ctx.fill();
+     const rear=P(o.x+side*.75,o.z-2.28);
+     if(rear){const glow=ctx.createRadialGradient(rear.x,rear.y,0,rear.x,rear.y,isTop?12:9);glow.addColorStop(0,'#ff5068e0');glow.addColorStop(.22,'#fb213788');glow.addColorStop(1,'#ff142d00');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(rear.x,rear.y,isTop?12:9,0,TAU);ctx.fill();}
+   }
+ }
+ ctx.restore();
+}
+function renderWeather(w,h,now){const mode=state.weather;ctx.save();
+if(mode==='rain'){ctx.strokeStyle='#85dff7';ctx.lineWidth=1.15;for(let i=0;i<135;i++){let x=((i*117.13+now*.15)% (w+190))-95,y=((i*79.5+now*.65)%(h+130))-65;ctx.globalAlpha=.08+(i%5)*.034;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-9,y+23+(i%6));ctx.stroke()}}
+if(mode==='snow'){for(let i=0;i<120;i++){let x=(i*173.6+Math.sin(now*.0007+i)*18)%w,y=(i*93.6+now*(.026+(i%7)*.005))%h,r=.9+(i%5)*.28;ctx.globalAlpha=.1+(i%4)*.08;ctx.fillStyle='#cbe9fa';ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill()}}
+if(mode==='fog'){let grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,'#a7c4d866');grad.addColorStop(.35,'#a3c6d849');grad.addColorStop(.75,'#a1c5d51f');grad.addColorStop(1,'transparent');ctx.globalAlpha=.7;ctx.fillStyle=grad;ctx.fillRect(0,0,w,h)}
+if(mode==='night'){const edge=ctx.createRadialGradient(w*.5,h*.50,h*.30,w*.5,h*.50,h*.8);edge.addColorStop(0,'#00151b00');edge.addColorStop(1,'#00051175');ctx.fillStyle=edge;ctx.fillRect(0,0,w,h);ctx.fillStyle='#a5e0f5a9';for(let i=0;i<14;i++){let x=(i*97.173)%w,y=(i*191.331)%h;ctx.fillRect(x,y,1,1)}}
+ctx.restore();}
+function drawHologram(now){
+const {w,h}=geom.cam;const p=proj([0,.10,0]);if(!p)return;
+const r=Math.min(w*.355,h*.47),ry=r*(state.view==='3d'?.67:.96),pulse=.5+.5*Math.sin(now*.001);
+ctx.save();const fill=ctx.createRadialGradient(p.x,p.y,2,p.x,p.y,r);fill.addColorStop(0,'#18e5d609');fill.addColorStop(.55,'#12e9e609');fill.addColorStop(.84,'#35e8db0b');fill.addColorStop(1,'#11dbe22b');ctx.fillStyle=fill;ctx.beginPath();ctx.ellipse(p.x,p.y,r,ry,0,0,TAU);ctx.fill();
+for(const ratio of [.32,.62,1]){ctx.strokeStyle=ratio===1?'#32dacb77':'#37c9d62d';ctx.lineWidth=ratio===1?1.45:.75;ctx.beginPath();ctx.ellipse(p.x,p.y,r*ratio,ry*ratio,0,0,TAU);ctx.stroke();}
+const phi=(now*.0003)%(TAU);ctx.translate(p.x,p.y);ctx.save();ctx.scale(1,ry/r);ctx.rotate(phi);const grad=ctx.createLinearGradient(0,0,r,0);grad.addColorStop(0,'#32e4db00');grad.addColorStop(1,'#32e4db16');ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,0,.38);ctx.closePath();ctx.fillStyle=grad;ctx.fill();ctx.strokeStyle='#84ffefa6';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(r,0);ctx.stroke();ctx.restore();
+for(let i=0;i<150;i++){const a=i*2.399+now*.00004,rr=Math.sqrt((i+.5)/150)*r,x=Math.cos(a)*rr,y=Math.sin(a)*rr*(ry/r),d=rr/r;ctx.fillStyle=`rgba(57,234,221,${.07+.12*d})`;ctx.fillRect(x,y,1.3,1.3)}
+for(let i=0;i<48;i++){const a=i*TAU/48,rr=r+4,ext=(i%4===0?10:5);ctx.strokeStyle=i%4===0?'#65f8e375':'#27bfc060';ctx.lineWidth=i%4===0?1.5:.8;ctx.beginPath();ctx.moveTo(Math.cos(a)*rr,Math.sin(a)*rr*ry/r);ctx.lineTo(Math.cos(a)*(rr+ext),Math.sin(a)*(rr+ext)*ry/r);ctx.stroke();}
+if(state.risk>30){ctx.strokeStyle=state.risk>65?'#ff6374bd':'#efb964af';ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(0,0,r*.9,ry*.9,0,Math.PI*1.15,Math.PI*1.7);ctx.stroke();}
+ctx.restore();
+}
+function drawScene(now){const rect=cv.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2),w=Math.max(1,rect.width),h=Math.max(1,rect.height);if(cv.width!==Math.floor(w*dpr)||cv.height!==Math.floor(h*dpr)){cv.width=Math.floor(w*dpr);cv.height=Math.floor(h*dpr)}ctx.setTransform(dpr,0,0,dpr,0,0);
+geom={cam:camera(w,h),faces:[],lines:[]};
+if(state.view==='2d'){drawOverhead(now,w,h);renderWeather(w,h,now);if(state.terminal){ctx.fillStyle='#700c1825';ctx.fillRect(0,0,w,h)}return;}
+background();radar();
+for(const o of detected()){car3D(o.x,o.z,1,o.type,false);
+if(o.z>-5&&o.z<90){const p=proj([o.x,3.5,o.z]);if(p)geom.labels??=[];if(p)geom.labels.push({p,o});}
+}
+car3D(0,0,1,0,true);
+for(const ln of geom.lines){ctx.globalAlpha=ln.opacity;ctx.strokeStyle=ln.color;ctx.lineWidth=ln.width;ctx.beginPath();ctx.moveTo(ln.x.x,ln.x.y);ctx.lineTo(ln.y.x,ln.y.y);ctx.stroke();}ctx.globalAlpha=1;
+drawHologram(now);
+geom.faces.sort((a,b)=>b.depth-a.depth);
+for(const face of geom.faces){let p=face.ps;ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);for(let i=1;i<p.length;i++)ctx.lineTo(p[i].x,p[i].y);ctx.closePath();ctx.fillStyle=face.fill;ctx.fill();if(face.stroke){ctx.strokeStyle=face.stroke;ctx.lineWidth=face.width;ctx.stroke()}}
+// Physically grounded night lighting drawn from the projected headlamps.
+if(state.weather==='night'){
+  ctx.fillStyle='#0009184a';ctx.fillRect(0,0,w,h);
+  drawNightIllumination(detected(),(x,z)=>proj([x,.12,z]),geom.cam.focal/Math.max(geom.cam.p[1],20),false);
+}
+// Heads-up distance annotations positioned from actual 3D world positions.
+for(const x of geom.labels||[]){const {o,p}=x;if(p.x<22||p.x>w-22||p.y<45||p.y>h-33)continue;const distance=dist(o),ttc=timeToContact(o),danger=ttc<2.8||distance<7,color=danger?col.red:ttc<5.5?col.amber:col.cyan;
+let txt=`${distance.toFixed(1)} m`,width=ctx.measureText(txt).width+22;ctx.fillStyle='#041922e8';ctx.fillRect(p.x-width*.5,p.y-18,width,20);ctx.strokeStyle=color;ctx.lineWidth=1;ctx.strokeRect(p.x-width*.5,p.y-18,width,20);ctx.fillStyle=color;ctx.font='700 11px system-ui';ctx.textAlign='center';ctx.fillText(txt,p.x,p.y-5);ctx.strokeStyle=color+'aa';ctx.beginPath();ctx.moveTo(p.x,p.y+2);ctx.lineTo(p.x,p.y+13);ctx.stroke();}
+renderWeather(w,h,now);
+if(state.terminal){ctx.fillStyle='#700c1825';ctx.fillRect(0,0,w,h)}
+}
+function updateTrend(){let pts=state.trend.map((v,i)=>[(28+i/(state.trend.length-1)*242).toFixed(1),(89-v*.78).toFixed(1)]),d=pts.map((p,i)=>(i?'L':'M')+p.join(' ')).join(' ');$('trendLine').setAttribute('d',d);$('trendArea').setAttribute('d',d+' L270 90 L28 90 Z');const last=pts.at(-1);$('trendPoint').setAttribute('cx',last[0]);$('trendPoint').setAttribute('cy',last[1]);let cc=state.risk>64?col.red:state.risk>30?col.amber:col.cyan;$('trendLine').setAttribute('stroke',cc);$('trendPoint').setAttribute('fill',cc);}
+function update(){
+$('speedVal').textContent=Math.round(state.speed)+' km/h';$('speed').value=Math.round(state.speed);$('radiusVal').textContent=state.radius+' m';$('radius').value=state.radius;$('densityVal').textContent=title(state.density);$('brakingVal').textContent=title(state.braking);$('sensitivityVal').textContent=['','Low','Normal','High'][state.sensitivity];$('weatherVal').textContent=title(state.weather);$('kSpeed').textContent=Math.round(state.speed);let obs=detected().sort((a,b)=>dist(a)-dist(b));$('kObjects').textContent=obs.length;let nearest=obs[0];$('kNearest').textContent=nearest?dist(nearest).toFixed(1):'—';$('kNearestType').textContent=nearest?names[nearest.type]+' / nearest tracked':'No objects in range';
+const threat=threatCalc();state.risk=threat.risk;state.ttc=threat.t;state.threat=threat.object;const level=state.terminal?'IMPACT':state.risk>64?'HIGH':state.risk>30?'MEDIUM':'LOW';$('kRisk').textContent=level;$('kTtc').textContent=state.terminal?'Restart required':Number.isFinite(threat.t)?'Predicted TTC: '+threat.t.toFixed(1)+' s':'No immediate path conflict';$('riskCard').classList.toggle('alert',level==='HIGH'||state.terminal);$('riskCard').classList.toggle('warn',level==='MEDIUM');$('nearestCard').classList.toggle('warn',nearest&&dist(nearest)<16);
+$('kADAS').textContent=state.terminal?'IMPACT':state.aeb?'BRAKING':state.running?'ACTIVE':'STANDBY';$('kADAS').style.color=state.terminal?'var(--red)':state.aeb?'var(--amber)':'var(--green)';$('statusPill').textContent=state.terminal?'COLLISION / STOPPED':state.running?'SIMULATION ACTIVE':'SIMULATION READY';$('statusDot').style.background=state.terminal?'var(--red)':state.running?'var(--green)':'var(--amber)';$('runBtn').textContent=state.terminal?'↻  RESTART REQUIRED':state.running?'▶  SIMULATION RUNNING':'▶  RUN SIMULATION';$('pauseBtn').textContent=state.running?'Ⅱ  PAUSE':'▶  RESUME';$('pauseBtn').disabled=state.terminal;$('runBtn').disabled=state.terminal;
+$('stageScenario').textContent=state.scenario.toUpperCase();$('stageWeather').textContent=state.weather.toUpperCase();let t=Math.floor(state.elapsed);$('stageTime').textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+$('alertBox').classList.toggle('safe',state.risk<30&&!state.terminal);$('alertTitle').textContent=state.terminal?'COLLISION RECORDED — STOPPED':state.risk>65?'COLLISION WARNING':state.risk>30?'APPROACH HAZARD — CAUTION':'NO IMMINENT COLLISION';$('alertDesc').textContent=state.terminal?'Impact is latched until restart':threat.object&&state.risk>30?names[threat.object.type]+' ahead / '+threat.object.z.toFixed(1)+' m':'No urgent frontal threats detected';$('alertTtc').textContent=Number.isFinite(threat.t)?threat.t.toFixed(1)+' s':'—';$('brakeState').textContent=state.terminal?'STOPPED':state.aeb?'BRAKING':state.running?'MONITORING':'STANDBY';$('brakeNote').textContent=state.terminal?'Restart to continue':state.aeb?'Simulated deceleration active':'Simplified AEB, not production software';$('brakeTag').textContent=state.terminal?'LOCKED':state.aeb?'AEB ACTIVE':'AEB READY';
+$('objectCountCaption').textContent=obs.length+' TRACKED';$('objectList').innerHTML=obs.slice(0,8).map(o=>{let ttc=timeToContact(o),r=dist(o),color=ttc<2.8?'risk':ttc<5.5?'warn':'';return `<div class="object ${color}"><span class="object-icon">${icons[o.type]}</span><span>${names[o.type]} (${o.z>0?'Front':'Rear'}${o.lane>0?'-Right':o.lane<0?'-Left':''})</span><span class="dist">${r.toFixed(1)} m</span><div class="bar"><div style="width:${clamp(100-r/state.radius*100,4,100)}%"></div></div></div>`;}).join('')||'<div class="empty">No objects in detection range</div>';
+const conf={clear:[96,94,92,88],rain:[72,91,76,84],fog:[53,88,63,78],snow:[57,83,70,80],night:[66,92,89,85]}[state.weather];$('confidenceRows').innerHTML=['Camera','Radar','LiDAR','Ultrasonic'].map((n,i)=>`<div class="conf-row"><span>${n}</span><b>${conf[i]}%</b><div class="bar"><div style="width:${conf[i]}%"></div></div></div>`).join('');let counts=[0,0,0,0];for(let o of obs)counts[o.type]++;let colors=['#46e9e0','#5899d8','#ffba6c','#ff6478'];let prev=0,stop=[];for(let i=0;i<4;i++){let next=prev+(obs.length?counts[i]/obs.length*100:0);stop.push(`${colors[i]} ${prev}% ${next}%`);prev=next;} $('donut').style.background=obs.length?'conic-gradient('+stop.join(',')+')':'#153847';$('donutTotal').textContent=obs.length;$('breakdownList').innerHTML=names.map((v,i)=>`<div class="break-item"><span><i class="swatch" style="background:${colors[i]}"></i>${v}s</span><b>${counts[i]}</b></div>`).join('');updateTrend();
+}
+function title(t){return t[0].toUpperCase()+t.slice(1)}
+function group(id,key,handler){$(id).addEventListener('click',e=>{let btn=e.target.closest('button');if(!btn||!btn.hasAttribute(key))return;$(id).querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===btn));handler(btn.getAttribute(key));update();});}
+group('scenarios','data-scenario',v=>{state.scenario=v;resetSimulation(false);});group('density','data-density',v=>{state.density=v;resetTraffic()});group('weather','data-weather',v=>{state.weather=v});group('braking','data-braking',v=>{state.braking=v});
+$('speed').addEventListener('input',e=>{if(!state.terminal)state.speed=+e.target.value;update()});$('radius').addEventListener('input',e=>{state.radius=+e.target.value;update()});$('sensitivity').addEventListener('input',e=>{state.sensitivity=+e.target.value;update()});
+document.querySelectorAll('[data-view]').forEach(btn=>btn.addEventListener('click',()=>{
+  state.view=btn.dataset.view;
+  document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b===btn));
+  $('cameraHint').textContent=state.view==='2d'?'ORTHOGRAPHIC PLAN · SCROLL TO ZOOM':'DRAG TO ORBIT · SCROLL TO ZOOM';
+  $('projectionDescription').textContent=state.view==='2d'?'TRUE TOP-DOWN / ORTHOGRAPHIC · SYNTHETIC TRAFFIC':'PERSPECTIVE 3D · SIMULATED TRAFFIC · NOT FOR SAFETY USE';
+}));
+$('runBtn').addEventListener('click',()=>{if(!state.terminal){state.running=true;update();}});$('pauseBtn').addEventListener('click',()=>{if(!state.terminal){state.running=!state.running;update();}});$('resetBtn').addEventListener('click',()=>resetSimulation(false));$('restartImpact').addEventListener('click',()=>resetSimulation(true));
+$('hazardBtn').addEventListener('click',()=>{if(state.terminal)resetSimulation(true);state.running=true;state.speed=Math.max(state.speed,25);state.objects=state.objects.filter(o=>o.lane!==0||Math.abs(o.z)>50);const hazard=freshObj(0,0,Math.max(10,state.speed/3.6*1.13),0,true);state.objects.push(hazard);update();});
+let dragging=false,lastX=0,lastY=0;cv.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;cv.setPointerCapture(e.pointerId)});cv.addEventListener('pointermove',e=>{if(!dragging||state.view==='2d')return;state.orbit=clamp(state.orbit+(e.clientX-lastX)*.007,-1.35,1.35);state.cameraElevation=clamp(state.cameraElevation+(e.clientY-lastY)*.004,.28,1.15);lastX=e.clientX;lastY=e.clientY;});cv.addEventListener('pointerup',()=>dragging=false);cv.addEventListener('wheel',e=>{e.preventDefault();state.zoom=clamp(state.zoom+(e.deltaY>0?-.08:.08),.65,1.8)},{passive:false});
+window.addEventListener('keydown',e=>{if(e.code==='Space'&&document.activeElement.tagName!=='INPUT'&&!state.terminal){e.preventDefault();state.running=!state.running;update();}});
+resetSimulation(false);let last=performance.now(),next=0;function tick(t){const dt=clamp((t-last)/1000,0,.045);last=t;advance(dt);drawScene(t);if(t>next){update();next=t+170;}requestAnimationFrame(tick);}requestAnimationFrame(tick);
+// Test hook for reproducible automated scenarios and state-machine validation.
+window.__adasDebug={get:()=>({running:state.running,terminal:state.terminal,speed:state.speed,objects:state.objects.map(o=>({...o})),weather:state.weather,view:state.view,collisionInfo:state.collisionInfo}),advance,reset:resetSimulation};
+})();
+</script>
+</body>
+</html>
