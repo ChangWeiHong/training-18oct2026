@@ -26,7 +26,8 @@ export function listSamples() {
 
 export function analyseSample(id, spec) {
   const body = { sample_id: id };
-  if (spec) body.spec = spec;
+  // undefined: use the pack's spec. null: explicitly no spec.
+  if (spec !== undefined) body.spec = spec;
   return request('/api/analyse', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
