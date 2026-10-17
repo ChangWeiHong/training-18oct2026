@@ -19,7 +19,7 @@
   /* Aluminium control accent (buttons, selection, focus) */
   --color-alu: oklch(84% 0.025 205);
   --color-alu-strong: oklch(92% 0.02 200);
-  --color-focus: oklch(90% 0.07 250);
+  --color-focus: oklch(90% 0.08 205);
 
   /* Sea-glass #3df5d2: playback and motion only */
   --color-motion: oklch(87% 0.155 176);
@@ -36,7 +36,7 @@
   --color-hatch-bg: oklch(26% 0.008 230);
   --color-within: oklch(80% 0.03 200);
   --color-notsupplied: oklch(68% 0.012 230);
-  --color-incomplete: oklch(76% 0.07 250);
+  --color-incomplete: oklch(76% 0.07 235);
 
   /* Type */
   --font-ui: "Segoe UI", Aptos, "Helvetica Neue", system-ui, sans-serif;

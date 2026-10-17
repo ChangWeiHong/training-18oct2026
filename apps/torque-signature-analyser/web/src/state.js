@@ -19,13 +19,20 @@ function clampCursor(state, i) {
   return Math.min(max, Math.max(0, Math.round(i)));
 }
 
+/** The most important rundown: lowest rank. Ties and missing ranks keep list order. */
+export function topRundown(rundowns) {
+  let best;
+  for (const r of rundowns ?? []) if (!best || (r.rank ?? Infinity) < (best.rank ?? Infinity)) best = r;
+  return best;
+}
+
 export function selectionReducer(state, action) {
   switch (action.type) {
     case 'LOAD_RESULT':
       return {
         ...state,
         result: action.result,
-        selectedId: action.result.rundowns[0]?.id,
+        selectedId: topRundown(action.result.rundowns)?.id,
         cursor: 0,
         playing: false,
       };
@@ -35,8 +42,11 @@ export function selectionReducer(state, action) {
       return { ...state, cursor: clampCursor(state, action.i) };
     case 'STEP':
       return { ...state, cursor: clampCursor(state, state.cursor + action.delta) };
-    case 'PLAY':
-      return { ...state, playing: true };
+    case 'PLAY': {
+      // Pressing play on the last sample starts again from the first.
+      const atEnd = state.cursor >= curveLength(selectedRundown(state)) - 1;
+      return { ...state, playing: true, cursor: atEnd ? 0 : state.cursor };
+    }
     case 'PAUSE':
       return { ...state, playing: false };
     case 'SET_SPEED':

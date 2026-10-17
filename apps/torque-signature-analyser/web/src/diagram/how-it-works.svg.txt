@@ -1,0 +1,40 @@
+<title id="hiw-title">How the analysis works</title>
+<desc id="hiw-desc">A readings CSV becomes features per rundown. Features are compared with a reference envelope and an Isolation Forest to give the signature result, and checked against your spec limits to give the specification result.</desc>
+<defs>
+  <marker id="hiw-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="var(--color-muted)" stroke-width="1.5"/></marker>
+</defs>
+<g fill="none" stroke="var(--color-muted)" stroke-width="1.5" marker-end="url(#hiw-arrow)">
+  <path d="M140 130H180"/>
+  <path d="M320 120H336Q344 120 344 112V78Q344 70 352 70H380"/>
+  <path d="M320 140H336Q344 140 344 148V182Q344 190 352 190H380"/>
+  <path d="M540 70H564Q572 70 572 78V112Q572 120 580 120H600"/>
+  <path d="M540 190H564Q572 190 572 182V148Q572 140 580 140H600"/>
+  <path d="M250 160V254Q250 262 258 262H600" stroke-dasharray="5 4"/>
+</g>
+<text x="270" y="254" font-family="var(--font-mono)" font-size="11" fill="var(--color-muted)" letter-spacing="0.04em">YOUR SPEC LIMITS</text>
+<g stroke="var(--color-rule-strong)" stroke-width="1.5" fill="var(--color-surface-2)">
+  <rect x="20" y="100" width="120" height="60" rx="6"/>
+  <rect x="180" y="100" width="140" height="60" rx="6"/>
+  <rect x="380" y="40" width="160" height="60" rx="6"/>
+  <rect x="380" y="160" width="160" height="60" rx="6"/>
+</g>
+<g stroke="var(--color-alu)" stroke-width="2" fill="var(--color-surface-3)">
+  <rect x="600" y="100" width="140" height="60" rx="6"/>
+  <rect x="600" y="232" width="140" height="60" rx="6"/>
+</g>
+<g font-family="var(--font-ui)" font-size="13" font-weight="600" fill="var(--color-text)" text-anchor="middle">
+  <text x="80" y="127">Readings CSV</text>
+  <text x="250" y="127">Features</text>
+  <text x="460" y="67">Reference envelope</text>
+  <text x="460" y="187">Isolation Forest</text>
+  <text x="670" y="127">Signature result</text>
+  <text x="670" y="259">Spec result</text>
+</g>
+<g font-family="var(--font-mono)" font-size="11" fill="var(--color-muted)" text-anchor="middle">
+  <text x="80" y="145">one row per sample</text>
+  <text x="250" y="145">per rundown</text>
+  <text x="460" y="85">5th to 95th pct band</text>
+  <text x="460" y="205">unusual combinations</text>
+  <text x="670" y="145">typical / investigate</text>
+  <text x="670" y="277">within / outside</text>
+</g>
