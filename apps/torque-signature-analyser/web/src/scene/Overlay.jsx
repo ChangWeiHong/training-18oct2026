@@ -1,3 +1,4 @@
+import { RotateCcw, RotateCw, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
 import StatusMark from '../components/StatusMark.jsx';
 
 const KINDS = ['typical', 'investigate', 'outside', 'cant_assess'];
@@ -40,12 +41,21 @@ export function JointStrip() {
         ))}
       </ul>
       <p className="joint-caption">Rotation: measured. Travel and compression: illustrative.</p>
+      <p className="joint-caption">Other bolts: final state. Selected bolt: at the cursor.</p>
     </div>
   );
 }
 
 /** Selected bolt, preset buttons, bolt chips and notes. Rendered above the canvas, never over the joint. */
-export function JointHeader({ selected, preset, onPreset, slots, selectedId, onSelect, note }) {
+const VIEW_ACTIONS = [
+  ['rotateLeft', 'Rotate left', RotateCcw, 'Q'],
+  ['rotateRight', 'Rotate right', RotateCw, 'E'],
+  ['zoomIn', 'Zoom in', ZoomIn, '+'],
+  ['zoomOut', 'Zoom out', ZoomOut, '-'],
+  ['reset', 'Reset view', Maximize2, '0'],
+];
+
+export function JointHeader({ selected, preset, onPreset, slots, selectedId, onSelect, note, onView }) {
   return (
     <div className="joint-header">
       <div className="joint-top">
@@ -63,6 +73,14 @@ export function JointHeader({ selected, preset, onPreset, slots, selectedId, onS
             <button key={k} type="button" className="btn-mini" aria-pressed={preset === k} onClick={() => onPreset(k)}>{label}</button>
           ))}
         </div>
+      </div>
+
+      <div className="joint-view" role="group" aria-label="Inspect the 3D view">
+        {VIEW_ACTIONS.map(([k, label, Icon, key]) => (
+          <button key={k} type="button" className="btn-mini joint-view-btn" title={`${label} (${key})`} onClick={() => onView?.(k)}>
+            <Icon size={14} aria-hidden="true" /> <span>{label}</span>
+          </button>
+        ))}
       </div>
 
       {slots.length > 0 && (

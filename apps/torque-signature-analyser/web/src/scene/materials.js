@@ -32,16 +32,16 @@ function roughnessTexture(seed = 7, size = 256) {
   for (let i = 0; i < 14; i += 1) {
     const x = rnd() * size, y = rnd() * size, r = 20 + rnd() * 50;
     const grad = g.createRadialGradient(x, y, 0, x, y, r);
-    grad.addColorStop(0, 'rgba(220,220,220,0.35)');
+    grad.addColorStop(0, 'rgba(190,190,190,0.14)');
     grad.addColorStop(1, 'rgba(220,220,220,0)');
     g.fillStyle = grad;
     g.fillRect(x - r, y - r, r * 2, r * 2);
   }
-  g.lineWidth = 0.6;
+  g.lineWidth = 0.5;
   for (let i = 0; i < 160; i += 1) {
     const a = (i % 2 ? 0.35 : 1.2) + (rnd() - 0.5) * 0.15;
     const x = rnd() * size, y = rnd() * size, l = 12 + rnd() * 50;
-    g.strokeStyle = `rgba(255,255,255,${0.15 + rnd() * 0.3})`;
+    g.strokeStyle = `rgba(255,255,255,${0.05 + rnd() * 0.1})`;
     g.beginPath();
     g.moveTo(x, y);
     g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l);
@@ -49,7 +49,7 @@ function roughnessTexture(seed = 7, size = 256) {
   }
   const img = g.getImageData(0, 0, size, size);
   for (let i = 0; i < img.data.length; i += 4) {
-    const n = (rnd() - 0.5) * 22;
+    const n = (rnd() - 0.5) * 9;
     img.data[i] += n; img.data[i + 1] += n; img.data[i + 2] += n;
   }
   g.putImageData(img, 0, 0);

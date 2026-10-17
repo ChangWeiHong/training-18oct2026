@@ -5,15 +5,18 @@ import * as THREE from 'three';
 import Bolt, { Washer, WASHER } from './Bolt.jsx';
 import Flange, { FLANGE, slotAngle, slotPosition } from './Flange.jsx';
 import CameraRig from './CameraRig.jsx';
+import SceneFallback from './SceneFallback.jsx';
 import Overlay, { JointHeader, JointStrip } from './Overlay.jsx';
 import { createMaterials, tokenColor } from './materials.js';
+import { keyAction } from './camera.js';
+import { hasWebGL2 } from './webgl.js';
 import { boltSlots, jointPose, statusKind } from './kinematics.js';
 
 // R15: starting head-to-washer gap is 30% of the head height; compression cap is 10% of the top plate.
 const GAP_MAX = 0.3 * 0.95;
 const MAX_COMPRESSION = 0.1 * FLANGE.topT;
 // Lifted exposure so plates, washer and bolt read against the graphite background.
-const EXPOSURE = 1.45;
+const EXPOSURE = 1.3;
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
@@ -25,15 +28,6 @@ function useReducedMotion() {
     return () => mq.removeEventListener('change', on);
   }, []);
   return reduced;
-}
-
-function hasWebGL() {
-  try {
-    const c = document.createElement('canvas');
-    return Boolean(c.getContext('webgl2') || c.getContext('webgl'));
-  } catch {
-    return false;
-  }
 }
 
 /** Clipping planes for the half-section: one plane through the bolt axis, plus a window slab for the plates. */
@@ -49,7 +43,7 @@ function cutPlanes(slot) {
   return { single: [A], box: [A, B1, B2] };
 }
 
-function Scene({ focus, siblings, selected, pose, preset, detail, lit, reducedMotion, onSelect }) {
+function Scene({ rigApi, focus, siblings, selected, pose, preset, detail, lit, reducedMotion, onSelect }) {
   const { invalidate, gl } = useThree();
   const materials = useMemo(() => createMaterials(cutPlanes(focus)), [focus]);
   const bg = useMemo(() => tokenColor('--color-paper', '#15191c'), []);
@@ -78,7 +72,7 @@ function Scene({ focus, siblings, selected, pose, preset, detail, lit, reducedMo
       <directionalLight position={[-6, 12, 8]} intensity={1.6} color="#fff2df" />
       <directionalLight position={[8, 5, -4]} intensity={0.9} color="#aec7df" />
       <directionalLight position={[3, 6, 12]} intensity={1.2} color="#fff6ea" />
-      <Environment resolution={256} frames={1} environmentIntensity={1.4}>
+      <Environment resolution={256} frames={1} environmentIntensity={1.25}>
         <color attach="background" args={['#2a3036']} />
         <Lightformer form="rect" intensity={14} position={[-5, 4.2, 4.8]} scale={[5.2, 3.9]} color="#fff4e2" />
         <Lightformer form="rect" intensity={5} position={[6, 1.6, 2]} scale={[3, 5.4]} color="#b4d0ee" />
@@ -112,7 +106,7 @@ function Scene({ focus, siblings, selected, pose, preset, detail, lit, reducedMo
         </group>
       )}
 
-      <CameraRig preset={focus == null ? 'flange' : preset} focus={focus} reducedMotion={reducedMotion} />
+      <CameraRig apiRef={rigApi} preset={focus == null ? 'flange' : preset} focus={focus} reducedMotion={reducedMotion} />
     </>
   );
 }
@@ -123,6 +117,15 @@ function JointView({ result, selected, cursor, onSelect }) {
   const [preset, setPreset] = useState('section');
   const [lit, setLit] = useState(false);
   const reducedMotion = useReducedMotion();
+  const rigApi = useRef(null);
+  const onView = (k) => rigApi.current?.[k]?.();
+  // Keys only act while focus is inside this panel; they never touch the cursor, and are consumed so global playback keys stay quiet.
+  const onKeyDown = (e) => {
+    const a = keyAction(e);
+    if (!a) return;
+    e.preventDefault();
+    onView(a);
+  };
 
   useEffect(() => {
     const el = box.current;
@@ -166,7 +169,7 @@ function JointView({ result, selected, cursor, onSelect }) {
   const note = selected && focus == null ? `${selected.id} is not drawn: it repeats a bolt position or the assembly has more than six bolts. Use the ledger.` : null;
 
   return (
-    <div className="joint-wrap">
+    <div className="joint-wrap" onKeyDown={onKeyDown}>
     <JointHeader
       selected={selected}
       preset={focus == null ? 'flange' : preset}
@@ -174,18 +177,20 @@ function JointView({ result, selected, cursor, onSelect }) {
       slots={slots}
       selectedId={selected?.id}
       onSelect={onSelect}
+      onView={onView}
       note={note ?? (overflow.length ? `${overflow.length} extra bolt(s) in this assembly are not drawn. Use the ledger.` : null)}
     />
-    <div className="joint" ref={box}>
+    <div className="joint" ref={box} tabIndex={0} role="group" aria-label="3D joint view. Q and E rotate, plus and minus zoom, 0 resets.">
       <Canvas
         dpr={[1, 2]}
         frameloop="demand"
-        camera={{ fov: 32, near: 0.5, far: 120, position: [0, 20, 18] }}
+        camera={{ fov: 32, near: 0.5, far: 200, position: [0, 20, 18] }}
         gl={{ antialias: true }}
         onCreated={({ gl }) => { gl.toneMappingExposure = EXPOSURE; }}
         aria-label="3D bolted joint, half section"
       >
         <Scene
+          rigApi={rigApi}
           focus={focus}
           siblings={slots.filter((s) => s.slot !== focus)}
           selected={selected}
@@ -205,9 +210,7 @@ function JointView({ result, selected, cursor, onSelect }) {
 }
 
 export default function JointScene(props) {
-  const ok = useMemo(hasWebGL, []);
-  if (!ok) {
-    return <div className="joint-fallback" role="note">3D view needs WebGL. The graph, evidence and ledger still work.</div>;
-  }
+  const ok = useMemo(() => hasWebGL2(), []);
+  if (!ok) return <SceneFallback />;
   return <JointView {...props} />;
 }
