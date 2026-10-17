@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { makeScales, alignAtSnug, nearestSampleIndex, decimateIndexes, bandRuns, niceTicks } from '../src/graph.js';
+import { makeScales, alignAtSnug, nearestSampleIndex, decimateIndexes, decimateExtrema, bandRuns, lineRuns, niceTicks } from '../src/graph.js';
 
 test('nearestSampleIndex returns the first index on repeated angles', () => {
   const c = { angle: [0, 5, 10, 10, 10, 15] };
@@ -43,4 +43,31 @@ test('bandRuns splits at nulls and applies the shift', () => {
 
 test('niceTicks gives round steps inside the range', () => {
   assert.deepEqual(niceTicks(0, 120, 6), [0, 20, 40, 60, 80, 100, 120]);
+});
+
+test('bandRuns and lineRuns clip to an x range after the shift', () => {
+  const grid = [0, 1, 2, 3, 4, 5];
+  const lo = [1, 1, 1, 1, 1, 1], hi = [2, 2, 2, 2, 2, 2];
+  const upTo = bandRuns(grid, lo, hi, 0, { max: 2 });
+  assert.deepEqual(upTo.flat().map((p) => p.x), [0, 1, 2]);
+  const from = bandRuns(grid, lo, hi, 10, { min: 12 });
+  assert.deepEqual(from.flat().map((p) => p.x), [12, 13, 14, 15]);
+  assert.deepEqual(lineRuns(grid, [5, 5, 5, 5, 5, 5], 0, { min: 3 }).flat().map((p) => p.x), [3, 4, 5]);
+});
+
+test('decimateExtrema keeps a one-sample drop that uniform decimation would skip', () => {
+  const n = 1000;
+  const torque = Array.from({ length: n }, (_, i) => 50 + i * 0.01);
+  torque[437] = 5;
+  const idx = decimateExtrema(torque, 100);
+  assert.ok(idx.length <= 100 + 2);
+  assert.ok(idx.includes(437));
+  assert.equal(idx[0], 0);
+  assert.equal(idx[idx.length - 1], n - 1);
+  assert.deepEqual(idx, [...idx].sort((a, b) => a - b));
+  assert.equal(new Set(idx).size, idx.length);
+});
+
+test('decimateExtrema returns every index for short curves', () => {
+  assert.deepEqual(decimateExtrema([3, 1, 2], 100), [0, 1, 2]);
 });
