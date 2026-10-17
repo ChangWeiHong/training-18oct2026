@@ -1,0 +1,10 @@
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+api/.venv
+api/tests
+web/dist
+web/tests
+docs/screenshots
+docs/codex-reviews
+.pytest_cache
