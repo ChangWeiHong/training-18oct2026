@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evidenceLine, IF_ONLY_TEXT, AREA_ONLY_TEXT } from '../src/format.js';
+import { evidenceLine, IF_ONLY_TEXT, AREA_ONLY_TEXT, cantAssessText } from '../src/format.js';
 
 test('Nm line', () => {
   const ev = { label: 'Final torque', value: 74.3, unit: 'Nm', ref_lo: 106.526, ref_hi: 114.977 };
@@ -19,4 +19,9 @@ test('detector-only copy names the detector and drops the range claim', () => {
   assert.equal(IF_ONLY_TEXT, 'Isolation Forest flagged an unusual combination of features. No single feature passed the z-score limit.');
   assert.equal(AREA_ONLY_TEXT, 'The curve sits further from the reference median than 99 % of reference rundowns.');
   assert.ok(!/outside the reference range/.test(IF_ONLY_TEXT + AREA_ONLY_TEXT));
+});
+
+test('cant-assess text uses the reason from the API', () => {
+  assert.equal(cantAssessText({ cant_assess_reason: 'Reference too small to compare.' }), 'Reference too small to compare.');
+  assert.equal(cantAssessText({}), 'Not enough of the curve to compare.');
 });

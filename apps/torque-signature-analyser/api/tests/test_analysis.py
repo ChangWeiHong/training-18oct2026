@@ -186,3 +186,15 @@ def test_overlap_counts_gaps_and_empty_envelope():
     holed = full.copy()
     holed[(GRID >= 3) & (GRID < 30)] = np.nan     # hole in the middle of the span
     assert _overlap(run, holed) < 0.5
+
+
+def test_cant_assess_reasons():
+    res = analyse(_flat("N", 70.0, n=2), make_reference(7), SAMPLE_SPEC)
+    assert res["rundowns"][0]["cant_assess_reason"] == "No snug point or slope."
+    ref = make_reference(7)
+    small = ref[ref["rundown_id"].isin(ref["rundown_id"].unique()[:10])]
+    res = analyse(_frames([None]), small, SAMPLE_SPEC)
+    assert res["rundowns"][0]["cant_assess_reason"] == "Reference too small to compare."
+    assert "1 rundown(s) can't be assessed. See each rundown for the reason." in res["warnings"]
+    ok = analyse(_frames([None]), ref, SAMPLE_SPEC)["rundowns"][0]
+    assert ok["cant_assess_reason"] is None

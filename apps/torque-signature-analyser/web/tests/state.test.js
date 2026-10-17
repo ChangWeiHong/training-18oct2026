@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { initialState, selectionReducer, selectedRundown, curveLength } from '../src/state.js';
+import { initialState, selectionReducer, selectedRundown, curveLength, SPEC_ORDER } from '../src/state.js';
 
 const rd = (id, n) => ({ id, curve: { angle: Array.from({ length: n }, (_, k) => k), torque: Array(n).fill(1) } });
 const result = { rundowns: [rd('A01-1', 5), rd('A02-3', 8)] };
@@ -79,7 +79,6 @@ test('sortRundowns by signature puts investigate first, rank breaks ties', () =>
   assert.deepEqual(sortRundowns(rows, 'signature', 'desc').map((r) => r.id), ['a', 'b', 'c']);
 });
 
-import { SPEC_ORDER as _SO } from '../src/state.js';
 test('incomplete spec sorts between outside and within', () => {
-  assert.ok(_SO.outside < _SO.incomplete && _SO.incomplete < _SO.within);
+  assert.ok(SPEC_ORDER.outside < SPEC_ORDER.incomplete && SPEC_ORDER.incomplete < SPEC_ORDER.within);
 });

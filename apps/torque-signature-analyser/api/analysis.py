@@ -282,13 +282,19 @@ def _score(runs: list[Run], ref: Ref, spec: dict | None) -> list[dict]:
         z_hit = any(abs(v) > Z_CUT for v in z.values())
         area_hit = area is not None and ref.area_p99 is not None and area > AREA_MARGIN * ref.area_p99
         # A rehit starts above snug (k == 0) and has no fit window, so it is still assessed.
-        cant = r.feats["snug_angle"] is None or (r.feats["slope"] is None and r.k != 0)
-        cant = cant or not ref_ok or _overlap(r, p50) < MIN_OVERLAP
+        reason = None
+        if r.feats["snug_angle"] is None or (r.feats["slope"] is None and r.k != 0):
+            reason = "No snug point or slope."
+        elif not ref_ok:
+            reason = "Reference too small to compare."
+        elif _overlap(r, p50) < MIN_OVERLAP:
+            reason = "Too little overlap with the reference curve."
+        cant = reason is not None
         flagged = z_hit or area_hit or bool(ih)
         sig = "cant_assess" if cant else "investigate" if flagged else "typical"
         iforest_only = sig == "investigate" and not z_hit and not area_hit
         out.append({
-            "run": r, "z": z, "spec_result": _spec_result(r.feats, spec), "signature": sig,
+            "cant_assess_reason": reason, "run": r, "z": z, "spec_result": _spec_result(r.feats, spec), "signature": sig,
             "iforest_only": iforest_only,
             "evidence": [] if sig != "investigate" or iforest_only else _evidence(r, z, ref),
             "pattern_hint": None if cant else _hint(z, r.feats),
@@ -326,7 +332,8 @@ def _rundown_out(it: dict) -> dict:
     return {"id": r.id, "assembly_id": r.assembly_id, "bolt_position": r.bolt_position,
             "spec_result": it["spec_result"], "signature": it["signature"], "rank": it["rank"],
             "features": r.feats, "evidence": it["evidence"], "pattern_hint": it["pattern_hint"],
-            "iforest_only": it["iforest_only"], "seeded_pattern": r.seeded_pattern,
+            "iforest_only": it["iforest_only"], "cant_assess_reason": it["cant_assess_reason"],
+            "seeded_pattern": r.seeded_pattern,
             "curve": {"i": list(range(len(r.a))), "angle": r.a.tolist(),
                       "torque": r.t.tolist(), "t": t}}
 
@@ -355,8 +362,7 @@ def analyse(readings: pd.DataFrame, reference: pd.DataFrame | None, spec: dict |
     n_cant = sum(it["signature"] == "cant_assess" for it in items)
     warnings = []
     if n_cant:
-        warnings.append(f"{n_cant} rundown(s) have no snug point or no usable slope, "
-                        "so the signature can't be assessed.")
+        warnings.append(f"{n_cant} rundown(s) can't be assessed. See each rundown for the reason.")
     if ref.no_snug:
         warnings.append(f"Reference: {ref.no_snug} of {ref.n} rundowns had no snug point "
                         "and were left out.")

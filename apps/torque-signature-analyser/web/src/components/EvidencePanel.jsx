@@ -1,5 +1,5 @@
 import StatusMark from './StatusMark.jsx';
-import { evidenceLine, IF_ONLY_TEXT, AREA_ONLY_TEXT } from '../format.js';
+import { evidenceLine, IF_ONLY_TEXT, AREA_ONLY_TEXT, cantAssessText } from '../format.js';
 
 export default function EvidencePanel({ selected }) {
   if (!selected) return <p className="slot-empty">Select a rundown to see why it was flagged.</p>;
@@ -17,7 +17,7 @@ export default function EvidencePanel({ selected }) {
         <p className="evidence-note">Spec partly checked: a limit could not be assessed because the curve has no post-snug rotation.</p>
       )}
       {signature === 'cant_assess' && (
-        <p className="evidence-note">Not enough of the curve to compare: no snug point or slope.</p>
+        <p className="evidence-note">{cantAssessText(selected)}</p>
       )}
       {evidence.length > 0 && (
         <ul className="evidence-list">

@@ -114,3 +114,15 @@ def test_angle_range_rejected(make_csv, angle):
     with pytest.raises(ParseError) as e:
         parse_readings(make_csv(REQ, rows))
     assert e.value.row == 4 and e.value.column == "angle_deg" and e.value.fix
+
+
+def test_exact_duplicate_headers_rejected(make_csv):
+    with pytest.raises(ParseError) as e:
+        parse_readings(make_csv(["rundown_id", "angle_deg", "angle_deg", "torque_nm"],
+                                [("a", 1, 1, 1), ("a", 2, 2, 2)]))
+    assert e.value.column == "angle_deg"
+
+
+def test_rundown_id_na_is_an_id_not_blank(make_csv):
+    rows = [("NA", i, i * 0.5) for i in range(3)] + [("b", i, i * 0.5) for i in range(3)]
+    assert set(parse_readings(make_csv(REQ, rows))["rundown_id"]) == {"NA", "b"}

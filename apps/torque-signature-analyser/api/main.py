@@ -156,6 +156,13 @@ def create_app(dist: Path | None = DEFAULT_DIST) -> FastAPI:
             spec = _parse_spec(body["spec"]) if body.get("spec") else pack["spec"]
             reference_source = "sample"
         elif ctype.startswith("multipart/form-data"):
+            try:
+                length = int(request.headers.get("content-length", "0"))
+            except ValueError:
+                length = 0
+            if length > 2 * MAX_BYTES + 65536:
+                raise ApiError(400, "The upload is too large.",
+                               "Keep each file under 5 MB.")
             form = await request.form()
             up, ref_up = form.get("readings"), form.get("reference")
             if not hasattr(up, "read"):
