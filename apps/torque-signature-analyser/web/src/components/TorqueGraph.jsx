@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { makeScales, nearestSampleIndex, decimateIndexes, bandRuns, lineRuns, niceTicks } from '../graph.js';
+import { makeScales, nearestSampleIndex, decimateExtrema, bandRuns, lineRuns, niceTicks } from '../graph.js';
 
 const NO_SNUG_NOTE = 'No snug point: shown in absolute view only';
 const MARGIN = { l: 46, r: 12, t: 10, b: 34 };
@@ -65,14 +65,16 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
     const bands = [];
     const medians = [];
     if (aligned) {
-      bands.push(bandRuns(env.grid, env.p05, env.p95, 0));
+      bands.push({ kind: 'post', runs: bandRuns(env.grid, env.p05, env.p95, 0) });
       medians.push(lineRuns(env.grid, env.p50, 0));
     } else {
-      bands.push(bandRuns(pre.grid, pre.p05, pre.p95, 0));
-      medians.push(lineRuns(pre.grid, pre.p50, 0));
+      // Before snug the reference is plotted by absolute angle, after snug by angle from this rundown's snug.
+      // Each band covers only its own side so the two populations never overlap.
+      bands.push({ kind: 'pre', runs: bandRuns(pre.grid, pre.p05, pre.p95, 0, snug != null ? { max: snug } : null) });
+      medians.push(lineRuns(pre.grid, pre.p50, 0, snug != null ? { max: snug } : null));
       if (snug != null) {
-        bands.push(bandRuns(env.grid, env.p05, env.p95, snug));
-        medians.push(lineRuns(env.grid, env.p50, snug));
+        bands.push({ kind: 'post', runs: bandRuns(env.grid, env.p05, env.p95, snug, { min: snug }) });
+        medians.push(lineRuns(env.grid, env.p50, snug, { min: snug }));
       }
     }
     const c = selected.curve;
@@ -82,7 +84,7 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
       x1 = Math.max(x1, c.angle[i] - shift);
       y1 = Math.max(y1, c.torque[i]);
     }
-    for (const run of bands.flat()) for (const p of run) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y1 = Math.max(y1, p.hi); }
+    for (const run of bands.flatMap((b) => b.runs)) for (const p of run) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y1 = Math.max(y1, p.hi); }
     const angleLines = [];
     if (spec) {
       y1 = Math.max(y1, spec.torque_max_nm);
@@ -102,7 +104,7 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
     const faint = (showAll ? others : others.slice(0, MAX_FAINT)).map((r) => {
       const cc = r.curve;
       const sh = aligned ? r.features.snug_angle : 0;
-      const idx = showAll ? decimateIndexes(cc.angle.length, MAX_ALL_POINTS) : decimateIndexes(cc.angle.length, 600);
+      const idx = decimateExtrema(cc.torque, showAll ? MAX_ALL_POINTS : 600);
       return { id: r.id, curve: cc, idx, shift: sh };
     });
     return { shift, bands, medians, domain, angleLines, faint };
@@ -234,11 +236,11 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
               const x1 = Math.min(plot.right, sc.x(ev.interval[1] - shift));
               return <rect key={`f${ev.feature}`} className="g-interval-fill" x={x0} y={plot.top} width={Math.max(2, x1 - x0)} height={plot.bottom - plot.top} />;
             })}
-            {bands.map((runs, k) => <path key={`b${k}`} className="g-band" d={bandPath(runs, sc.x, sc.y)} />)}
+            {bands.map((b) => <path key={`b${b.kind}`} className={`g-band g-band-${b.kind}`} d={bandPath(b.runs, sc.x, sc.y)} />)}
             {medians.map((runs, k) => <path key={`m${k}`} className="g-median" d={linePath(runs, sc.x, sc.y)} />)}
 
             {faint.map((f) => <path key={f.id} className="g-faint" d={curvePath(f.curve, f.idx, f.shift, sc.x, sc.y)} />)}
-            <path className={`g-curve ${sigClass}`} d={curvePath(curve, decimateIndexes(n, 2000), shift, sc.x, sc.y)} />
+            <path className={`g-curve ${sigClass}`} d={curvePath(curve, decimateExtrema(curve.torque, 2000), shift, sc.x, sc.y)} />
           </g>
 
           {spec && [
@@ -288,7 +290,14 @@ export default function TorqueGraph({ result, selected, cursor, mode, onMode, on
       </div>
       <ul className="graph-legend">
         <li><span className={`key key-curve ${sigClass}`} />{selected.id}</li>
-        <li><span className="key key-band" />Reference band (5th to 95th percentile), median dashed</li>
+        {aligned ? (
+          <li><span className="key key-band" />Reference band (5th to 95th percentile), median dashed</li>
+        ) : (
+          <>
+            {bands.some((b) => b.kind === 'pre') && <li><span className="key key-band key-band-pre" />Reference before snug (5th to 95th percentile), median dashed</li>}
+            {bands.some((b) => b.kind === 'post') && <li><span className="key key-band key-band-post" />Reference after snug (aligned at this rundown's snug), median dashed</li>}
+          </>
+        )}
         {intervals.length > 0 && <li><span className="key key-interval" />Evidence interval</li>}
         {faint.length > 0 && <li><span className="key key-faint" />{showAll ? 'All rundowns' : `Same assembly (${faint.length})`}</li>}
       </ul>
