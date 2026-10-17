@@ -126,3 +126,32 @@ def test_exact_duplicate_headers_rejected(make_csv):
 def test_rundown_id_na_is_an_id_not_blank(make_csv):
     rows = [("NA", i, i * 0.5) for i in range(3)] + [("b", i, i * 0.5) for i in range(3)]
     assert set(parse_readings(make_csv(REQ, rows))["rundown_id"]) == {"NA", "b"}
+
+
+def test_header_over_64_columns_rejected():
+    header = ",".join(REQ + [f"x{i}" for i in range(62)])  # 65 columns
+    with pytest.raises(ParseError) as e:
+        parse_readings((header + "\na,0,1\n").encode())
+    assert "65 columns" in e.value.message
+    assert e.value.row is None and e.value.column is None and e.value.fix
+
+
+def test_64_columns_accepted_and_extras_ignored():
+    header = ",".join(REQ + [f"x{i}" for i in range(61)])  # 64 columns
+    rows = "".join(f"a,{i * 0.5},{i}.0" + ",9" * 61 + "\n" for i in range(5))
+    df = parse_readings((header + "\n" + rows).encode())
+    assert len(df) == 5
+
+
+def test_wide_duplicate_header_is_fast_and_reported():
+    import time
+    header = ",".join(["a"] * 200_000)
+    t = time.time()
+    with pytest.raises(ParseError):
+        parse_readings((header + "\n1\n").encode())
+    assert time.time() - t < 2
+
+
+def test_unknown_columns_not_parsed():
+    df = parse_readings(b"rundown_id,angle_deg,torque_nm,junk\na,0,1,x\na,1,2,y\na,2,3,z\n")
+    assert "junk" not in df.columns
