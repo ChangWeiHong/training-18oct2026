@@ -1,0 +1,82 @@
+import StatusMark from '../components/StatusMark.jsx';
+
+const KINDS = ['typical', 'investigate', 'outside', 'cant_assess'];
+const KIND_LABEL = { typical: 'typical', investigate: 'worth investigating', outside: 'outside spec', cant_assess: "can't assess" };
+
+function arcPath(cx, cy, r, from, to) {
+  const p = (a) => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  const [x1, y1] = p(from);
+  const [x2, y2] = p(to);
+  return `M${x1.toFixed(2)} ${y1.toFixed(2)} A${r} ${r} 0 ${to - from > Math.PI ? 1 : 0} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+}
+
+/** Simple SVG arc gauge: live torque at the cursor against the spec maximum. */
+function Gauge({ torque, max, spec }) {
+  const start = Math.PI * 0.8, sweep = Math.PI * 1.4;
+  const top = max * 1.15;
+  const f = (v) => start + sweep * Math.min(1, Math.max(0, v / top));
+  const tick = (v) => {
+    const a = f(v);
+    return <line key={v} x1={50 + 38 * Math.cos(a)} y1={50 + 38 * Math.sin(a)} x2={50 + 46 * Math.cos(a)} y2={50 + 46 * Math.sin(a)} className="gauge-tick" />;
+  };
+  return (
+    <svg className="gauge" viewBox="0 0 100 78" role="img" aria-label={`Torque ${torque.toFixed(1)} newton metres`}>
+      <path d={arcPath(50, 50, 42, start, start + sweep)} className="gauge-track" />
+      {torque > 0 && <path d={arcPath(50, 50, 42, start, f(torque))} className="gauge-fill" />}
+      {spec && [spec.torque_min_nm, spec.torque_max_nm].map(tick)}
+      <text x="50" y="52" textAnchor="middle" className="gauge-value">{torque.toFixed(1)}</text>
+      <text x="50" y="65" textAnchor="middle" className="gauge-unit">Nm</text>
+    </svg>
+  );
+}
+
+export default function Overlay({ selected, pose, torqueMax, spec, preset, onPreset, slots, selectedId, onSelect, note }) {
+  return (
+    <div className="joint-overlay">
+      <div className="joint-top">
+        <div className="joint-id">
+          <span className="mono joint-name">{selected?.id ?? 'No rundown'}</span>
+          {selected && (
+            <span className="joint-marks">
+              <StatusMark kind={selected.spec_result} />
+              <StatusMark kind={selected.signature} />
+            </span>
+          )}
+        </div>
+        <div className="joint-presets" role="group" aria-label="Camera preset">
+          {[['section', 'Joint section'], ['flange', 'Flange']].map(([k, label]) => (
+            <button key={k} type="button" className="btn-mini" aria-pressed={preset === k} onClick={() => onPreset(k)}>{label}</button>
+          ))}
+        </div>
+      </div>
+
+      {slots.length > 0 && (
+        <ul className="joint-slots" aria-label="Bolts in this assembly">
+          {slots.map(({ slot, rundown, kind }) => (
+            <li key={rundown.id}>
+              <button type="button" className={`slot-chip slot-chip-${kind}`} aria-pressed={rundown.id === selectedId} aria-label={`Bolt ${slot + 1}, ${KIND_LABEL[kind]}`} onClick={() => onSelect(rundown.id)}>
+                <span aria-hidden="true">{slot + 1}{kind === 'cant_assess' ? '?' : ''}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {note && <p className="joint-note" role="status">{note}</p>}
+
+      <div className="joint-bottom">
+        <div className="joint-gauge">
+          <Gauge torque={pose.torque} max={torqueMax} spec={spec} />
+          <p className="joint-angle mono">Angle <b>{pose.angle.toFixed(1)}°</b></p>
+        </div>
+        <div className="joint-legend-wrap">
+          <ul className="joint-legend" aria-label="Head ring colours">
+            {KINDS.map((k) => (
+              <li key={k}><i className={`sw sw-${k}`} aria-hidden="true">{k === 'cant_assess' ? '?' : ''}</i>{KIND_LABEL[k]}</li>
+            ))}
+          </ul>
+          <p className="joint-caption">Rotation: measured. Travel and compression: illustrative.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
