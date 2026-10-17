@@ -169,7 +169,7 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
   <p class="lede">Write one story card. Each line of the card fills one part of a RACE prompt: Role, Action, Context, Expectation. Copy the prompt and paste it into your AI tool. Training exercise: air compressor health monitor.</p>
   <nav class="jump" aria-label="Sections">
     <a href="#notepad">1 Story card to prompt</a>
-    <a href="#sample">2 Sample prompt</a>
+    <a href="#sample">2 Sample prompts</a>
     <a href="#stories">3 User stories</a>
     <a href="#fix">4 Fix prompts</a>
   </nav>
@@ -304,8 +304,8 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
 <!-- 2 SAMPLE PROMPT -->
 <section id="sample">
   <span class="step">STEP 2</span>
-  <h2>Sample prompt: ready to paste</h2>
-  <p class="sub">The compressor example as a RACE prompt. Click the box to copy. It ends with a Do NOT block that keeps the build small.</p>
+  <h2>Sample prompts: ready to paste</h2>
+  <p class="sub">Two use cases as RACE prompts. Click a box to copy. The compressor prompt ends with a Do NOT block that keeps the build small. The robot arm prompt uses the three maintenance CSV files from your trainer, so it asks for a CSV upload and no sample data.</p>
   <div class="stack" id="sample-prompt"></div>
 </section>
 
@@ -351,7 +351,7 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
   </div>
 </section>
 
-<footer>Prototype – sample data only. All compressor data, thresholds and ratings are fictional.</footer>
+<footer>Prototype – sample data only. All compressor data, thresholds and ratings are fictional. Robot arm maintenance records come from the CSV files your trainer provides.</footer>
 </div>
 
 <script>
@@ -377,6 +377,15 @@ const EXAMPLE = {
   action: 'scheduling maintenance or shutting down equipment',
   donts: DONTS
 };
+
+// Use case 2: copied as written, not built with buildPrompt(). It works on provided CSV files (slide 47), so it has no samples dropdown.
+const ROBOT_ARM = `Role: You are a front-end developer building a prototype web app for maintenance engineers and managers at an automotive plant.
+
+Action: Build a one-screen three.js app: load a robot arm model (.glb) from a public URL and show six arms, R-01 to R-06, in one 3D scene. Clicking an arm selects it and shows its maintenance records; uploading a CSV adds rows to its history.
+
+Context: Load the robot arm model from this URL using the three.js GLTFLoader: https://storage.googleapis.com/3d-model-sample/industrial-robot-arm.glb. Load it once, then clone it for the six arms. Do not ask for a model upload and do not replace it with shapes you generate yourself. The three maintenance CSV files are provided, so do not generate sample data. Arrange the arms in 3 columns by 2 rows, 6 units apart, R-01 to R-03 at the back, with the area name under each arm: Stamping Shop, Body Shop, Paint Shop, Assembly Hall, Engine Plant, Warehouse.
+
+Expectation: Show a "Loading model..." message while the model downloads. If it fails to load, show a clear error message with the reason instead of an empty scene. Each arm has an ID label, and the user can rotate and zoom. Clicking an arm highlights it and opens a panel with all the arm's records, newest first. The panel stays open when the pointer moves away; it closes only with the close button, a click on an empty area, or a click on a different arm, which replaces the content. A drag to rotate or pan must not count as a click. Load the model and build the scene once at startup; selecting an arm, zooming, panning and CSV updates must never reload the model or rebuild the scene. New CSV rows join the right arm without duplicates, and each arm shows its record count.`;
 
 const STORIES = [
   { id: 'US-01', user: 'maintenance technician',
@@ -488,7 +497,9 @@ function buildStory(d) {
 }
 
 /* 2 sample */
-document.getElementById('sample-prompt').appendChild(copyBlock(buildPrompt(EXAMPLE).text));
+document.getElementById('sample-prompt').append(
+  copyBlock(buildPrompt(EXAMPLE).text, 'Use case 1 · Air compressor health monitor'),
+  copyBlock(ROBOT_ARM, 'Use case 2 · Robot arm maintenance viewer (3D)'));
 
 /* 1 notepad */
 const $ = id => document.getElementById(id);

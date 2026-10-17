@@ -17,7 +17,7 @@ python3 -m http.server 8080
 ## The four sections
 
 1. **Story card to RACE prompt.** The fields are grouped by letter: As a → Role, I want to → Action, So that + Given + samples → Context, Done when + review step → Expectation. The RACE prompt and the story card on the right update as you type. Empty fields stay as `[brackets]`, and the R A C E badges stay dashed until each letter has an answer ("check before you build").
-2. **Sample prompt.** The compressor monitor as a finished RACE prompt. Click to copy.
+2. **Sample prompts.** Two finished RACE prompts: the compressor monitor, and a three.js robot arm maintenance viewer that works on the trainer's CSV files. Click to copy.
 3. **User stories.** Three story cards (As a / Given / Done when) for the same app. "Turn into prompt" loads a card into step 1; copy one or all three.
 4. **Fix prompts.** Five one-change follow-ups (including "what I see vs expected"), plus the slide's Do / Avoid golden rules.
 
@@ -25,9 +25,9 @@ python3 -m http.server 8080
 
 ![User stories and fix prompts](docs/screenshots/stories-and-fixes.png)
 
-Every prompt asks for fictional sample datasets built into the app, with a dropdown to switch between them. Nobody has to prepare or upload a file to test it.
+The template and the compressor prompt ask for fictional sample datasets built into the app, with a dropdown to switch between them. Nobody has to prepare or upload a file to test it.
 
-Every prompt ends with a `Do NOT:` block. It keeps the generated app small: no login, no backend, no charts, no "AI" or "prediction" wording, no invented values for missing data.
+The template and the compressor prompt end with a `Do NOT:` block. It keeps the generated app small: no login, no backend, no charts, no "AI" or "prediction" wording, no invented values for missing data.
 
 ## Deploy to Cloud Run
 

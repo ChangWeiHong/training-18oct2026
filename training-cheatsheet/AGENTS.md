@@ -25,7 +25,8 @@ Run from this folder. `--source .` builds the `Dockerfile` with Cloud Build, so 
 ## Rules for edits
 
 - Keep `index.html` self-contained: no external scripts, fonts or images.
-- Keep the page to 4 sections: Story card to RACE prompt, Sample prompt, User stories (3), Fix prompts.
+- Keep the page to 4 sections: Story card to RACE prompt, Sample prompts, User stories (3), Fix prompts.
+- Step 2 has two use cases. Use case 1 (compressor) is built from `EXAMPLE` with `buildPrompt()`. Use case 2 (`ROBOT_ARM`, three.js robot arm maintenance viewer) is a fixed prompt pasted as written: it follows slide 47, so it uses the trainer's three CSV files, asks for CSV upload, says "do not generate sample data" and has no `Do NOT:` block. The rules below about built-in samples, no upload and the `Do NOT:` block apply to the template and use case 1, not to use case 2.
 - The page follows slides 43–48 of the *AI Ideation & Prototyping* deck (Module 04 · Prompting). Keep its words: Role, Action, Context, Expectation (RACE); story card lines As a, I want to, So that, Given, Done when; the slide colours R blue, A red, C yellow, E green.
 - One story card fills one RACE prompt: As a = R, I want to = A, So that + Given = C, Done when + Definition of Done = E. `buildPrompt()` is the only prompt builder; the sample prompt is built from `EXAMPLE` with it, so the two cannot drift.
 - Deliberate difference from slide 47: the slide says "Do not generate sample data" because trainees get data files. This page asks for built-in fictional samples instead (rule below), matching slide 48's "Use fictional sample data in the prompt".
