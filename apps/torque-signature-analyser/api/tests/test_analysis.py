@@ -260,3 +260,11 @@ def test_thin_tail_support_still_reads_as_past_reference():
     r = res["rundowns"][0]
     assert r["signature"] == "investigate"
     assert any(e["feature"] == "rotation_past_reference" for e in r["evidence"])
+
+
+def test_within_upload_no_snug_warning_survives_refit():
+    runs = pd.concat([_frames([None] * 40), _flat("F0", 10.0), _flat("F1", 10.0)], ignore_index=True)
+    res = analyse(runs, None, SAMPLE_SPEC)
+    assert res["reference"]["source"] == "within-upload"
+    assert res["reference"]["rundowns"] < 42          # the refit happened
+    assert "Reference: 2 of 42 rundowns had no snug point and were left out." in res["warnings"]

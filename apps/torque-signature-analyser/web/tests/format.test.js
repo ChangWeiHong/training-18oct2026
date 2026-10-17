@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evidenceLine, IF_ONLY_TEXT, AREA_ONLY_TEXT, cantAssessText } from '../src/format.js';
+import { evidenceLine, IF_ONLY_TEXT, AREA_ONLY_TEXT, cantAssessText, firstEvidenceLine, IF_ONLY_SHORT } from '../src/format.js';
 
 test('Nm line', () => {
   const ev = { label: 'Final torque', value: 74.3, unit: 'Nm', ref_lo: 106.526, ref_hi: 114.977 };
@@ -29,4 +29,14 @@ test('cant-assess text uses the reason from the API', () => {
 test('past-reference evidence has no reference range', () => {
   assert.equal(evidenceLine({ feature: 'rotation_past_reference', label: 'Rotation past the reference curve', value: 40, unit: '°', ref_lo: 0, ref_hi: 0 }),
     'Rotation past the reference curve: 40°.');
+});
+
+test('firstEvidenceLine: past-reference rotation has no reference range', () => {
+  const r = { signature: 'investigate', evidence: [{ feature: 'rotation_past_reference', label: 'Rotation past the reference curve', value: 40, unit: '°', ref_lo: 0, ref_hi: 0 }] };
+  assert.equal(firstEvidenceLine(r), 'Rotation past the reference curve: 40°.');
+});
+
+test('firstEvidenceLine: investigate rows without evidence', () => {
+  assert.equal(firstEvidenceLine({ signature: 'investigate', evidence: [], iforest_only: true }), IF_ONLY_SHORT);
+  assert.equal(firstEvidenceLine({ signature: 'investigate', evidence: [], iforest_only: false }), AREA_ONLY_TEXT);
 });

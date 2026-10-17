@@ -1,33 +1,23 @@
-// Pure joint maths. Rotation is measured; travel and compression are illustrative.
-export const PITCH_MM = 1.75;
-export const EXAGGERATION = 6;
+// Pure joint maths. Rotation is measured; the gap and compression are illustrative.
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
-/** Travel (mm, exaggerated) for a given angle: pitch x turns, frozen at the snug angle. */
-export function travelAt(angleDeg, snugAngle, pitch = PITCH_MM, exaggeration = EXAGGERATION) {
-  if (snugAngle == null) return 0;
-  return (clamp(angleDeg, 0, snugAngle) / 360) * pitch * exaggeration;
-}
-
 /**
  * Pose of the bolt at a cursor sample.
- * opts: { torqueMax, maxCompression, pitch, exaggeration }. maxCompression is in the caller's length unit.
- * travel is in mm (exaggerated); compression is in the unit of maxCompression.
+ * opts: { torqueMax, maxCompression }. Compression is in the unit of maxCompression.
  */
 export function jointPose(curve, cursor, snugAngle, opts = {}) {
-  const { torqueMax = 0, maxCompression = 0, pitch = PITCH_MM, exaggeration = EXAGGERATION } = opts;
+  const { torqueMax = 0, maxCompression = 0 } = opts;
   const last = Math.max(0, (curve?.angle?.length ?? 0) - 1);
   const i = clamp(Math.round(cursor), 0, last);
   const angle = curve?.angle?.[i] ?? 0;
   const torque = curve?.torque?.[i] ?? 0;
   const rotationRad = (angle * Math.PI) / 180;
-  if (snugAngle == null) return { rotationRad, travel: 0, gap: 0, compression: 0, angle, torque };
-  const travel = travelAt(angle, snugAngle, pitch, exaggeration);
-  // R15: visual gap fraction, 1 at angle 0 shrinking linearly with travel to 0 at snug. The scene scales it.
+  if (snugAngle == null) return { rotationRad, gap: 0, compression: 0, angle, torque };
+  // R15: visual gap fraction, 1 at angle 0 shrinking linearly with angle to 0 at snug. The scene scales it.
   const gap = snugAngle > 0 ? 1 - clamp(angle, 0, snugAngle) / snugAngle : 0;
   const compression = angle > snugAngle && torqueMax > 0 ? clamp(torque / torqueMax, 0, 1) * maxCompression : 0;
-  return { rotationRad, travel, gap, compression, angle, torque };
+  return { rotationRad, gap, compression, angle, torque };
 }
 
 /**

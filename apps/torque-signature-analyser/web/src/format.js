@@ -14,3 +14,15 @@ export const AREA_ONLY_TEXT = 'The curve sits further from the reference median 
 
 export const CANT_ASSESS_FALLBACK = 'Not enough of the curve to compare.';
 export const cantAssessText = (r) => r.cant_assess_reason || CANT_ASSESS_FALLBACK;
+
+export const IF_ONLY_SHORT = 'Isolation Forest flagged an unusual combination of features.';
+
+/** One-line evidence summary for a ledger row. */
+export function firstEvidenceLine(r) {
+  const e = r.evidence?.[0];
+  if (e) return evidenceLine(e);
+  if (r.pattern_hint) return r.pattern_hint;
+  if (r.signature === 'investigate') return r.iforest_only ? IF_ONLY_SHORT : AREA_ONLY_TEXT;
+  if (r.signature === 'cant_assess') return 'Not enough data to compare';
+  return '';
+}

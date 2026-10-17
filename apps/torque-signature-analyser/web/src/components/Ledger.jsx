@@ -2,19 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import StatusMark from './StatusMark.jsx';
 import { sortRundowns } from '../state.js';
-import { fmt, withUnit } from '../format.js';
-
-export function firstEvidenceLine(r) {
-  const e = r.evidence?.[0];
-  if (e) {
-    const range = e.ref_lo != null && e.ref_hi != null ? `, reference ${fmt(e.ref_lo)} to ${withUnit(e.ref_hi, e.unit)}` : '';
-    return `${e.label} ${withUnit(e.value, e.unit)}${range}`;
-  }
-  if (r.pattern_hint) return r.pattern_hint;
-  if (r.signature === 'investigate') return 'Combined pattern, no single feature stands out';
-  if (r.signature === 'cant_assess') return 'Not enough data to compare';
-  return '';
-}
+import { firstEvidenceLine } from '../format.js';
 
 const COLUMNS = [
   { key: 'assembly', label: 'Assembly' },

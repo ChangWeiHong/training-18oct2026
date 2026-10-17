@@ -72,7 +72,8 @@ def parse_readings(data: bytes) -> pd.DataFrame:
         sep = ","
     # Check the header alone before pandas allocates anything for it.
     try:
-        raw_header = next(csv.reader(io.StringIO(text), delimiter=sep, skipinitialspace=True))
+        raw_header = next(row for row in csv.reader(io.StringIO(text), delimiter=sep, skipinitialspace=True)
+                          if any(c.strip() for c in row))
     except (StopIteration, csv.Error):
         raw_header = []
     if len(raw_header) > MAX_COLUMNS:
