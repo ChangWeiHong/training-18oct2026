@@ -1,14 +1,18 @@
-"""Synthetic torque-angle rundowns and the four built-in sample packs.
+"""Synthetic torque-angle rundowns and the built-in sample packs.
 
-Joint: M12x1.75 wheel-hub flange, 6 bolts per assembly. Traces start at angle 0
-a little before snug, sampled every 0.5 deg. Generator tuning uses seed 7 only;
-HELDOUT_SEEDS are reserved for acceptance tests.
+Reference joint: M12x1.75 wheel-hub flange, 6 bolts per assembly. Traces start at
+angle 0 a little before snug, sampled every 0.5 deg. Every pattern is written for
+this joint. The other joints (JOINTS) are illustrative: their curves are the
+wheel-hub curves mapped through the joint profile (snug torque, target torque,
+slope, bolts, time step), so each seeded pattern keeps its meaning. None of the
+numbers is an OEM value. Generator tuning uses seed 7 only; HELDOUT_SEEDS are
+reserved for acceptance tests.
 """
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -29,6 +33,67 @@ TARGET_MEAN, TARGET_SD = 110.0, 2.5
 SNUG_ANGLE_MEAN, SNUG_ANGLE_SD = 30.0, 3.0
 ASSEMBLIES, BOLTS = 40, 6
 PACK_IDS = ("clean", "mixed", "drift", "hard")
+REF_TARGET, REF_SLOPE = 110.0, 2.2     # wheel-hub values the pattern maths is written in
+
+
+@dataclass(frozen=True)
+class JointProfile:
+    """Illustrative joint. Torque in Nm, angle in degrees, time in ms."""
+    id: str
+    name: str
+    thread: str
+    bolts: int
+    snug_nm: float
+    target_nm: float          # mean final torque of a normal rundown
+    slope: float              # mean post-snug slope, Nm per degree
+    dt_ms: float              # time between samples
+    spec_torque: tuple[float, float]
+    spec_angle: tuple[float, float]
+
+    @property
+    def q(self) -> float:     # torque scale above snug
+        return (self.target_nm - self.snug_nm) / (REF_TARGET - SNUG)
+
+    @property
+    def g(self) -> float:     # angle scale
+        return self.q * REF_SLOPE / self.slope
+
+    @property
+    def step_deg(self) -> float:
+        return STEP_DEG * self.g
+
+    @property
+    def running_nm(self) -> tuple[float, float]:
+        return (2 * self.snug_nm / SNUG, 6 * self.snug_nm / SNUG)
+
+    @property
+    def spec(self) -> dict:
+        return {"torque_min_nm": self.spec_torque[0], "torque_max_nm": self.spec_torque[1],
+                "angle_min_deg": self.spec_angle[0], "angle_max_deg": self.spec_angle[1],
+                "snug_torque_nm": self.snug_nm}
+
+
+WHEEL_HUB = JointProfile("wheel-hub", "Wheel hub", "M12x1.75", 6, 30, REF_TARGET, REF_SLOPE, DT_MS,
+                         (99, 121), (20, 60))
+JOINTS = {j.id: j for j in (
+    WHEEL_HUB,
+    JointProfile("caliper", "Brake caliper bracket", "M14x1.5", 2, 35, 140, 3.0, 2.0,
+                 (126, 154), (19, 58)),
+    JointProfile("subframe", "Subframe to body", "M14", 4, 40, 160, 3.4, 3.0,
+                 (144, 176), (19, 56)),
+    JointProfile("seatbelt", "Seat-belt anchor", "M10", 1, 15, 50, 1.2, 2.0,
+                 (45, 55), (16, 49)),
+    JointProfile("mount", "Engine mount", "M10", 3, 15, 55, 1.4, 3.0,
+                 (49, 61), (16, 49)),
+)}
+
+
+def _to_joint(a: np.ndarray, t: np.ndarray, j: JointProfile) -> tuple[np.ndarray, np.ndarray]:
+    """Map a wheel-hub-unit curve onto a joint: piecewise torque scale about snug, angle scale."""
+    if j is WHEEL_HUB:
+        return a, t
+    t2 = np.where(t <= SNUG, t * j.snug_nm / SNUG, j.snug_nm + (t - SNUG) * j.q)
+    return a * j.g, t2
 
 
 def _post_snug(x: np.ndarray, slope: float, knee: float) -> np.ndarray:
@@ -184,8 +249,8 @@ def _hard_case(rng, kind):
     raise ValueError(kind)
 
 
-def _timeline(n, pauses, rng):
-    t = np.arange(n) * DT_MS
+def _timeline(n, pauses, rng, dt=DT_MS):
+    t = np.arange(n) * dt
     for idx in pauses:
         t[idx:] += rng.uniform(300, 800)
     return np.round(t)
@@ -200,9 +265,9 @@ def _frame(rid, assembly, bolt, a, t, time_ms, label):
     })
 
 
-def _slots(prefix, n_assemblies):
+def _slots(prefix, n_assemblies, bolts=BOLTS):
     for k in range(n_assemblies):
-        for b in range(1, BOLTS + 1):
+        for b in range(1, bolts + 1):
             yield k, f"{prefix}{k + 1:02d}", f"{prefix}{k + 1:02d}-{b}", b
 
 
@@ -211,16 +276,21 @@ def _assemble(frames):
         ["rundown_id", "i"], kind="stable").reset_index(drop=True)
 
 
-def _normal_pack(rng, prefix, n_assemblies, slope_for=lambda k: None, labels=None):
+def _normal_pack(rng, prefix, n_assemblies, slope_for=lambda k: None, labels=None,
+                 joint=WHEEL_HUB, tag_for=lambda k: "normal"):
     frames = []
-    for idx, (k, asm, rid, b) in enumerate(_slots(prefix, n_assemblies)):
+    for idx, (k, asm, rid, b) in enumerate(_slots(prefix, n_assemblies, joint.bolts)):
         pat = labels[idx] if labels else None
         a, t, pauses = _build(rng, pat, slope_for(k) if pat is None else None)
-        frames.append(_frame(rid, asm, b, a, t, _timeline(len(a), pauses, rng), pat or "normal"))
+        a, t = _to_joint(a, t, joint)
+        frames.append(_frame(rid, asm, b, a, t, _timeline(len(a), pauses, rng, joint.dt_ms),
+                             pat or tag_for(k)))
     return _assemble(frames)
 
 
-def make_pack(pack_id: Literal["clean", "mixed", "drift", "hard"], seed: int) -> pd.DataFrame:
+def make_pack(pack_id: str, seed: int) -> pd.DataFrame:
+    if pack_id in PACKS and pack_id not in PACK_IDS:
+        return _joint_pack(PACKS[pack_id], seed)
     rng = np.random.default_rng([seed, PACK_IDS.index(pack_id)])
     n = ASSEMBLIES * BOLTS
     if pack_id == "clean":
@@ -250,24 +320,102 @@ def make_pack(pack_id: Literal["clean", "mixed", "drift", "hard"], seed: int) ->
     raise ValueError(pack_id)
 
 
-def make_reference(seed: int, n: int = 120) -> pd.DataFrame:
-    """n normal rundowns at the start-of-shift slope (2.2 Nm/deg)."""
-    rng = np.random.default_rng([seed, 99])
+def make_reference(seed: int, n: int = 120, joint: str = "wheel-hub") -> pd.DataFrame:
+    """n normal rundowns at the start-of-shift slope (2.2 Nm/deg in wheel-hub units)."""
+    j = JOINTS[joint]
+    rng = np.random.default_rng([seed, 99] if j is WHEEL_HUB else [seed, 200 + list(JOINTS).index(joint)])
     frames = []
-    for j in range(n):
+    for i in range(n):
         a, t, _ = _build(rng, None)
-        asm = f"R{j // BOLTS + 1:02d}"
-        frames.append(_frame(f"R{j + 1:03d}", asm, j % BOLTS + 1, a, t,
-                             _timeline(len(a), [], rng), "normal"))
+        a, t = _to_joint(a, t, j)
+        asm = f"R{i // j.bolts + 1:02d}"
+        frames.append(_frame(f"R{i + 1:03d}", asm, i % j.bolts + 1, a, t,
+                             _timeline(len(a), [], rng, j.dt_ms), "normal"))
     return _assemble(frames)
 
 
-PACK_META = {
-    "clean": ("Clean shift", "40 assemblies x 6 bolts, all normal with realistic scatter."),
-    "mixed": ("Mixed shift", "40 x 6 with about 8% seeded abnormal rundowns across the eight patterns."),
-    "drift": ("Gradual drift", "Post-snug slope falls across the shift (worn washer stock)."),
-    "hard": ("Hard cases", "Truncated traces, no snug crossing, repeated angles and an ambiguous missing-washer case."),
-}
+NOTE = "Illustrative spec, not an OEM value."
+
+
+@dataclass(frozen=True)
+class PackDef:
+    id: str
+    joint: str
+    name: str
+    description: str
+    assemblies: int
+    counts: tuple[tuple[str, int], ...] = ()   # seeded patterns and how many of each
+    drift: bool = False                        # slope falls from 40 % to 80 % of the shift, then holds
+    drift_label_from: float = 0.0              # share of the shift after which drift is labelled
+
+    @property
+    def patterns(self) -> tuple[str, ...]:
+        names = [p for p, _ in self.counts]
+        return tuple(names + (["washer_drift"] if self.drift else []))
+
+    @property
+    def unscored(self) -> tuple[str, ...]:
+        """Labels present in the CSV that no recall target covers."""
+        return ("drift_onset",) if self.drift else ()
+
+
+_WH = "40 assemblies x 6 bolts"
+PACKS: dict[str, PackDef] = {p.id: p for p in (
+    PackDef("clean", "wheel-hub", "Clean shift", f"{_WH}, all normal with realistic scatter. {NOTE}", 40),
+    PackDef("mixed", "wheel-hub", "Mixed shift",
+            f"40 x 6 with about 8% seeded abnormal rundowns across the eight patterns. {NOTE}", 40),
+    PackDef("drift", "wheel-hub", "Gradual drift",
+            f"Post-snug slope falls across the shift (worn washer stock). {NOTE}", 40),
+    PackDef("hard", "wheel-hub", "Hard cases",
+            f"Truncated traces, no snug crossing, repeated angles and an ambiguous missing-washer case. {NOTE}", 4),
+    PackDef("caliper-clean", "caliper", "Clean shift",
+            f"30 assemblies x 2 bolts, all normal. {NOTE}", 30),
+    PackDef("caliper-mixed", "caliper", "Mixed shift",
+            f"30 x 2 with cross-thread and stripped-thread rundowns. {NOTE}", 30,
+            (("cross_thread", 8), ("stripped_thread", 6))),
+    PackDef("subframe-mixed", "subframe", "Mixed shift",
+            f"30 x 4 with soft-joint and missing-washer rundowns. {NOTE}", 30,
+            (("soft_joint", 7), ("missing_washer", 6))),
+    PackDef("subframe-drift", "subframe", "Washer stock drift",
+            f"30 x 4. The post-snug slope falls across the shift as washer stock changes. {NOTE}", 30,
+            drift=True, drift_label_from=0.65),
+    PackDef("seatbelt-mixed", "seatbelt", "Mixed shift",
+            f"40 single-bolt assemblies with rehit and double-hit operator issues. {NOTE}", 40,
+            (("rehit", 5), ("double_hit", 5))),
+    PackDef("mount-mixed", "mount", "Mixed shift",
+            f"30 x 3 with early-shutoff and hard-joint rundowns. {NOTE}", 30,
+            (("early_shutoff", 6), ("hard_joint", 6))),
+)}
+
+
+def pack_spec(pack_id: str) -> dict:
+    return dict(JOINTS[PACKS[pack_id].joint].spec) if PACKS[pack_id].joint != "wheel-hub" else dict(SAMPLE_SPEC)
+
+
+def _joint_pack(d: PackDef, seed: int) -> pd.DataFrame:
+    j = JOINTS[d.joint]
+    rng = np.random.default_rng([seed, 100 + list(PACKS).index(d.id)])
+    n = d.assemblies * j.bolts
+    labels = None
+    if d.counts:
+        seeded = [p for p, c in d.counts for _ in range(c)]
+        labels = [None] * n
+        for pos, pat in zip(rng.choice(n, len(seeded), replace=False), seeded):
+            labels[pos] = pat
+    if d.drift:
+        share = np.arange(d.assemblies) / d.assemblies
+        slopes = np.interp(share, [0.4, 0.8], [REF_SLOPE, 1.25])
+        cut = int(d.assemblies * d.drift_label_from)
+        onset = int(d.assemblies * 0.4)
+
+        def tag(k):      # between onset and the labelled drift the slope moves too little to call
+            return "washer_drift" if k >= cut else "drift_onset" if k >= onset else "normal"
+        return _normal_pack(rng, "A", d.assemblies, slope_for=lambda k: float(slopes[k]), joint=j,
+                            tag_for=tag)
+    return _normal_pack(rng, "A", d.assemblies, labels=labels, joint=j)
+
+
+PACK_META = {pid: (d.name, d.description) for pid, d in PACKS.items()}
 
 
 def _write_csv(df: pd.DataFrame, path: Path) -> None:
@@ -281,14 +429,15 @@ def write_samples(out_dir: Path, seed: int = 7) -> None:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     meta = []
-    ref = make_reference(seed)
-    for pid in PACK_IDS:
+    refs = {jid: make_reference(seed, joint=jid) for jid in JOINTS}
+    for pid, d in PACKS.items():
         df = make_pack(pid, seed)
         _write_csv(df, out_dir / f"{pid}.csv")
-        _write_csv(ref, out_dir / f"{pid}-reference.csv")
-        name, desc = PACK_META[pid]
-        meta.append({"id": pid, "name": name, "description": desc,
-                     "rundowns": int(df["rundown_id"].nunique()), "spec": SAMPLE_SPEC})
+        _write_csv(refs[d.joint], out_dir / f"{pid}-reference.csv")
+        j = JOINTS[d.joint]
+        meta.append({"id": pid, "joint": j.id, "joint_name": f"{j.name} {j.thread}", "bolts": j.bolts,
+                     "name": d.name, "description": d.description,
+                     "rundowns": int(df["rundown_id"].nunique()), "spec": pack_spec(pid)})
     (out_dir / "packs.json").write_text(json.dumps(meta, indent=2) + "\n")
 
 

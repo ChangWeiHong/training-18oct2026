@@ -25,12 +25,22 @@ def test_samples_list():
     r = client.get("/api/samples")
     assert r.status_code == 200
     packs = r.json()
-    assert [p["id"] for p in packs] == ["clean", "mixed", "drift", "hard"]
+    assert [p["id"] for p in packs][:4] == ["clean", "mixed", "drift", "hard"]
+    assert {p["joint"] for p in packs} == {"wheel-hub", "caliper", "subframe", "seatbelt", "mount"}
     assert packs[0]["csv_url"] == "/api/samples/clean.csv"
     assert packs[0]["reference_url"] == "/api/samples/clean-reference.csv"
     assert client.get(packs[1]["csv_url"]).status_code == 200
     assert client.get(packs[1]["reference_url"]).status_code == 200
     assert client.get("/api/samples/nope.csv").status_code == 404
+
+
+def test_every_pack_analyses_with_its_own_spec():
+    for p in client.get("/api/samples").json():
+        r = client.post("/api/analyse", json={"sample_id": p["id"]})
+        assert r.status_code == 200, p["id"]
+        body = r.json()
+        assert body["spec"] == p["spec"]
+        assert body["reference"]["rundowns"] == 120 or p["id"] == "hard"
 
 
 def test_analyse_by_sample_id():
