@@ -22,10 +22,12 @@ export function jointPose(curve, cursor, snugAngle, opts = {}) {
   const angle = curve?.angle?.[i] ?? 0;
   const torque = curve?.torque?.[i] ?? 0;
   const rotationRad = (angle * Math.PI) / 180;
-  if (snugAngle == null) return { rotationRad, travel: 0, compression: 0, angle, torque };
+  if (snugAngle == null) return { rotationRad, travel: 0, gap: 0, compression: 0, angle, torque };
   const travel = travelAt(angle, snugAngle, pitch, exaggeration);
+  // R15: visual gap fraction, 1 at angle 0 shrinking linearly with travel to 0 at snug. The scene scales it.
+  const gap = snugAngle > 0 ? 1 - clamp(angle, 0, snugAngle) / snugAngle : 0;
   const compression = angle > snugAngle && torqueMax > 0 ? clamp(torque / torqueMax, 0, 1) * maxCompression : 0;
-  return { rotationRad, travel, compression, angle, torque };
+  return { rotationRad, travel, gap, compression, angle, torque };
 }
 
 /**

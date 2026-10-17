@@ -55,7 +55,8 @@ export default function Overlay({ selected, pose, torqueMax, spec, preset, onPre
           {slots.map(({ slot, rundown, kind }) => (
             <li key={rundown.id}>
               <button type="button" className={`slot-chip slot-chip-${kind}`} aria-pressed={rundown.id === selectedId} aria-label={`Bolt ${slot + 1}, ${KIND_LABEL[kind]}`} onClick={() => onSelect(rundown.id)}>
-                <span aria-hidden="true">{slot + 1}{kind === 'cant_assess' ? '?' : ''}</span>
+                <span aria-hidden="true" className="chip-num">{slot + 1}</span>
+                <span aria-hidden="true" className="chip-glyph"><StatusMark kind={kind} /></span>
               </button>
             </li>
           ))}
@@ -71,7 +72,7 @@ export default function Overlay({ selected, pose, torqueMax, spec, preset, onPre
         <div className="joint-legend-wrap">
           <ul className="joint-legend" aria-label="Head ring colours">
             {KINDS.map((k) => (
-              <li key={k}><i className={`sw sw-${k}`} aria-hidden="true">{k === 'cant_assess' ? '?' : ''}</i>{KIND_LABEL[k]}</li>
+              <li key={k}><StatusMark kind={k} /></li>
             ))}
           </ul>
           <p className="joint-caption">Rotation: measured. Travel and compression: illustrative.</p>
