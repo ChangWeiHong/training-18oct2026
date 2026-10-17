@@ -2,7 +2,8 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import Toolbar from './components/Toolbar.jsx';
 import CountStrip from './components/CountStrip.jsx';
 import Ledger from './components/Ledger.jsx';
-import StatusMark from './components/StatusMark.jsx';
+import TorqueGraph from './components/TorqueGraph.jsx';
+import EvidencePanel from './components/EvidencePanel.jsx';
 import { initialState, selectionReducer, selectedRundown, parseSpecInputs, specToInputs, SAMPLE_SPEC, EMPTY_SPEC } from './state.js';
 import { listSamples, analyseSample, analyseUpload } from './api.js';
 
@@ -15,6 +16,7 @@ export default function App() {
   const [specInputs, setSpecInputs] = useState({ ...EMPTY_SPEC });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [mode, setMode] = useState('absolute');
   const ticket = useRef(0);
 
   const run = useCallback(async (job) => {
@@ -107,19 +109,21 @@ export default function App() {
       <main className="main">
         <CountStrip result={state.result} />
 
-        {/* Task 7 (graph), Task 8 (3D joint) and Task 9 (evidence, playback, layout) fill these slots. */}
+        {/* Task 8 (3D joint) and Task 9 (playback, layout) fill the remaining slots. */}
         <section className="workspace" aria-label="Workspace">
           <div className="workspace-left">
             <div className="slot slot-graph" data-slot="graph">
-              <p className="slot-empty">{selected ? `Torque graph for ${selected.id} goes here.` : 'Load a pack to see its curves.'}</p>
+              <TorqueGraph
+                result={state.result}
+                selected={selected}
+                cursor={state.cursor}
+                mode={mode}
+                onMode={setMode}
+                onCursor={(i) => dispatch({ type: 'SET_CURSOR', i })}
+              />
             </div>
             <aside className="slot slot-evidence" data-slot="evidence" aria-label="Evidence">
-              {selected ? (
-                <div className="slot-selected">
-                  <p className="slot-id">{selected.id}</p>
-                  <p><StatusMark kind={selected.signature} /></p>
-                </div>
-              ) : null}
+              <EvidencePanel selected={selected} />
             </aside>
           </div>
           <div className="slot slot-3d" data-slot="3d">
