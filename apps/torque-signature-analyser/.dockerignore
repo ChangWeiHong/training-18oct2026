@@ -8,3 +8,8 @@ web/tests
 docs/screenshots
 docs/codex-reviews
 .pytest_cache
+.env*
+*.pem
+*.key
+*credentials*.json
+*service-account*.json

@@ -1,0 +1,76 @@
+- generic [ref=f46e3]:
+  - banner [ref=f46e4]:
+    - generic [ref=f46e5]:
+      - generic [ref=f46e6]:
+        - generic [ref=f46e7]: Torque Signature
+        - generic [ref=f46e8]: Analyser
+      - generic [ref=f46e9]:
+        - generic [ref=f46e10]: Sample pack
+        - combobox "Sample pack" [ref=f46e11]:
+          - option "Clean shift"
+          - option "Mixed shift" [selected]
+          - option "Gradual drift"
+          - option "Hard cases"
+      - generic [ref=f46e12]:
+        - button "Upload readings" [ref=f46e13] [cursor=pointer]
+        - button "Upload reference" [ref=f46e18] [cursor=pointer]
+        - link "Template" [ref=f46e23] [cursor=pointer]:
+          - /url: /api/template.csv
+        - button "About" [ref=f46e28] [cursor=pointer]
+    - group "Specification" [ref=f46e32]:
+      - generic [ref=f46e33]: Spec
+      - generic [ref=f46e34]:
+        - generic [ref=f46e35]: Torque min
+        - textbox "Torque min Nm" [ref=f46e36]:
+          - /placeholder: none
+          - text: "99"
+        - generic [ref=f46e37]: Nm
+      - generic [ref=f46e38]:
+        - generic [ref=f46e39]: Torque max
+        - textbox "Torque max Nm" [ref=f46e40]:
+          - /placeholder: none
+          - text: "121"
+        - generic [ref=f46e41]: Nm
+      - generic [ref=f46e42]:
+        - generic [ref=f46e43]: Post-snug min
+        - textbox "Post-snug min °" [ref=f46e44]:
+          - /placeholder: none
+          - text: "20"
+        - generic [ref=f46e45]: °
+      - generic [ref=f46e46]:
+        - generic [ref=f46e47]: Post-snug max
+        - textbox "Post-snug max °" [ref=f46e48]:
+          - /placeholder: none
+          - text: "60"
+        - generic [ref=f46e49]: °
+      - generic [ref=f46e50]:
+        - generic [ref=f46e51]: Snug
+        - textbox "Snug Nm" [ref=f46e52]:
+          - /placeholder: none
+          - text: "30"
+        - generic [ref=f46e53]: Nm
+      - button "Use sample spec (M12)" [ref=f46e54] [cursor=pointer]
+      - button "Re-run" [disabled] [ref=f46e55]
+      - status [ref=f46e60]: Analysing
+  - main [ref=f46e61]:
+    - region "Workspace" [ref=f46e63]:
+      - generic [ref=f46e64]:
+        - paragraph [ref=f46e67]: Load a pack to see its curves.
+        - complementary "Evidence" [ref=f46e68]:
+          - paragraph [ref=f46e69]: Select a rundown to see why it was flagged.
+      - note [ref=f46e71]: 3D view needs WebGL. The graph, evidence and ledger still work.
+      - group "Playback" [ref=f46e73]:
+        - generic [ref=f46e74]:
+          - button "Play" [disabled] [ref=f46e75]
+          - group "Step" [ref=f46e79]:
+            - button "Back 10 samples" [disabled] [ref=f46e80]
+            - button "Back 1 sample" [disabled] [ref=f46e83]
+            - button "Forward 1 sample" [disabled] [ref=f46e86]
+            - button "Forward 10 samples" [disabled] [ref=f46e89]
+          - group "Speed" [ref=f46e92]:
+            - button "0.25x" [ref=f46e93] [cursor=pointer]
+            - button "0.5x" [ref=f46e94] [cursor=pointer]
+            - button "1x" [pressed] [ref=f46e95] [cursor=pointer]
+            - button "2x" [ref=f46e96] [cursor=pointer]
+            - button "4x" [ref=f46e97] [cursor=pointer]
+        - paragraph [ref=f46e98]: Load a pack to play a rundown.

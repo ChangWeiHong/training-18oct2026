@@ -1,0 +1,68 @@
+- generic [ref=f40e3]:
+  - banner [ref=f40e4]:
+    - generic [ref=f40e5]:
+      - generic [ref=f40e6]:
+        - generic [ref=f40e7]: Torque Signature
+        - generic [ref=f40e8]: Analyser
+      - generic [ref=f40e9]:
+        - generic [ref=f40e10]: Sample pack
+        - combobox "Sample pack" [disabled] [ref=f40e11]:
+          - option "Upload in use" [selected]
+      - generic [ref=f40e12]:
+        - button "Upload readings" [ref=f40e13] [cursor=pointer]
+        - button "Upload reference" [ref=f40e18] [cursor=pointer]
+        - link "Template" [ref=f40e23] [cursor=pointer]:
+          - /url: /api/template.csv
+        - button "About" [ref=f40e28] [cursor=pointer]
+    - group "Specification" [ref=f40e32]:
+      - generic [ref=f40e33]: Spec
+      - generic [ref=f40e34]:
+        - generic [ref=f40e35]: Torque min
+        - textbox "Torque min Nm" [ref=f40e36]:
+          - /placeholder: none
+        - generic [ref=f40e37]: Nm
+      - generic [ref=f40e38]:
+        - generic [ref=f40e39]: Torque max
+        - textbox "Torque max Nm" [ref=f40e40]:
+          - /placeholder: none
+        - generic [ref=f40e41]: Nm
+      - generic [ref=f40e42]:
+        - generic [ref=f40e43]: Post-snug min
+        - textbox "Post-snug min °" [ref=f40e44]:
+          - /placeholder: none
+        - generic [ref=f40e45]: °
+      - generic [ref=f40e46]:
+        - generic [ref=f40e47]: Post-snug max
+        - textbox "Post-snug max °" [ref=f40e48]:
+          - /placeholder: none
+        - generic [ref=f40e49]: °
+      - generic [ref=f40e50]:
+        - generic [ref=f40e51]: Snug
+        - textbox "Snug Nm" [ref=f40e52]:
+          - /placeholder: none
+        - generic [ref=f40e53]: Nm
+      - button "Use sample spec (M12)" [ref=f40e54] [cursor=pointer]
+      - button "Re-run" [disabled] [ref=f40e55]
+      - status
+  - main [ref=f40e60]:
+    - region "Workspace" [ref=f40e62]:
+      - generic [ref=f40e63]:
+        - paragraph [ref=f40e66]: Load a pack to see its curves.
+        - complementary "Evidence" [ref=f40e67]:
+          - paragraph [ref=f40e68]: Select a rundown to see why it was flagged.
+      - paragraph [ref=f40e70]: Loading 3D view.
+      - group "Playback" [ref=f40e72]:
+        - generic [ref=f40e73]:
+          - button "Play" [disabled] [ref=f40e74]
+          - group "Step" [ref=f40e78]:
+            - button "Back 10 samples" [disabled] [ref=f40e79]
+            - button "Back 1 sample" [disabled] [ref=f40e82]
+            - button "Forward 1 sample" [disabled] [ref=f40e85]
+            - button "Forward 10 samples" [disabled] [ref=f40e88]
+          - group "Speed" [ref=f40e91]:
+            - button "0.25x" [ref=f40e92] [cursor=pointer]
+            - button "0.5x" [ref=f40e93] [cursor=pointer]
+            - button "1x" [pressed] [ref=f40e94] [cursor=pointer]
+            - button "2x" [ref=f40e95] [cursor=pointer]
+            - button "4x" [ref=f40e96] [cursor=pointer]
+        - paragraph [ref=f40e97]: Load a pack to play a rundown.
