@@ -47,7 +47,7 @@ hub/                       index page and short-link redirects
 training-cheatsheet/       single-page prompt worksheet
 ```
 
-Each app has its own Dockerfile and deploys on its own with `gcloud run deploy --source .` from its folder.
+Each app has its own Dockerfile and deploys on its own with `gcloud run deploy --source .` from its folder. Full steps: [`DEPLOY.md`](DEPLOY.md).
 
 ## Design references
 

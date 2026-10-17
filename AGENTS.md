@@ -1,6 +1,6 @@
 # awantec
 
-Training apps, each deployed on its own to Cloud Run in GCP project `marii-ge`, region `asia-southeast1`. Per-app deploy notes live in each app's folder.
+Training apps, each deployed on its own to Cloud Run in GCP project `marii-ge`, region `asia-southeast1`. Deploy guide for every app: [`DEPLOY.md`](DEPLOY.md). Per-app notes live in each app's folder.
 
 ## Rule: register every deploy in the hub
 
