@@ -25,3 +25,8 @@ test('cant-assess text uses the reason from the API', () => {
   assert.equal(cantAssessText({ cant_assess_reason: 'Reference too small to compare.' }), 'Reference too small to compare.');
   assert.equal(cantAssessText({}), 'Not enough of the curve to compare.');
 });
+
+test('past-reference evidence has no reference range', () => {
+  assert.equal(evidenceLine({ feature: 'rotation_past_reference', label: 'Rotation past the reference curve', value: 40, unit: '°', ref_lo: 0, ref_hi: 0 }),
+    'Rotation past the reference curve: 40°.');
+});
