@@ -256,3 +256,53 @@ def test_busy_server_returns_503_when_two_analyses_running(monkeypatch):
     assert busy.json() == {"error": "Server busy.", "row": None, "column": None,
                            "fix": "Try again in a few seconds."}
     assert [d.status_code for d in done] == [200, 200]
+
+
+@pytest.mark.parametrize("key,value", [
+    ("snug_torque_nm", 0), ("torque_min_nm", 0), ("torque_max_nm", -5),
+    ("angle_max_deg", 0), ("angle_min_deg", -1),
+])
+def test_spec_values_must_be_positive(key, value):
+    spec = {"torque_min_nm": 10, "torque_max_nm": 100, "angle_min_deg": 0,
+            "angle_max_deg": 90, "snug_torque_nm": 5, key: value}
+    r = client.post("/api/analyse", json={"sample_id": "clean", "spec": spec})
+    assert r.status_code == 400
+    assert key in r.json()["error"] and r.json()["column"] == key
+
+
+def test_angle_min_zero_is_allowed():
+    spec = {"torque_min_nm": 10, "torque_max_nm": 100, "angle_min_deg": 0,
+            "angle_max_deg": 90, "snug_torque_nm": 5}
+    assert client.post("/api/analyse", json={"sample_id": "clean", "spec": spec}).status_code == 200
+
+
+def test_slow_body_upload_does_not_hold_an_analysis_slot(monkeypatch):
+    import asyncio
+
+    import httpx
+    from starlette.requests import Request
+
+    import api.main as m
+
+    monkeypatch.setattr(m, "MAX_CONCURRENT_ANALYSES", 1)
+    monkeypatch.setattr(m, "ADMIT_TIMEOUT_S", 0.3)
+    started, gate = asyncio.Event(), asyncio.Event()
+
+    async def slow_form(self, *a, **k):
+        started.set()
+        await gate.wait()
+        raise m.ApiError(400, "stalled", "retry")
+
+    monkeypatch.setattr(Request, "form", slow_form)
+
+    async def run():
+        transport = httpx.ASGITransport(app=m.create_app(None))
+        async with httpx.AsyncClient(transport=transport, base_url="http://t") as c:
+            stuck = asyncio.create_task(c.post("/api/analyse", files={"readings": ("c.csv", b"x")}))
+            await started.wait()
+            ok = await c.post("/api/analyse", json={"sample_id": "clean"})
+            gate.set()
+            await stuck
+            return ok
+
+    assert asyncio.run(run()).status_code == 200

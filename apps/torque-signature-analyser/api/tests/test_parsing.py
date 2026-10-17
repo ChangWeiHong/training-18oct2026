@@ -155,3 +155,14 @@ def test_wide_duplicate_header_is_fast_and_reported():
 def test_unknown_columns_not_parsed():
     df = parse_readings(b"rundown_id,angle_deg,torque_nm,junk\na,0,1,x\na,1,2,y\na,2,3,z\n")
     assert "junk" not in df.columns
+
+
+def test_leading_blank_line_does_not_hide_header_checks():
+    wide = ",".join(REQ + [f"x{i}" for i in range(62)])  # 65 columns
+    with pytest.raises(ParseError) as e:
+        parse_readings(("\n" + wide + "\na,0,1\n").encode())
+    assert "65 columns" in e.value.message
+    dup = "rundown_id,angle_deg,torque_nm,Angle_Deg"
+    with pytest.raises(ParseError) as e:
+        parse_readings(("\n  \n" + dup + "\na,0,1,2\n").encode())
+    assert e.value.column == "angle_deg"

@@ -119,6 +119,9 @@ def _parse_spec(raw) -> dict | None:
         v = raw.get(k)
         if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
             raise ApiError(400, f"Spec value '{k}' is missing or not a number.", fix, column=k)
+        if v < 0 or (v == 0 and k != "angle_min_deg"):
+            need = "zero or more" if k == "angle_min_deg" else "above zero"
+            raise ApiError(400, f"Spec value '{k}' must be {need}.", fix, column=k)
         out[k] = float(v)
     if out["torque_min_nm"] >= out["torque_max_nm"]:
         raise ApiError(400, "Spec torque minimum must be below the maximum.", fix)
@@ -188,18 +191,26 @@ def create_app(dist: Path | None = DEFAULT_DIST) -> FastAPI:
 
     @app.post("/api/analyse")
     async def analyse_endpoint(request: Request):
+        # Read and size-check the whole request first, so a slow uploader holds no slot.
+        load = await _collect(request)
         try:
             await asyncio.wait_for(admission.acquire(), ADMIT_TIMEOUT_S)
         except asyncio.TimeoutError:
             raise ApiError(503, "Server busy.", "Try again in a few seconds.")
         try:
-            return await _analyse(request)
+            readings, reference, spec, reference_source = await load()
+            try:
+                return await run_in_threadpool(analyse, readings, reference, spec, reference_source)
+            except Exception:
+                log.exception("analyse failed")
+                raise ApiError(500, "Analysis failed. Check the file matches the template.",
+                               "Download the template CSV and compare your columns and values.")
         finally:
             admission.release()
 
-    async def _analyse(request: Request):
+    async def _collect(request: Request):
+        """Read the request body. Returns an async loader that parses it into frames."""
         ctype = request.headers.get("content-type", "")
-        reference_source = None
         if ctype.startswith("application/json"):
             try:
                 body = await request.json()
@@ -208,13 +219,16 @@ def create_app(dist: Path | None = DEFAULT_DIST) -> FastAPI:
             if not isinstance(body, dict) or "sample_id" not in body:
                 raise ApiError(400, "sample_id is required.", "Send {\"sample_id\": \"clean\"}.")
             pack = _pack(body["sample_id"])
-            readings, reference = _sample_frames(pack["id"])
             if "spec" not in body:
                 spec = pack["spec"]  # key left out: the pack's own spec
             else:
                 spec = _parse_spec(body["spec"])  # explicit null: no spec
-            reference_source = "sample"
-        elif ctype.startswith("multipart/form-data"):
+
+            async def load_sample():
+                readings, reference = _sample_frames(pack["id"])
+                return readings, reference, spec, "sample"
+            return load_sample
+        if ctype.startswith("multipart/form-data"):
             try:
                 length = int(request.headers.get("content-length", "0"))
             except ValueError:
@@ -227,22 +241,21 @@ def create_app(dist: Path | None = DEFAULT_DIST) -> FastAPI:
                 raise ApiError(400, "No readings file was uploaded.",
                                "Attach a CSV in the 'readings' field.")
             spec = _parse_spec(form.get("spec"))
-            readings = await _parse_upload(await _read_upload(up, "Readings file"), False)
-            reference = None
+            data = await _read_upload(up, "Readings file")
+            ref_data = None
             if hasattr(ref_up, "read"):
-                data = await _read_upload(ref_up, "Reference file")
-                if data.strip():
-                    reference = await _parse_upload(data, True)
-                    reference_source = "supplied"
-        else:
-            raise ApiError(400, "Unsupported request type.",
-                           "Send JSON with sample_id, or multipart with a readings file.")
-        try:
-            return await run_in_threadpool(analyse, readings, reference, spec, reference_source)
-        except Exception:
-            log.exception("analyse failed")
-            raise ApiError(500, "Analysis failed. Check the file matches the template.",
-                           "Download the template CSV and compare your columns and values.")
+                ref_data = await _read_upload(ref_up, "Reference file")
+
+            async def load_upload():
+                readings = await _parse_upload(data, False)
+                reference = source = None
+                if ref_data is not None and ref_data.strip():
+                    reference = await _parse_upload(ref_data, True)
+                    source = "supplied"
+                return readings, reference, spec, source
+            return load_upload
+        raise ApiError(400, "Unsupported request type.",
+                       "Send JSON with sample_id, or multipart with a readings file.")
 
     @app.api_route("/api/{rest:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
                    include_in_schema=False)

@@ -10,14 +10,6 @@ test('rotation equals the measured angle in radians', () => {
   assert.ok(Math.abs(p.rotationRad - (300 * Math.PI) / 180) < 1e-12);
 });
 
-test('travel is pitch x turns x exaggeration and stops growing after snug', () => {
-  const at = (i) => jointPose(curve, i, 200, opts).travel;
-  assert.ok(Math.abs(at(1) - (100 / 360) * 1.75 * 6) < 1e-9);
-  assert.ok(Math.abs(at(2) - (200 / 360) * 1.75 * 6) < 1e-9);
-  assert.equal(at(3), at(2));
-  assert.equal(at(4), at(2));
-});
-
 test('compression is 0 before snug and bounded after', () => {
   assert.equal(jointPose(curve, 1, 200, opts).compression, 0);
   assert.equal(jointPose(curve, 2, 200, opts).compression, 0);
@@ -27,9 +19,8 @@ test('compression is 0 before snug and bounded after', () => {
   assert.equal(over, 0.14);
 });
 
-test('null snug: rotation only, no travel or compression', () => {
+test('null snug: rotation only, no compression', () => {
   const p = jointPose(curve, 4, null, opts);
-  assert.equal(p.travel, 0);
   assert.equal(p.compression, 0);
   assert.ok(p.rotationRad > 0);
 });

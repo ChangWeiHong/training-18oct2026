@@ -307,8 +307,6 @@ def _score(runs: list[Run], ref: Ref, spec: dict | None) -> list[dict]:
             reason = "No snug point or slope."
         elif not ref_ok:
             reason = "Reference too small to compare."
-        elif r.k is None:
-            reason = "No snug point or slope."
         elif _overlap(r, p50, cov := _covered(r, p50)) < MIN_OVERLAP:
             past = _past_reference(r, p50, cov)
             if past is None:
@@ -378,9 +376,11 @@ def analyse(readings: pd.DataFrame, reference: pd.DataFrame | None, spec: dict |
         source = reference_source or "supplied"
         ref = _fit(_prep(reference, snug_nm))
         items = _score(runs, ref, spec)
+        no_snug, no_snug_of = ref.no_snug, ref.n
     else:
         source = "within-upload"
         ref = _fit(runs)
+        no_snug, no_snug_of = ref.no_snug, ref.n     # counted on the first fit; the refit drops them
         items = _score(runs, ref, spec)
         keep = [it["run"] for it in items
                 if it["signature"] == "typical" and it["spec_result"] != "outside"]
@@ -394,8 +394,8 @@ def analyse(readings: pd.DataFrame, reference: pd.DataFrame | None, spec: dict |
     warnings = []
     if n_cant:
         warnings.append(f"{n_cant} rundown(s) can't be assessed. See each rundown for the reason.")
-    if ref.no_snug:
-        warnings.append(f"Reference: {ref.no_snug} of {ref.n} rundowns had no snug point "
+    if no_snug:
+        warnings.append(f"Reference: {no_snug} of {no_snug_of} rundowns had no snug point "
                         "and were left out.")
     if ref.usable < MIN_REF_USABLE:
         warnings.append(f"Reference too small to compare signatures ({ref.usable} usable).")

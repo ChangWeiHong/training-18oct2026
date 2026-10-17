@@ -1,8 +1,7 @@
 import { ChevronUp, ChevronDown, RotateCcw, RotateCw, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
-import StatusMark from '../components/StatusMark.jsx';
+import StatusMark, { STATUS_LABELS as KIND_LABEL } from '../components/StatusMark.jsx';
 
 const KINDS = ['typical', 'investigate', 'outside', 'cant_assess'];
-const KIND_LABEL = { typical: 'typical', investigate: 'worth investigating', outside: 'outside spec', cant_assess: "can't assess" };
 
 function arcPath(cx, cy, r, from, to) {
   const p = (a) => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
