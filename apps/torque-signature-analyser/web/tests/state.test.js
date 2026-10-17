@@ -82,3 +82,20 @@ test('sortRundowns by signature puts investigate first, rank breaks ties', () =>
 test('incomplete spec sorts between outside and within', () => {
   assert.ok(SPEC_ORDER.outside < SPEC_ORDER.incomplete && SPEC_ORDER.incomplete < SPEC_ORDER.within);
 });
+
+test('LOAD_RESULT selects the lowest rank, not the first row', () => {
+  const rows = [{ ...rd('B', 4), rank: 3 }, { ...rd('A', 4), rank: 1 }, { ...rd('C', 4), rank: 2 }];
+  const s = selectionReducer(initialState, { type: 'LOAD_RESULT', result: { rundowns: rows } });
+  assert.equal(s.selectedId, 'A');
+});
+
+test('PLAY on the last sample restarts from the first', () => {
+  let s = selectionReducer(initialState, { type: 'LOAD_RESULT', result });
+  s = selectionReducer(s, { type: 'SET_CURSOR', i: 4 });
+  s = selectionReducer(s, { type: 'PLAY' });
+  assert.equal(s.cursor, 0);
+  assert.equal(s.playing, true);
+  s = selectionReducer(s, { type: 'SET_CURSOR', i: 2 });
+  s = selectionReducer(selectionReducer(s, { type: 'PAUSE' }), { type: 'PLAY' });
+  assert.equal(s.cursor, 2);
+});

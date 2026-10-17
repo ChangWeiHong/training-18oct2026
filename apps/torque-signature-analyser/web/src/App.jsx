@@ -4,6 +4,10 @@ import CountStrip from './components/CountStrip.jsx';
 import Ledger from './components/Ledger.jsx';
 import TorqueGraph from './components/TorqueGraph.jsx';
 import EvidencePanel from './components/EvidencePanel.jsx';
+import PlaybackBar from './components/PlaybackBar.jsx';
+import About from './components/About.jsx';
+import usePlayback from './usePlayback.js';
+import { inputsSnapshot, isStale } from './stale.js';
 import SceneBoundary from './scene/SceneBoundary.jsx';
 import { initialState, selectionReducer, selectedRundown, parseSpecInputs, specToInputs, SAMPLE_SPEC, EMPTY_SPEC } from './state.js';
 import { listSamples, analyseSample, analyseUpload } from './api.js';
@@ -20,15 +24,23 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [mode, setMode] = useState('absolute');
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const [computedFrom, setComputedFrom] = useState(null);
   const ticket = useRef(0);
 
-  const run = useCallback(async (job) => {
+  usePlayback(state, dispatch);
+
+  // `snap` records which inputs the result is computed from.
+  const run = useCallback(async (job, snap) => {
     const mine = ++ticket.current;
     setBusy(true);
     setError(null);
     try {
       const result = await job();
-      if (mine === ticket.current) dispatch({ type: 'LOAD_RESULT', result });
+      if (mine === ticket.current) {
+        dispatch({ type: 'LOAD_RESULT', result });
+        setComputedFrom(snap);
+      }
     } catch (e) {
       if (mine === ticket.current) setError(e?.error ? e : { error: 'Something went wrong.', fix: 'Try again.' });
     } finally {
@@ -40,8 +52,9 @@ export default function App() {
     setSampleId(id);
     setReadingsFile(null);
     setReferenceFile(null);
-    setSpecInputs(specToInputs(pack?.spec));
-    run(() => analyseSample(id));
+    const inputs = specToInputs(pack?.spec);
+    setSpecInputs(inputs);
+    run(() => analyseSample(id), inputsSnapshot({ sampleId: id, readingsFile: null, referenceFile: null, specInputs: inputs }));
   }, [run]);
 
   // Boot: list packs, load "mixed".
@@ -61,9 +74,11 @@ export default function App() {
   const parsed = parseSpecInputs(specInputs);
   const specNote = parsed === 'partial' ? 'Fill all five spec values, or clear them all, then press Re-run.' : null;
 
-  const runUpload = (readings, reference) => {
-    if (parsed === 'partial') return;
-    run(() => analyseUpload(readings, reference, parsed));
+  const snapFor = (over) => inputsSnapshot({ sampleId, readingsFile, referenceFile, specInputs, ...over });
+
+  const runUpload = (readings, reference, spec, inputs = specInputs) => {
+    run(() => analyseUpload(readings, reference, spec),
+      inputsSnapshot({ sampleId: null, readingsFile: readings, referenceFile: reference, specInputs: inputs }));
   };
 
   const onReadings = (f) => {
@@ -73,17 +88,25 @@ export default function App() {
     setSampleId(null);
     if (fromSample) setSpecInputs({ ...EMPTY_SPEC });
     const spec = fromSample ? null : parsed;
-    if (spec !== 'partial') run(() => analyseUpload(f, referenceFile, spec));
+    if (spec !== 'partial') runUpload(f, referenceFile, spec, fromSample ? { ...EMPTY_SPEC } : specInputs);
   };
   const onReference = (f) => {
     setReferenceFile(f);
-    if (readingsFile) runUpload(readingsFile, f);
+    if (readingsFile && parsed !== 'partial') runUpload(readingsFile, f, parsed);
   };
   const onRerun = () => {
     if (parsed === 'partial') return;
-    if (readingsFile) runUpload(readingsFile, referenceFile);
-    else if (sampleId) run(() => analyseSample(sampleId, parsed));
+    if (readingsFile) runUpload(readingsFile, referenceFile, parsed);
+    else if (sampleId) run(() => analyseSample(sampleId, parsed), snapFor({}));
   };
+
+  const stale = isStale({
+    hasResult: Boolean(state.result),
+    computedFrom,
+    current: snapFor({}),
+    failed: Boolean(error),
+  });
+  const referenceNote = referenceFile && !readingsFile && sampleId != null ? 'Upload readings to use this reference.' : null;
 
   const rundowns = state.result?.rundowns ?? [];
   const selected = selectedRundown(state);
@@ -111,12 +134,20 @@ export default function App() {
         busy={busy}
         error={error}
         specNote={specNote}
+        referenceNote={referenceNote}
+        onAbout={() => setAboutOpen(true)}
       />
+      <About open={aboutOpen} onClose={() => setAboutOpen(false)} />
 
       <main className="main">
+        {stale && (
+          <p className="stale-note" role="status">
+            {busy ? 'Out of date: updating.' : 'Out of date: press Re-run.'}
+          </p>
+        )}
+        <div className={stale ? 'results is-stale' : 'results'} aria-busy={busy || undefined}>
         <CountStrip result={state.result} />
 
-        {/* Task 8 (3D joint) and Task 9 (playback, layout) fill the remaining slots. */}
         <section className="workspace" aria-label="Workspace">
           <div className="workspace-left">
             <div className="slot slot-graph" data-slot="graph">
@@ -146,13 +177,14 @@ export default function App() {
             </SceneBoundary>
           </div>
           <div className="slot slot-playback" data-slot="playback">
-            <p className="slot-empty">Playback bar goes here.</p>
+            <PlaybackBar selected={selected} cursor={state.cursor} playing={state.playing} speed={state.speed} dispatch={dispatch} />
           </div>
         </section>
 
         {rundowns.length > 0 && (
           <Ledger rundowns={rundowns} selectedId={state.selectedId} onSelect={(id) => dispatch({ type: 'SELECT', rundownId: id })} />
         )}
+        </div>
       </main>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Upload, RotateCw, Download } from 'lucide-react';
+import { Upload, RotateCw, Download, Info } from 'lucide-react';
 import { SPEC_FIELDS } from '../state.js';
 import { TEMPLATE_URL } from '../api.js';
 
@@ -7,7 +7,7 @@ export default function Toolbar({
   samples, sampleId, onPickSample,
   readingsFile, referenceFile, onReadings, onReference,
   specInputs, onSpecChange, onUseSampleSpec,
-  onRerun, canRerun, busy, error, specNote,
+  onRerun, canRerun, busy, error, specNote, referenceNote, onAbout,
 }) {
   const readingsRef = useRef(null);
   const referenceRef = useRef(null);
@@ -57,6 +57,10 @@ export default function Toolbar({
             <Download size={14} aria-hidden="true" />
             <span>Template</span>
           </a>
+          <button type="button" className="btn" onClick={onAbout}>
+            <Info size={14} aria-hidden="true" />
+            <span>About</span>
+          </button>
         </div>
       </div>
 
@@ -92,6 +96,7 @@ export default function Toolbar({
       </div>
 
       {specNote && <p className="note-line">{specNote}</p>}
+      {referenceNote && <p className="note-line">{referenceNote}</p>}
 
       {error && (
         <div className="error" role="alert">
