@@ -22,5 +22,11 @@
     "name": "Asset Maintenance Priority Triage",
     "summary": "Switch between sample inspection datasets and see which machines need maintenance first, with the rule behind each rank.",
     "url": "https://air-compressor-argon.ai.studio/"
+  },
+  {
+    "slug": "torque",
+    "name": "Torque Signature Analyser",
+    "summary": "Pick a sample bolt-tightening pack, see which rundowns look unusual against a known-good reference, and replay one in 3D.",
+    "url": "https://torque-signature-analyser-271836949821.asia-southeast1.run.app"
   }
 ]
