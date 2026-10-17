@@ -1,0 +1,95 @@
+# Torque Signature Analyser
+
+A browser tool for reviewing bolt tightening curves. You load a CSV of torque-angle rundowns, and the app compares each one with a reference group, checks it against your spec limits, and flags the ones worth a second look. A 3D flange shows the selected bolt turning as you scrub the cursor along its curve.
+
+All data is synthetic. The app ships four sample shifts and has no database, no login and no external AI calls.
+
+![Analyser workbench at 1440 px](docs/screenshots/final-1440.png)
+
+## Run locally
+
+You need Python 3.13 and Node.js 20+.
+
+```bash
+# API on :8080
+python3 -m venv api/.venv
+api/.venv/bin/pip install -r api/requirements.txt
+api/.venv/bin/uvicorn api.main:app --port 8080 --reload
+
+# Web on :5173, proxies /api to :8080
+cd web
+npm install
+npm run dev
+```
+
+Tests:
+
+```bash
+api/.venv/bin/pytest api/tests -q    # from the app folder
+cd web && npm test
+```
+
+To serve the built app from the API alone, run `npm run build` in `web/`. The API then serves `web/dist` at `/`.
+
+## CSV schema
+
+One row per sample. A header row is required. Column names are not case-sensitive, and `,` or `;` both work as the separator. `GET /api/template.csv` returns a template.
+
+| Column | Required | Meaning |
+|---|---|---|
+| `rundown_id` | yes | Identifies one tightening. Rows with the same ID form one curve |
+| `angle_deg` | yes | Turn angle in degrees, from -360 to 3600 |
+| `torque_nm` | yes | Torque in newton metres |
+| `sample_index` | no | Sample order within the rundown. Rows keep file order if you leave it out |
+| `time_ms` | no | Time since the start of the rundown |
+| `assembly_id` | no | Groups bolts into one assembly. Defaults to `rundown_id` |
+| `bolt_position` | no | Bolt number within the assembly |
+| `seeded_pattern` | no | Answer key in the sample files. The app ignores it when scoring your data |
+
+Limits: 5 MB per file, 500 rundowns, 5000 points per rundown. Bad rows come back with the row, the column and a suggested fix.
+
+You can upload a second file as the reference group. Without one, the app compares rundowns against the rest of the same file.
+
+## How it works
+
+![Pipeline from CSV to flags](docs/how-it-works.svg)
+
+The API finds the snug point on each curve, extracts features (post-snug slope, final torque, angle past snug, shape deviation from the reference median) and scores them with z-scores and an isolation forest. A rundown outside your torque or angle limits is marked outside spec. A rundown inside the limits but unlike the reference is marked for investigation.
+
+## Limits
+
+- The data is synthetic. Real traces from your tool will differ.
+- Checked on 3 held-out synthetic seeds with 3-5 in-spec abnormal rundowns each. That is too few to quote a detection rate.
+- A flag means "worth checking". It is not a confirmed fault.
+- "Typical" means statistically similar to the reference. It does not approve quality.
+- An uploaded reference is assumed good. A shift that moves the whole batch can disappear into the reference.
+- The tool handles continuous-drive traces only.
+
+## Independent reviews
+
+Codex reviewed the code at three checkpoints. The full text is in `docs/codex-reviews/`.
+
+- [Checkpoint 1](docs/codex-reviews/2026-10-17-checkpoint-1.md): 1 Critical and 7 Important findings on the analysis and upload path. All actioned.
+- [Checkpoint 2](docs/codex-reviews/2026-10-17-checkpoint-2.md): 4 Important findings on the 3D scene, covering the WebGL fallback, camera fitting and accessibility.
+- [Checkpoint 3](docs/codex-reviews/2026-10-17-checkpoint-3.md): 13 of 19 earlier findings fixed, 4 partly fixed, 2 deferred as stated.
+
+## Deploy
+
+From this folder, to Cloud Run in project `marii-ge`:
+
+```bash
+gcloud run deploy torque-signature-analyser \
+  --source . \
+  --project marii-ge \
+  --region asia-southeast1 \
+  --allow-unauthenticated
+```
+
+The root `Dockerfile` builds the web bundle in a Node stage, then runs the API on Python 3.13 and serves the bundle. The container listens on `$PORT` (8080). The Vite build caps Node's heap at 700 MB so it fits small Docker VMs. Register the resulting URL in `hub/apps.json`, as described in `/DEPLOY.md`.
+
+Local check:
+
+```bash
+docker build -t torque . && docker run -p 8080:8080 torque
+curl localhost:8080/healthz
+```
