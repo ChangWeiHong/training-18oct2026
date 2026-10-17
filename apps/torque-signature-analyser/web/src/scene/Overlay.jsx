@@ -44,9 +44,10 @@ export function JointStrip() {
   );
 }
 
-export default function Overlay({ selected, pose, torqueMax, spec, preset, onPreset, slots, selectedId, onSelect, note }) {
+/** Selected bolt, preset buttons, bolt chips and notes. Rendered above the canvas, never over the joint. */
+export function JointHeader({ selected, preset, onPreset, slots, selectedId, onSelect, note }) {
   return (
-    <div className="joint-overlay">
+    <div className="joint-header">
       <div className="joint-top">
         <div className="joint-id">
           <span className="mono joint-name">{selected?.id ?? 'No rundown'}</span>
@@ -77,7 +78,14 @@ export default function Overlay({ selected, pose, torqueMax, spec, preset, onPre
         </ul>
       )}
       {note && <p className="joint-note" role="status">{note}</p>}
+    </div>
+  );
+}
 
+/** Small gauge in the bottom-left corner of the canvas. */
+export default function Overlay({ pose, torqueMax, spec }) {
+  return (
+    <div className="joint-overlay">
       <div className="joint-bottom">
         <div className="joint-gauge">
           <Gauge torque={pose.torque} max={torqueMax} spec={spec} />

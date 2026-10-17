@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 
 // Units: 1 = 10 mm. Wheel-hub flange (cast) with a mating plate (steel) clamped on top. Axis = +y.
-export const FLANGE = { baseT: 1.8, topT: 1.4, baseR: 7.2, topR: 6.6, circle: 5.6, holeTop: 0.66, holeBase: 0.58, window: 1.4 };
-export const slotAngle = (slot) => (slot * Math.PI) / 3;
-export const slotPosition = (slot) => new THREE.Vector3(Math.cos(slotAngle(slot)) * FLANGE.circle, 0, Math.sin(slotAngle(slot)) * FLANGE.circle);
+import { FLANGE, slotAngle, slotPosition } from './flangeLayout.js';
+
+export { FLANGE, slotAngle, slotPosition };
 
 const cache = {};
 function plateGeometry(key, outerR, boreR, holeR, depth) {
