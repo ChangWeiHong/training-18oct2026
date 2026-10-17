@@ -198,3 +198,53 @@ def test_cant_assess_reasons():
     assert "1 rundown(s) can't be assessed. See each rundown for the reason." in res["warnings"]
     ok = analyse(_frames([None]), ref, SAMPLE_SPEC)["rundowns"][0]
     assert ok["cant_assess_reason"] is None
+
+
+def _ramp(rid, post, slope=2.2, snug=30.0):
+    """Linear rundown: ramp to the snug torque, then `post` degrees at `slope`."""
+    a = np.arange(0, snug / slope + post + 0.5, 0.5)
+    return pd.DataFrame({"rundown_id": rid, "i": np.arange(len(a)), "angle_deg": a,
+                         "torque_nm": slope * a, "time_ms": np.nan, "assembly_id": rid,
+                         "bolt_position": np.nan, "seeded_pattern": "normal"})
+
+
+def _short_ref(n=40, post=10):
+    return pd.concat([_ramp(f"S{i}", post, slope=2.2 + 0.01 * (i % 5)) for i in range(n)],
+                     ignore_index=True)
+
+
+def test_rotation_past_reference_is_investigate_with_evidence():
+    res = analyse(_ramp("LONG", 100), _short_ref(), None)
+    r = res["rundowns"][0]
+    assert r["signature"] == "investigate" and r["cant_assess_reason"] is None
+    ev = next(e for e in r["evidence"] if e["feature"] == "rotation_past_reference")
+    assert ev["label"] == "Rotation past the reference curve" and ev["unit"] == "°"
+    assert ev["ref_lo"] == 0 and ev["ref_hi"] == 0
+    assert 85 <= ev["value"] <= 92
+    lo, hi = ev["interval"]
+    assert hi > lo and abs(hi - r["curve"]["angle"][-1]) < 1
+
+
+def test_candidate_inside_reference_has_no_past_evidence():
+    res = analyse(_ramp("OK", 8), _short_ref(), None)
+    assert all(e["feature"] != "rotation_past_reference" for e in res["rundowns"][0]["evidence"])
+
+
+def test_mid_span_gap_below_half_is_cant_assess():
+    from api.analysis import GRID, _overlap, _prep
+    run = _prep(_ramp("G", 60), 30.0)[0]
+    holed = np.where(GRID >= 0, 1.0, np.nan)
+    holed[(GRID >= 5) & (GRID <= 40)] = np.nan
+    assert _overlap(run, holed) < 0.5
+    from api.analysis import _past_reference
+    assert _past_reference(run, holed) is None
+
+
+def test_reference_no_snug_runs_do_not_change_stats():
+    base = make_reference(7)
+    with_flat = pd.concat([base] + [_flat(f"F{i}", 10.0) for i in range(5)], ignore_index=True)
+    a = analyse(_frames([None, "soft_joint", "cross_thread"]), base, SAMPLE_SPEC)
+    b = analyse(_frames([None, "soft_joint", "cross_thread"]), with_flat, SAMPLE_SPEC)
+    assert a["envelope"] == b["envelope"] and a["envelope_pre"] == b["envelope_pre"]
+    for x, y in zip(a["rundowns"], b["rundowns"]):
+        assert (x["signature"], x["evidence"], x["iforest_only"]) == (y["signature"], y["evidence"], y["iforest_only"])

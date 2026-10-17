@@ -39,6 +39,47 @@ def _err_response(status: int, error: str, fix: str = "", row=None, column=None)
     return JSONResponse({"error": error, "row": row, "column": column, "fix": fix}, status_code=status)
 
 
+BODY_LIMIT = 2 * MAX_BYTES + 65536
+TOO_LARGE = ("The upload is too large.", "Keep each file under 5 MB.")
+
+
+class _BodyTooLarge(Exception):
+    pass
+
+
+class BodyLimitMiddleware:
+    """Counts request-body bytes as they arrive on POST /api/analyse, whatever Content-Length says."""
+
+    def __init__(self, app, limit: int = BODY_LIMIT):
+        self.app, self.limit = app, limit
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http" or scope["method"] != "POST" or scope["path"] != "/api/analyse":
+            return await self.app(scope, receive, send)
+        total, started = 0, False
+
+        async def counted():
+            nonlocal total
+            msg = await receive()
+            if msg["type"] == "http.request":
+                total += len(msg.get("body", b""))
+                if total > self.limit:
+                    raise _BodyTooLarge
+            return msg
+
+        async def watch(msg):
+            nonlocal started
+            started = started or msg["type"] == "http.response.start"
+            await send(msg)
+
+        try:
+            await self.app(scope, counted, watch)
+        except _BodyTooLarge:
+            if started:
+                raise
+            await _err_response(400, *TOO_LARGE)(scope, receive, send)
+
+
 def _packs() -> list[dict]:
     return json.loads((SAMPLES_DIR / "packs.json").read_text())
 
@@ -101,6 +142,7 @@ async def _parse_upload(data: bytes, reference: bool):
 
 def create_app(dist: Path | None = DEFAULT_DIST) -> FastAPI:
     app = FastAPI(title="Torque Signature Analyser")
+    app.add_middleware(BodyLimitMiddleware)
 
     @app.exception_handler(ApiError)
     async def _api_error(_: Request, e: ApiError):
@@ -163,9 +205,8 @@ def create_app(dist: Path | None = DEFAULT_DIST) -> FastAPI:
                 length = int(request.headers.get("content-length", "0"))
             except ValueError:
                 length = 0
-            if length > 2 * MAX_BYTES + 65536:
-                raise ApiError(400, "The upload is too large.",
-                               "Keep each file under 5 MB.")
+            if length > BODY_LIMIT:      # early exit; the middleware enforces it for streamed bodies
+                raise ApiError(400, *TOO_LARGE)
             form = await request.form()
             up, ref_up = form.get("readings"), form.get("reference")
             if not hasattr(up, "read"):
