@@ -16,4 +16,10 @@ test('inputs, the 3D panel, the graph and the ledger keep their own arrows', () 
     assert.equal(shouldStep(ev({}, sel)), false, sel);
   }
 });
+test('an open dialog suspends stepping even when focus is on the body', () => {
+  const target = { closest: () => null, ownerDocument: { querySelector: (s) => (s === 'dialog[open]' ? {} : null) } };
+  assert.equal(shouldStep(ev({ target })), false);
+  target.ownerDocument.querySelector = () => null;
+  assert.equal(shouldStep(ev({ target })), true);
+});
 test('modifier chords are ignored', () => assert.equal(shouldStep(ev({ ctrlKey: true })), false));

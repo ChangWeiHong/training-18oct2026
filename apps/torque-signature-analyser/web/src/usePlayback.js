@@ -9,6 +9,8 @@ export function shouldStep(e) {
   if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return false;
   if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return false;
   const t = e.target;
+  const doc = t?.ownerDocument ?? globalThis.document;
+  if (doc?.querySelector?.('dialog[open]')) return false; // a modal owns the keys, wherever focus sits
   return !(t && t.closest && t.closest(OWN_KEYS));
 }
 

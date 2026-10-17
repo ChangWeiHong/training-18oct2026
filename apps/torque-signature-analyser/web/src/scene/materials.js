@@ -102,8 +102,8 @@ export function createMaterials(cut) {
   const washer = new THREE.MeshPhysicalMaterial({ color: steelF0, metalness: 1, roughness: 0.3, roughnessMap: rough, anisotropy: 0.8, clippingPlanes: single });
   const washerFree = washer.clone();
   washerFree.clippingPlanes = null;
-  const socket = new THREE.MeshStandardMaterial({ color: F0(0.62, 0.64, 0.67), metalness: 1, roughness: 0.3, roughnessMap: rough, side: THREE.DoubleSide, clippingPlanes: single, emissive: new THREE.Color(0, 0, 0) });
-  const plateTop = new THREE.MeshStandardMaterial({ color: steelF0, metalness: 1, roughness: 0.34, roughnessMap: rough, side: THREE.DoubleSide, clippingPlanes: box, clipIntersection: true });
+  const socket = new THREE.MeshStandardMaterial({ color: F0(0.5, 0.53, 0.57), metalness: 0.75, roughness: 0.42, roughnessMap: rough, side: THREE.DoubleSide, clippingPlanes: single, emissive: new THREE.Color(0, 0, 0) });
+  const plateTop = new THREE.MeshStandardMaterial({ color: F0(0.4, 0.41, 0.43), metalness: 0.85, roughness: 0.5, roughnessMap: rough, side: THREE.DoubleSide, clippingPlanes: box, clipIntersection: true });
   const plateBase = new THREE.MeshStandardMaterial({ color: F0(0.42, 0.44, 0.47), metalness: 0.9, roughness: 0.55, roughnessMap: rough, side: THREE.DoubleSide, clippingPlanes: box, clipIntersection: true });
   const hub = new THREE.MeshStandardMaterial({ color: F0(0.34, 0.35, 0.38), metalness: 0.9, roughness: 0.6, roughnessMap: rough });
   const capTop = new THREE.MeshStandardMaterial({ map: hatch, metalness: 0, roughness: 0.9 });
