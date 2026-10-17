@@ -118,3 +118,10 @@ export function enteredIntervals(prevAngle, angle, intervals) {
   intervals.forEach((iv, k) => { if (!inside(prevAngle, iv) && inside(angle, iv)) out.push(k); });
   return out;
 }
+
+/** Features that have not pulsed yet in this selection. Marks them as pulsed. Loop restarts re-enter intervals but never pulse twice. */
+export function pulseTargets(pulsed, features) {
+  const fresh = features.filter((f) => !pulsed.has(f));
+  for (const f of fresh) pulsed.add(f);
+  return fresh;
+}

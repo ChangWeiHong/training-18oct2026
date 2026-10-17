@@ -32,7 +32,7 @@ function cutPlanes(slot, count) {
   return { single: [A], box: [A, B1, B2] };
 }
 
-function Scene({ rigApi, count, focus, siblings, selected, pose, preset, detail, lit, reducedMotion, onSelect }) {
+function Scene({ rigApi, count, focus, siblings, selected, pose, preset, detail, lit, reducedMotion, onSelect, onOrbitStart }) {
   const { invalidate, gl } = useThree();
   const materials = useMemo(() => createMaterials(cutPlanes(focus, count)), [focus, count]);
   const bg = useMemo(() => tokenColor('--color-paper', '#15191c'), []);
@@ -95,24 +95,27 @@ function Scene({ rigApi, count, focus, siblings, selected, pose, preset, detail,
         </group>
       )}
 
-      <CameraRig apiRef={rigApi} preset={focus == null ? 'flange' : preset} focus={focus} count={count} reducedMotion={reducedMotion} />
+      <CameraRig apiRef={rigApi} preset={focus == null ? 'flange' : preset} focus={focus} count={count} reducedMotion={reducedMotion} onOrbitStart={onOrbitStart} />
     </>
   );
 }
 
-function JointView({ result, selected, cursor, onSelect, bolts = 6 }) {
+function JointView({ result, selected, cursor, onSelect: pickBolt, onInteract, bolts = 6 }) {
   const box = useRef(null);
   const [compact, setCompact] = useState(false);
   const [preset, setPreset] = useState('section');
   const [lit, setLit] = useState(false);
   const reducedMotion = useReducedMotion();
   const rigApi = useRef(null);
-  const onView = (k) => rigApi.current?.[k]?.();
+  const touch = () => onInteract?.();
+  const onSelect = (id) => { touch(); pickBolt(id); };
+  const onView = (k) => { touch(); rigApi.current?.[k]?.(); };
   // Keys only act while focus is inside this panel; they never touch the cursor, and are consumed so global playback keys stay quiet.
   const onKeyDown = (e) => {
     const a = keyAction(e);
     if (!a) return;
     e.preventDefault();
+    touch();
     onView(a);
   };
 
@@ -162,7 +165,7 @@ function JointView({ result, selected, cursor, onSelect, bolts = 6 }) {
     <JointHeader
       selected={selected}
       preset={focus == null ? 'flange' : preset}
-      onPreset={setPreset}
+      onPreset={(p) => { touch(); setPreset(p); }}
       slots={slots}
       selectedId={selected?.id}
       onSelect={onSelect}
@@ -190,6 +193,7 @@ function JointView({ result, selected, cursor, onSelect, bolts = 6 }) {
           lit={lit}
           reducedMotion={reducedMotion}
           onSelect={onSelect}
+          onOrbitStart={touch}
         />
       </Canvas>
       <Overlay pose={pose} torqueMax={torqueMax} spec={spec} />

@@ -359,6 +359,7 @@ class PackDef:
         return ("drift_onset",) if self.drift else ()
 
 
+TM = " Training challenge mix, not a production rate."
 _WH = "40 assemblies x 6 bolts"
 PACKS: dict[str, PackDef] = {p.id: p for p in (
     PackDef("clean", "wheel-hub", "Clean shift", f"{_WH}, all normal with realistic scatter. {NOTE}", 40),
@@ -371,19 +372,19 @@ PACKS: dict[str, PackDef] = {p.id: p for p in (
     PackDef("caliper-clean", "caliper", "Clean shift",
             f"30 assemblies x 2 bolts, all normal. {NOTE}", 30),
     PackDef("caliper-mixed", "caliper", "Mixed shift",
-            f"30 x 2 with cross-thread and stripped-thread rundowns. {NOTE}", 30,
+            f"30 x 2 with seeded cross-thread and stripped-thread traces.{TM} {NOTE}", 30,
             (("cross_thread", 8), ("stripped_thread", 6))),
     PackDef("subframe-mixed", "subframe", "Mixed shift",
-            f"30 x 4 with soft-joint and missing-washer rundowns. {NOTE}", 30,
+            f"30 x 4 with seeded soft-joint and missing-washer traces.{TM} {NOTE}", 30,
             (("soft_joint", 7), ("missing_washer", 6))),
     PackDef("subframe-drift", "subframe", "Washer stock drift",
-            f"30 x 4. The post-snug slope falls across the shift as washer stock changes. {NOTE}", 30,
+            f"30 x 4. Seeded scenario: the post-snug slope falls across the shift.{TM} {NOTE}", 30,
             drift=True, drift_label_from=0.65),
     PackDef("seatbelt-mixed", "seatbelt", "Mixed shift",
-            f"40 single-bolt assemblies with rehit and double-hit operator issues. {NOTE}", 40,
+            f"40 single-bolt assemblies with seeded rehit and double-hit traces.{TM} {NOTE}", 40,
             (("rehit", 5), ("double_hit", 5))),
     PackDef("mount-mixed", "mount", "Mixed shift",
-            f"30 x 3 with early-shutoff and hard-joint rundowns. {NOTE}", 30,
+            f"30 x 3 with seeded early-shutoff and hard-joint traces.{TM} {NOTE}", 30,
             (("early_shutoff", 6), ("hard_joint", 6))),
 )}
 

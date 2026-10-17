@@ -11,14 +11,16 @@ const COLUMNS = [
   { key: 'signature', label: 'Signature' },
 ];
 
-export default function Ledger({ rundowns, selectedId, onSelect }) {
+export default function Ledger({ rundowns, selectedId, onSelect, onInteract }) {
   const [sort, setSort] = useState({ key: 'rank', dir: 'asc' });
   const [showKey, setShowKey] = useState(false);
   const hasKey = rundowns.some((r) => r.seeded_pattern != null);
   const rows = useMemo(() => sortRundowns(rundowns, sort.key, sort.dir), [rundowns, sort]);
 
-  const toggle = (key) =>
+  const toggle = (key) => {
+    onInteract?.();
     setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
+  };
 
   const ariaSort = (key) => (sort.key === key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none');
 
@@ -48,7 +50,7 @@ export default function Ledger({ rundowns, selectedId, onSelect }) {
         <h2>Ledger</h2>
         <span className="ledger-hint">Sorted by importance by default. Select a row to inspect it.</span>
         {hasKey && (
-          <button type="button" className="btn btn-small" aria-pressed={showKey} onClick={() => setShowKey((v) => !v)}>
+          <button type="button" className="btn btn-small" aria-pressed={showKey} onClick={() => { onInteract?.(); setShowKey((v) => !v); }}>
             Answer key
           </button>
         )}

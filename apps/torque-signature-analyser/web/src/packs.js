@@ -27,3 +27,8 @@ export function packBolts(pack) {
   const n = pack?.bolts;
   return Number.isInteger(n) && n >= 1 && n <= 6 ? n : 6;
 }
+
+/** Visible option text: joint first, so the collapsed picker still says which joint it is. */
+export function packOptionLabel(pack) {
+  return pack?.joint_name ? `${pack.joint_name} · ${pack.name}` : pack?.name;
+}

@@ -87,3 +87,12 @@ test('enteredIntervals reports intervals the cursor moved into', () => {
 test('enteredIntervals fires again after the loop restarts', () => {
   assert.deepEqual(enteredIntervals(50, 0, [[0, 20]]), [0]);
 });
+
+import { pulseTargets } from '../src/graph.js';
+test('an evidence strip pulses once per selection', () => {
+  const seen = new Set();
+  assert.deepEqual(pulseTargets(seen, ['a', 'b']), ['a', 'b']);
+  assert.deepEqual(pulseTargets(seen, ['a']), []); // loop restart re-enters the interval
+  assert.deepEqual(pulseTargets(seen, ['a', 'c']), ['c']);
+  assert.deepEqual(pulseTargets(new Set(), ['a']), ['a']); // a new selection starts clean
+});

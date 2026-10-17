@@ -9,6 +9,8 @@ export const initialState = {
   speed: DEFAULT_SPEED,
   loop: true,
   tour: false,
+  reducedMotion: false,
+  source: 'sample',
 };
 
 /** Worth a second look: outside spec, or inside spec but unlike the reference. */
@@ -60,6 +62,7 @@ export function selectionReducer(state, action) {
         cursor: 0,
         playing: Boolean(action.autoplay),
         tour: false,
+        source: action.source ?? 'sample',
       };
     case 'SELECT':
       // Any pick by hand ends the tour and plays the chosen rundown from its first sample.
@@ -67,7 +70,7 @@ export function selectionReducer(state, action) {
     case 'TOUR_NEXT':
       return tourStep(state);
     case 'LOOP_END': {
-      if (state.tour) {
+      if (state.tour && !state.reducedMotion) {
         const next = nextTourId(state.result?.rundowns, state.selectedId);
         if (next != null) return tourStep(state, next);
       }
@@ -79,10 +82,17 @@ export function selectionReducer(state, action) {
       return { ...state, cursor: clampCursor(state, action.i), tour: false };
     case 'STEP':
       return { ...state, cursor: clampCursor(state, state.cursor + action.delta), tour: false };
+    case 'USER_ACTION':
+      // Any manual control ends the tour. Only the Tour toggle itself skips this.
+      return state.tour ? { ...state, tour: false } : state;
+    case 'REDUCED_MOTION':
+      return action.on
+        ? { ...state, reducedMotion: true, tour: false, playing: false }
+        : { ...state, reducedMotion: false };
     case 'SET_LOOP':
       return { ...state, loop: Boolean(action.on) };
     case 'SET_TOUR': {
-      if (!action.on) return { ...state, tour: false };
+      if (!action.on || state.reducedMotion) return { ...state, tour: false };
       const atEnd = state.cursor >= curveLength(selectedRundown(state)) - 1;
       return { ...state, tour: true, playing: true, cursor: state.playing && !atEnd ? state.cursor : 0 };
     }

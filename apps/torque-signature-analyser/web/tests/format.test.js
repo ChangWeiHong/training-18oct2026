@@ -40,3 +40,10 @@ test('firstEvidenceLine: investigate rows without evidence', () => {
   assert.equal(firstEvidenceLine({ signature: 'investigate', evidence: [], iforest_only: true }), IF_ONLY_SHORT);
   assert.equal(firstEvidenceLine({ signature: 'investigate', evidence: [], iforest_only: false }), AREA_ONLY_TEXT);
 });
+
+import { provenance } from '../src/format.js';
+test('provenance follows the source of the displayed result', () => {
+  assert.deepEqual(provenance('sample'), { text: 'Synthetic demo data', upload: false });
+  assert.deepEqual(provenance('upload'), { text: 'Your upload', upload: true });
+  assert.equal(provenance(undefined).text, 'Synthetic demo data');
+});

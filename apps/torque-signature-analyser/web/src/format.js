@@ -26,3 +26,10 @@ export function firstEvidenceLine(r) {
   if (r.signature === 'cant_assess') return 'Not enough data to compare';
   return '';
 }
+
+/** Badge text for the result on screen: sample packs are synthetic, uploads are the visitor's own. */
+export function provenance(source) {
+  return source === 'upload'
+    ? { text: 'Your upload', upload: true }
+    : { text: 'Synthetic demo data', upload: false };
+}
