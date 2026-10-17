@@ -18,6 +18,11 @@
   --color-warn-bg: oklch(95% 0.04 45);
   --color-ok: oklch(45% 0.12 150);
   --color-focus: oklch(50% 0.2 260);
+  /* RACE letters, same hues as the slides: R blue, A red, C yellow, E green */
+  --race-r: oklch(55% 0.15 255); --race-r-bg: oklch(94% 0.03 255);
+  --race-a: oklch(55% 0.18 25);  --race-a-bg: oklch(94% 0.03 25);
+  --race-c: oklch(58% 0.13 80);  --race-c-bg: oklch(95% 0.05 90);
+  --race-e: oklch(50% 0.12 150); --race-e-bg: oklch(94% 0.04 150);
   --font-display: "Helvetica Neue", Arial, system-ui, sans-serif;
   --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -39,6 +44,10 @@
     --color-warn-bg: oklch(28% 0.04 45);
     --color-ok: oklch(76% 0.13 150);
     --color-focus: oklch(78% 0.14 250);
+    --race-r: oklch(75% 0.12 255); --race-r-bg: oklch(27% 0.04 255);
+    --race-a: oklch(75% 0.13 25);  --race-a-bg: oklch(27% 0.04 25);
+    --race-c: oklch(80% 0.12 85);  --race-c-bg: oklch(28% 0.04 85);
+    --race-e: oklch(76% 0.12 150); --race-e-bg: oklch(27% 0.04 150);
   }
 }
 * { box-sizing: border-box; }
@@ -52,13 +61,23 @@ header.top { padding: var(--space-lg) 0 var(--space-md); border-bottom: 2px soli
 h1 { font: 800 clamp(2rem, 6vw, 3.25rem)/1.05 var(--font-display); margin: 0 0 var(--space-sm); letter-spacing: -0.02em; overflow-wrap: anywhere; }
 h2 { font: 700 1.5rem/1.2 var(--font-display); margin: 0 0 var(--space-xs); }
 h3 { font: 700 1rem/1.3 var(--font-display); margin: 0; }
-.lede { color: var(--color-muted); margin: 0; max-width: 60ch; }
+.lede { color: var(--color-muted); margin: 0; max-width: 62ch; }
 nav.jump { display: flex; gap: var(--space-md); flex-wrap: wrap; margin-top: var(--space-md); }
 nav.jump a { color: var(--color-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; white-space: nowrap; }
 nav.jump a:hover { color: var(--color-accent); }
 section { padding: var(--space-xl) 0 0; }
-section > .sub { color: var(--color-muted); margin: 0 0 var(--space-md); max-width: 62ch; }
+section > .sub { color: var(--color-muted); margin: 0 0 var(--space-md); max-width: 66ch; }
 .step { font: 600 0.8rem/1 var(--font-mono); color: var(--color-accent); }
+
+/* RACE map: story card line -> prompt part */
+.map { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-sm); margin: var(--space-md) 0 var(--space-lg); padding: 0; list-style: none; }
+.map li { border-left: 4px solid var(--c); background: var(--bg); padding: var(--space-sm) var(--space-md); border-radius: var(--radius); font-size: 0.85rem; }
+.map b { display: block; font: 700 0.95rem/1.3 var(--font-display); }
+.map span { color: var(--color-muted); }
+.r { --c: var(--race-r); --bg: var(--race-r-bg); }
+.a { --c: var(--race-a); --bg: var(--race-a-bg); }
+.c { --c: var(--race-c); --bg: var(--race-c-bg); }
+.e { --c: var(--race-e); --bg: var(--race-e-bg); }
 
 /* buttons */
 .btn {
@@ -75,12 +94,18 @@ section > .sub { color: var(--color-muted); margin: 0 0 var(--space-md); max-wid
 .btn.primary { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-ink); }
 .btn.primary:hover { filter: brightness(1.08); }
 .btn.is-done { background: var(--color-ok); border-color: var(--color-ok); color: var(--color-accent-ink); }
+.btn.small { min-height: 36px; padding: 8px 12px; font-size: 0.85rem; }
 .row { display: flex; gap: var(--space-sm); flex-wrap: wrap; align-items: center; }
 
 /* notepad */
 .pad { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-lg); align-items: start; }
 .fields { display: grid; gap: var(--space-md); }
+fieldset.letter { margin: 0; border: 0; border-left: 4px solid var(--c); padding: 0 0 0 var(--space-md); display: grid; gap: var(--space-md); }
+fieldset.letter legend { padding: 0; margin-bottom: var(--space-sm); font: 700 1rem/1.3 var(--font-display); }
+fieldset.letter legend .k { display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; margin-right: 6px; border-radius: var(--radius); background: var(--c); color: var(--color-card); font-size: 0.9rem; }
+fieldset.letter legend small { font: 400 0.8rem/1.3 var(--font-body); color: var(--color-muted); margin-left: 4px; }
 .field label { display: block; font-weight: 600; font-size: 0.9rem; }
+.field label .from { font: 600 0.72rem/1 var(--font-mono); color: var(--c, var(--color-muted)); margin-left: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
 .field .hint { display: block; color: var(--color-muted); font-size: 0.8rem; margin-bottom: 4px; }
 input[type=text], input[type=number], select, textarea {
   width: 100%; font: 0.95rem/1.4 var(--font-body); padding: 9px 10px;
@@ -89,11 +114,17 @@ input[type=text], input[type=number], select, textarea {
 }
 input:hover, select:hover, textarea:hover { border-color: var(--color-muted); }
 .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-sm); }
+.dod { margin: 0; font-size: 0.8rem; color: var(--color-muted); }
 .out { position: sticky; top: var(--space-md); display: grid; gap: var(--space-sm); }
-.out textarea { font-family: var(--font-mono); font-size: 0.82rem; min-height: 26rem; resize: vertical; }
+.out textarea { font-family: var(--font-mono); font-size: 0.82rem; resize: vertical; }
+#out-prompt { min-height: 24rem; }
+#out-story { min-height: 8rem; }
 .out .note { color: var(--color-muted); font-size: 0.8rem; margin: 0; }
-.story-pad { margin-top: var(--space-lg); padding-top: var(--space-md); border-top: 1.5px solid var(--color-rule); display: grid; gap: var(--space-sm); }
-.story-pad textarea { min-height: 4.5rem; font-family: var(--font-mono); font-size: 0.85rem; }
+.out-head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-sm); flex-wrap: wrap; }
+.checks { display: flex; gap: 4px; }
+.checks span { display: inline-grid; place-items: center; min-width: 2.4em; height: 1.8em; padding: 0 6px; border-radius: var(--radius); font: 700 0.75rem/1 var(--font-mono); border: 1.5px dashed var(--c); color: var(--c); }
+.checks span.ok { background: var(--c); color: var(--color-card); border-style: solid; }
+.story-out { margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1.5px solid var(--color-rule); display: grid; gap: var(--space-sm); }
 
 /* copy blocks */
 .copyable {
@@ -108,17 +139,22 @@ input:hover, select:hover, textarea:hover { border-color: var(--color-muted); }
 .copyable.is-done { border-color: var(--color-ok); }
 .copyable.is-done .tag { color: var(--color-ok); }
 .copyable pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 0.85rem/1.55 var(--font-mono); }
+.copyable .id { position: absolute; top: 10px; left: 14px; font: 700 0.75rem/1 var(--font-mono); color: var(--color-accent); }
 .stack { display: grid; gap: var(--space-md); }
-.stories { display: grid; gap: var(--space-sm); }
-.story { padding-top: 36px; }
-.story .id { position: absolute; top: 10px; left: 14px; font: 700 0.75rem/1 var(--font-mono); color: var(--color-accent); }
-.story p { margin: 0; }
-.chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-sm); }
-.chips .copyable { padding-top: 36px; }
+.stories { display: grid; gap: var(--space-md); }
+.card { background: var(--color-card); border: 1.5px solid var(--color-rule); border-radius: var(--radius); padding: var(--space-md); display: grid; gap: var(--space-sm); }
+.card .id { font: 700 0.75rem/1 var(--font-mono); color: var(--color-accent); }
+.card p, .card ul { margin: 0; }
+.card ul { padding-left: 1.2em; }
+.card .lbl { font-weight: 600; }
+.chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: var(--space-sm); }
+.rules { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-md); margin-top: var(--space-lg); }
+.rules ul { margin: var(--space-xs) 0 0; padding-left: 1.2em; font-size: 0.9rem; }
 footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); font-size: 0.85rem; }
 
 @media (max-width: 800px) {
-  .pad, .chips { grid-template-columns: minmax(0, 1fr); }
+  .pad, .rules { grid-template-columns: minmax(0, 1fr); }
+  .map { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .out { position: static; }
   section { padding-top: var(--space-lg); }
 }
@@ -130,9 +166,9 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
 
 <header class="top">
   <h1>AI Ideation Cheatsheet</h1>
-  <p class="lede">Fill in the notepad, click copy, paste into your AI tool. Use the sample if you want to start from ours. Training exercise: air compressor health monitor.</p>
+  <p class="lede">Write one story card. Each line of the card fills one part of a RACE prompt: Role, Action, Context, Expectation. Copy the prompt and paste it into your AI tool. Training exercise: air compressor health monitor.</p>
   <nav class="jump" aria-label="Sections">
-    <a href="#notepad">1 Notepad</a>
+    <a href="#notepad">1 Story card to prompt</a>
     <a href="#sample">2 Sample prompt</a>
     <a href="#stories">3 User stories</a>
     <a href="#fix">4 Fix prompts</a>
@@ -142,65 +178,99 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
 <!-- 1 NOTEPAD -->
 <section id="notepad">
   <span class="step">STEP 1</span>
-  <h2>Notepad: fill in, then copy</h2>
-  <p class="sub">Each box fills one [bracket] in the prompt. The grey hint under each label says why the AI needs it, then what to write. The prompt on the right updates as you type, and you can edit it directly too.</p>
+  <h2>Story card to RACE prompt</h2>
+  <p class="sub">Fill in your story card on the left. The prompt on the right updates as you type, and you can edit it directly too. Empty boxes stay as [brackets], and a letter stays dashed until it has an answer.</p>
+
+  <ol class="map" aria-label="How the story card maps to RACE">
+    <li class="r"><b>As a [user]</b><span>→ R: Role (AI persona and user)</span></li>
+    <li class="a"><b>I want to [action]</b><span>→ A: Action (what it does)</span></li>
+    <li class="c"><b>So that + Given [data]</b><span>→ C: Context (data and limits)</span></li>
+    <li class="e"><b>Done when + DoD</b><span>→ E: Expectation (result and rules)</span></li>
+  </ol>
 
   <div class="pad">
     <div class="fields">
-      <div class="field">
-        <label for="f-user">[user]</label>
-        <span class="hint">Tells the AI who will use the app, so it builds for that job. Write one job title, not "everyone".</span>
-        <input type="text" id="f-user" placeholder="plant maintenance technicians">
-      </div>
-      <div class="field">
-        <label for="f-goal">[goal]</label>
-        <span class="hint">Tells the AI what problem the app solves. Start with a verb and add the benefit: "so they can ...".</span>
-        <input type="text" id="f-goal" placeholder="spot air compressors likely to fail, so they can fix them before breakdown">
-      </div>
-      <div class="field">
-        <label for="f-input">The app works on [input]</label>
-        <span class="hint">Tells the AI what fictional data to make for the samples. Name the readings or records, not a file type.</span>
-        <input type="text" id="f-input" placeholder="weekly compressor sensor readings">
-      </div>
-      <div class="field">
-        <label for="f-cases">What are the samples?</label>
-        <span class="hint">Defines the options in the dropdown, so you can see how the app handles an easy, in-between and worst case. Write 3 lines: a name, then what you would see in the data (symptoms, not a label).</span>
-        <textarea id="f-cases" rows="3" placeholder="Normal Operation: temperature, vibration and pressure stay flat for all compressors&#10;Early Warning: ...&#10;Critical Condition: ..."></textarea>
-      </div>
-      <div class="two">
+      <fieldset class="letter r">
+        <legend><span class="k">R</span>Role <small>who the AI acts as and who the app is for</small></legend>
         <div class="field">
-          <label for="f-act">[summarise / rank / compare / draft]</label>
-          <span class="hint">Tells the AI what to do with the data. Pick one.</span>
-          <select id="f-act"><option>rank</option><option>summarise</option><option>compare</option><option>draft</option><option>rank and compare</option></select>
+          <label for="f-user">As a [user]</label>
+          <span class="hint">Tells the AI who it is building for. Write one job title, not "everyone".</span>
+          <input type="text" id="f-user" placeholder="maintenance technician">
+        </div>
+      </fieldset>
+
+      <fieldset class="letter a">
+        <legend><span class="k">A</span>Action <small>what the app must do, in one sentence</small></legend>
+        <div class="field">
+          <label for="f-want">I want to [action]</label>
+          <span class="hint">The one thing they do on the screen. Start with a verb. One story, one action.</span>
+          <input type="text" id="f-want" placeholder="see air compressors ranked by risk level">
+        </div>
+      </fieldset>
+
+      <fieldset class="letter c">
+        <legend><span class="k">C</span>Context <small>data, sample files, reference info and limits</small></legend>
+        <div class="field">
+          <label for="f-so">So that [benefit]</label>
+          <span class="hint">Why it matters to them. The AI uses it to decide what to put first; you test the build against it.</span>
+          <input type="text" id="f-so" placeholder="I can prioritise inspections before a breakdown">
         </div>
         <div class="field">
-          <label for="f-fmt">as [list / table / cards]</label>
-          <span class="hint">Sets the layout. Tables suit comparing, cards suit a quick status check.</span>
-          <select id="f-fmt"><option>table and cards</option><option>table</option><option>cards</option><option>list</option></select>
-        </div>
-      </div>
-      <div class="field">
-        <label for="f-result">[result]</label>
-        <span class="hint">Tells the AI what to put on screen. Name the columns or fields.</span>
-        <input type="text" id="f-result" placeholder="compressor ID, readings, risk level, reason">
-      </div>
-      <div class="two">
-        <div class="field">
-          <label for="f-role">[role]</label>
-          <span class="hint">The person who checks the output. The app shows a note asking them to review it.</span>
-          <input type="text" id="f-role" placeholder="maintenance technician">
+          <label for="f-given">Given [data]</label>
+          <span class="hint">What the app works on. Name the readings or records and their columns, not a file type.</span>
+          <input type="text" id="f-given" placeholder="weekly readings per compressor: ID, week, temperature, vibration, pressure">
         </div>
         <div class="field">
-          <label for="f-action">before [action]</label>
-          <span class="hint">What needs a human check before it happens. The review note names it. Write an action, e.g. "scheduling maintenance".</span>
-          <input type="text" id="f-action" placeholder="scheduling maintenance">
+          <label for="f-cases">Fictional samples</label>
+          <span class="hint">The app builds these in, with a dropdown to switch, so nobody has to prepare a file. Write 3 lines: a name, then what you would see in the data (symptoms, not a label).</span>
+          <textarea id="f-cases" rows="3" placeholder="Normal Operation: temperature, vibration and pressure stay flat for all compressors&#10;Early Warning: ...&#10;Critical Condition: ..."></textarea>
         </div>
-      </div>
-      <div class="field">
-        <label for="f-donts">Do NOT list</label>
-        <span class="hint">Lists what the AI must leave out, so the first build stays small and quick to check. One per line.</span>
-        <textarea id="f-donts" rows="6"></textarea>
-      </div>
+        <div class="field">
+          <label for="f-rules">Layout or rules <span class="from">optional</span></label>
+          <span class="hint">Fixed reference info the AI must not make up, such as limits or how to classify.</span>
+          <input type="text" id="f-rules" placeholder="Classify with demonstration thresholds kept in one labelled block">
+        </div>
+      </fieldset>
+
+      <fieldset class="letter e">
+        <legend><span class="k">E</span>Expectation <small>what the result looks like, the rules and the review step</small></legend>
+        <div class="two">
+          <div class="field">
+            <label for="f-result">Show [result]</label>
+            <span class="hint">Name the columns or fields on screen.</span>
+            <input type="text" id="f-result" placeholder="compressor ID, readings, risk level, reason">
+          </div>
+          <div class="field">
+            <label for="f-fmt">as [layout]</label>
+            <span class="hint">Tables suit comparing, cards suit a quick status check.</span>
+            <select id="f-fmt"><option>table and cards</option><option>table</option><option>cards</option><option>list</option></select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-done">Done when…</label>
+          <span class="hint">2 or 3 checks you can see on screen. You read them aloud to test the build. One per line.</span>
+          <textarea id="f-done" rows="3" placeholder="Compressors are sorted with Critical first&#10;Each abnormal reading has a one-line reason&#10;A missing reading shows &quot;Needs checking&quot;"></textarea>
+        </div>
+        <div class="two">
+          <div class="field">
+            <label for="f-role">A [role] must review this</label>
+            <span class="hint">The person who checks the output.</span>
+            <input type="text" id="f-role" placeholder="maintenance technician">
+          </div>
+          <div class="field">
+            <label for="f-action">before [action]</label>
+            <span class="hint">What needs a human check before it happens.</span>
+            <input type="text" id="f-action" placeholder="scheduling maintenance">
+          </div>
+        </div>
+        <p class="dod">Definition of Done, already in every prompt: works with the sample data, shows the review note, shows the "Prototype – sample data only" label.</p>
+        <div class="field">
+          <label for="f-donts">Do NOT list</label>
+          <span class="hint">What the AI must leave out, so the first build stays small and quick to check. One per line.</span>
+          <textarea id="f-donts" rows="7"></textarea>
+        </div>
+      </fieldset>
+
       <div class="row">
         <button class="btn" id="btn-sample" type="button">Fill with compressor example</button>
         <button class="btn" id="btn-clear" type="button">Clear</button>
@@ -208,116 +278,126 @@ footer { padding: var(--space-xl) 0 var(--space-lg); color: var(--color-muted); 
     </div>
 
     <div class="out">
-      <h3>Your prompt</h3>
-      <textarea id="out-prompt" aria-label="Generated prompt" spellcheck="false"></textarea>
+      <div class="out-head">
+        <h3>Your RACE prompt</h3>
+        <div class="checks" id="checks" aria-live="polite">
+          <span class="r" data-k="R">R</span><span class="a" data-k="A">A</span><span class="c" data-k="C">C</span><span class="e" data-k="E">E</span>
+        </div>
+      </div>
+      <textarea id="out-prompt" aria-label="Generated RACE prompt" spellcheck="false"></textarea>
       <div class="row">
         <button class="btn primary" id="btn-copy-prompt" type="button">Copy prompt</button>
         <span class="note" id="miss"></span>
       </div>
-      <p class="note">Empty boxes stay as [brackets] so you can see what is missing.</p>
+      <p class="note">Check before you build: read R, A, C and E aloud. Each letter needs an answer.</p>
 
-      <div class="story-pad">
-        <h3>User story</h3>
-        <p class="note">One story is one thing a person does with the app. Use it to check the build, or paste it to ask for one change.</p>
-        <div class="field">
-          <label for="s-user">As a [user]</label>
-          <span class="hint">Who uses the app. Usually the same person as [user].</span>
-          <input type="text" id="s-user" placeholder="maintenance technician">
-        </div>
-        <div class="field">
-          <label for="s-want">I want to [action]</label>
-          <span class="hint">One thing they do on the screen. Start with a verb.</span>
-          <input type="text" id="s-want" placeholder="switch between sample sensor datasets">
-        </div>
-        <div class="field">
-          <label for="s-so">so that [benefit]</label>
-          <span class="hint">Why it matters to them. You test the build against this.</span>
-          <input type="text" id="s-so" placeholder="I can check equipment without reading spreadsheets">
-        </div>
-        <textarea id="out-story" aria-label="Generated user story" spellcheck="false"></textarea>
-        <div class="row"><button class="btn primary" id="btn-copy-story" type="button">Copy story</button></div>
+      <div class="story-out">
+        <h3>Your story card</h3>
+        <p class="note">The same answers as a card for your Scrum board. Use the Done when checks to test the build.</p>
+        <textarea id="out-story" aria-label="Generated story card" spellcheck="false" readonly></textarea>
+        <div class="row"><button class="btn" id="btn-copy-story" type="button">Copy story card</button></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 3 SAMPLE PROMPT -->
+<!-- 2 SAMPLE PROMPT -->
 <section id="sample">
   <span class="step">STEP 2</span>
   <h2>Sample prompt: ready to paste</h2>
-  <p class="sub">Click the box to copy. It follows the template and ends with a Do NOT block that keeps the build small.</p>
+  <p class="sub">The compressor example as a RACE prompt. Click the box to copy. It ends with a Do NOT block that keeps the build small.</p>
   <div class="stack" id="sample-prompt"></div>
 </section>
 
-<!-- 4 STORIES -->
+<!-- 3 STORIES -->
 <section id="stories">
   <span class="step">STEP 3</span>
   <h2>User stories</h2>
-  <p class="sub">Click one to copy, or copy all three.</p>
+  <p class="sub">Three story cards for the same app. Build one story per prompt: pick one, click "Turn into prompt" and step 1 fills in for you.</p>
   <div class="row" style="margin-bottom: var(--space-md)">
     <button class="btn primary" id="btn-copy-all" type="button">Copy all 3</button>
   </div>
   <div class="stories" id="story-list"></div>
 </section>
 
-<!-- 5 FIX PROMPTS -->
+<!-- 4 FIX PROMPTS -->
 <section id="fix">
   <span class="step">STEP 4</span>
   <h2>Fix prompts</h2>
-  <p class="sub">When the first build is off, send one of these. One change at a time.</p>
+  <p class="sub">When the build is off, send one of these. One change per prompt. Replace the [brackets] first.</p>
   <div class="chips" id="fix-list"></div>
+
+  <div class="rules">
+    <div>
+      <h3>Do</h3>
+      <ul>
+        <li>Cover Role, Action, Context and Expectation</li>
+        <li>Ask for one change per prompt</li>
+        <li>Say what you see and what you expected</li>
+        <li>Use fictional sample data in the prompt</li>
+        <li>Ask the app to flag missing or uncertain information</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Avoid</h3>
+      <ul>
+        <li>Asking for "an AI app for everything"</li>
+        <li>Piling many changes into one prompt</li>
+        <li>Pasting confidential data into the prompt</li>
+        <li>Adding features not on your backlog</li>
+        <li>Trusting the output without a human check</li>
+      </ul>
+    </div>
+  </div>
 </section>
 
 <footer>Prototype – sample data only. All compressor data, thresholds and ratings are fictional.</footer>
 </div>
 
 <script>
-const SAMPLE_PROMPT = `Build a one-screen web app for plant maintenance technicians who need to spot air compressors at risk of failure from temperature, vibration and pressure readings, so they can fix them before they break down.
-
-The app works on weekly compressor sensor readings. Build in 3 fictional sample datasets and a dropdown at the top to switch between them, instead of a file upload. Load the first one when the page opens:
-1. Normal Operation: temperature, vibration and pressure stay flat across all weeks for every compressor. No readings are missing.
-2. Early Warning: 2 to 3 compressors show temperature creeping up week after week, vibration slowly rising, and occasional pressure dips. Nothing has crossed a limit yet.
-3. Critical Condition: several compressors run well above normal temperature with high, fast-rising vibration and repeated pressure drops. They need inspection now.
-
-The app should rank and compare compressors and show:
-- Summary cards: Total, Healthy, Warning, Critical.
-- Risk ranking table: compressor ID, temperature, vibration, pressure, risk level, reason, recommended inspection.
-
-Classify with simple demonstration thresholds (Healthy, Warning, Critical). Keep the thresholds in one clearly labelled block so they are easy to edit. Highlight abnormal readings and give a one-line reason for each rating.
-
-If the input is incomplete, list what is missing (sensor values, timestamps, compressor IDs) instead of guessing.
-Mark anything uncertain as "Needs checking".
-Show this note: "A maintenance technician must review this before scheduling maintenance or shutting down equipment."
-Use a clean, simple design with colour-coded risk levels and show the label "Prototype – sample data only".
-
-Do NOT:
-- add file upload, login, database, backend or file saving. Everything runs in the browser.
-- call the results "predictions" or "AI". They are rule-based checks.
-- invent values for missing data.
-- add extra pages, settings, export, alerts or emails.
-- add charts. Cards and a table only.
-- use real company or equipment data.
-- add libraries. One HTML file.`;
-
 const DONTS = `add file upload, login, database, backend or file saving. Everything runs in the browser.
 call the results "predictions" or "AI". They are rule-based checks.
 invent values for missing data.
-add extra pages, settings, export, alerts or emails.
+add features that are not in this prompt: no extra pages, settings, export, alerts or emails.
 add charts. Cards and a table only.
 use real company or equipment data.
 add libraries. One HTML file.`;
 
+const EXAMPLE = {
+  user: 'maintenance technician',
+  want: 'see air compressors ranked by risk level from their temperature, vibration and pressure readings',
+  so: 'I can prioritise inspections and fix compressors before they break down',
+  given: 'weekly readings per compressor: compressor ID, week, temperature, vibration and pressure',
+  cases: 'Normal Operation: temperature, vibration and pressure stay flat across all weeks for every compressor. No readings are missing.\nEarly Warning: 2 to 3 compressors show temperature creeping up week after week, vibration slowly rising, and occasional pressure dips. Nothing has crossed a limit yet.\nCritical Condition: several compressors run well above normal temperature with high, fast-rising vibration and repeated pressure drops. They need inspection now.',
+  rules: 'Classify with simple demonstration thresholds (Healthy, Warning, Critical). Keep the thresholds in one clearly labelled block so they are easy to edit.',
+  result: 'summary cards (Total, Healthy, Warning, Critical) and a risk ranking with compressor ID, readings, risk level, reason and recommended inspection',
+  fmt: 'table and cards',
+  done: 'Compressors are sorted with Critical first\nEach abnormal reading is highlighted with a one-line reason\nA missing reading shows "Needs checking", not a guessed value',
+  role: 'maintenance technician',
+  action: 'scheduling maintenance or shutting down equipment',
+  donts: DONTS
+};
+
 const STORIES = [
-  ["US-01", "As a maintenance technician, I want to switch between sample sensor datasets from a dropdown so that I can see healthy, warning and critical compressors without preparing a file."],
-  ["US-02", "As a maintenance technician, I want compressors ranked by risk level so that I can prioritise inspections."],
-  ["US-03", "As a maintenance technician, I want explanations for abnormal readings so that I can understand why a compressor has been flagged."]
+  { id: 'US-01', user: 'maintenance technician',
+    want: 'switch between sample sensor datasets from a dropdown',
+    so: 'I can see healthy, warning and critical compressors without preparing a file',
+    given: '3 fictional datasets: normal operation, early warning and critical condition',
+    done: 'The dropdown lists the 3 datasets and the first one loads on open\nPicking a dataset updates the cards and the table\nThere is no file upload anywhere on the page' },
+  { id: 'US-02', user: EXAMPLE.user, want: EXAMPLE.want, so: EXAMPLE.so, given: EXAMPLE.given, done: EXAMPLE.done },
+  { id: 'US-03', user: 'maintenance technician',
+    want: 'see why each compressor has been flagged',
+    so: 'I can check the reading behind each rating before I act on it',
+    given: 'demonstration thresholds for temperature, vibration and pressure in one labelled block',
+    done: 'Each Warning or Critical row has a one-line reason\nThe reading that crossed a threshold is highlighted\nThe thresholds show in a small box so I can check them' }
 ];
 
 const FIXES = [
-  ["Change one thing", "Change only the risk table: add a Reason column. Do not change anything else."],
-  ["Too much", "Remove everything not in my original request. Keep one screen."],
-  ["Wrong claim", "Replace any wording like prediction, AI or forecast with rule-based check."],
-  ["Show your rules", "Show the thresholds you used in a small box at the bottom, so I can check them."]
+  ['Change one thing', 'Change only the risk table: add a Reason column. Do not change anything else.'],
+  ['What I see vs expected', 'I see [what happens now]. I expected [what should happen]. Fix only that.'],
+  ['Not on my backlog', 'Remove everything not in my original prompt. Keep one screen.'],
+  ['Wrong claim', 'Replace any wording like prediction, AI or forecast with rule-based check.'],
+  ['Show your rules', 'Show the thresholds you used in a small box at the bottom, so I can check them.']
 ];
 
 /* copy helper */
@@ -347,12 +427,13 @@ function wireButton(btn, getText) {
     flash(btn, label, ok ? 'Copied ✓' : 'Copy failed, select and Ctrl+C');
   });
 }
-function copyBlock(text, extraClass, head) {
+function copyBlock(text, head) {
   const b = document.createElement('div');
-  b.className = 'copyable ' + (extraClass || '');
+  b.className = 'copyable';
   b.tabIndex = 0; b.setAttribute('role', 'button');
   b.setAttribute('aria-label', 'Click to copy');
-  b.innerHTML = (head || '') + '<span class="tag">Click to copy</span><pre></pre>';
+  b.innerHTML = '<span class="tag">Click to copy</span><pre></pre>';
+  if (head) { const h = document.createElement('span'); h.className = 'id'; h.textContent = head; b.prepend(h); }
   b.querySelector('pre').textContent = text;
   const go = async () => {
     const ok = await copyText(text);
@@ -363,73 +444,111 @@ function copyBlock(text, extraClass, head) {
   return b;
 }
 
-/* sample blocks */
-document.getElementById('sample-prompt').appendChild(copyBlock(SAMPLE_PROMPT));
-const sl = document.getElementById('story-list');
-STORIES.forEach(([id, text]) => {
-  sl.appendChild(copyBlock(text, 'story', `<span class="id">${id}</span>`));
-});
-const fl = document.getElementById('fix-list');
-FIXES.forEach(([title, text]) => fl.appendChild(copyBlock(text, '', `<span class="id" style="position:absolute;top:10px;left:14px;font:700 0.75rem/1 var(--font-mono);color:var(--color-accent)">${title}</span>`)));
-wireButton(document.getElementById('btn-copy-all'), () => STORIES.map(s => s[1]).join('\n'));
+/* prompt and story card builders: one source for the notepad, the sample and the story cards */
+const lines = s => (s || '').split('\n').map(x => x.trim().replace(/^[-•]\s*/, '')).filter(Boolean);
+const article = s => (/^\[?[aeiou]/i.test(s) ? 'an ' : 'a ') + s;
 
-/* notepad */
+function buildPrompt(d) {
+  const missing = new Set(), letters = { R: true, A: true, C: true, E: true };
+  const val = (key, label, letter) => {
+    const s = (d[key] || '').trim();
+    if (!s) { missing.add(label); letters[letter] = false; return '[' + label + ']'; }
+    return s;
+  };
+  const user = val('user', 'user', 'R');
+  const want = val('want', 'action', 'A');
+  const so = val('so', 'benefit', 'C'), given = val('given', 'data', 'C');
+  const result = val('result', 'result', 'E');
+  const role = val('role', 'role', 'E'), action = val('action', 'action before review', 'E');
+  const cases = lines(d.cases), done = lines(d.done), donts = lines(d.donts);
+  if (!cases.length) { missing.add('samples'); letters.C = false; }
+  if (!done.length) { missing.add('done when'); letters.E = false; }
+  const caseTxt = cases.length ? cases.map((c, i) => `${i + 1}. ${c}`).join('\n') : '[describe each sample]';
+  const doneTxt = done.length ? done.map(c => '- ' + c).join('\n') : '- [check you can see on screen]';
+  const rules = (d.rules || '').trim();
+
+  let t = `Role: You are a developer building a prototype for ${article(user)}.\n\n` +
+    `Action: Build a one-screen web app where ${article(user)} can ${want}.\n\n` +
+    `Context: The user story is "As ${article(user)}, I want to ${want} so that ${so}." ` +
+    `Given: ${given}. Build in ${cases.length || 3} fictional sample datasets and a dropdown at the top to switch between them, instead of a file upload. Load the first one when the page opens:\n${caseTxt}` +
+    (rules ? `\n${rules}` : '') + `\n\n` +
+    `Expectation: Show ${result} as ${d.fmt || 'table and cards'}. It is done when:\n${doneTxt}\n` +
+    `If the data is incomplete, list what is missing instead of guessing. Mark anything uncertain as "Needs checking". ` +
+    `Add the note "A ${role} must review this before ${action}." Label it "Prototype – sample data only".`;
+  if (donts.length) t += `\n\nDo NOT:\n${donts.map(s => '- ' + s).join('\n')}`;
+  return { text: t, missing: [...missing], letters };
+}
+
+function buildStory(d) {
+  const g = (k, ph) => (d[k] || '').trim() || '[' + ph + ']';
+  const done = lines(d.done);
+  return `As ${article(g('user', 'user'))}, I want to ${g('want', 'action')} so that ${g('so', 'benefit')}.\n` +
+    `Given: ${g('given', 'data')}.\n` +
+    `Done when:\n${(done.length ? done : ['[check you can see on screen]']).map(c => '- ' + c).join('\n')}`;
+}
+
+/* 2 sample */
+document.getElementById('sample-prompt').appendChild(copyBlock(buildPrompt(EXAMPLE).text));
+
+/* 1 notepad */
 const $ = id => document.getElementById(id);
-const ids = ['user','goal','input','cases','act','fmt','result','role','action','donts'];
+const ids = ['user', 'want', 'so', 'given', 'cases', 'rules', 'result', 'fmt', 'done', 'role', 'action', 'donts'];
 const F = Object.fromEntries(ids.map(i => [i, $('f-' + i)]));
-const out = $('out-prompt');
-let missing = [];
-const v = (key, label) => { const s = F[key].value.trim(); if (!s) { missing.push(label); return '[' + label + ']'; } return s; };
+const out = $('out-prompt'), so = $('out-story');
+const read = () => Object.fromEntries(ids.map(i => [i, F[i].value]));
 
 function build() {
-  missing = [];
-  const user = v('user', 'user'), goal = v('goal', 'goal'), input = v('input', 'input');
-  const result = v('result', 'result');
-  const role = v('role', 'role'), action = v('action', 'action');
-  const cases = F.cases.value.split('\n').map(s => s.trim()).filter(Boolean);
-  const caseTxt = cases.length ? cases.map((c, i) => `${i + 1}. ${c}`).join('\n') : '[describe each sample]';
-  if (!cases.length) missing.push('samples');
-  const donts = F.donts.value.split('\n').map(s => s.trim()).filter(Boolean).map(s => '- ' + s.replace(/^-\s*/, '')).join('\n');
-  let t = `Build a one-screen web app for ${user} who need to ${goal}.\n\n` +
-    `The app works on ${input}. Build in ${cases.length || 3} fictional sample datasets and a dropdown at the top to switch between them, instead of a file upload. Load the first one when the page opens:\n${caseTxt}\n\n` +
-    `The app should ${F.act.value} and show ${result} as ${F.fmt.value}.\n\n` +
-    `If the input is incomplete, list what is missing instead of guessing.\n` +
-    `Mark anything uncertain as "Needs checking".\n` +
-    `Show this note: "A ${role} must review this before ${action}."\n` +
-    `Use a clean, simple design and show the label "Prototype – sample data only".`;
-  if (donts) t += `\n\nDo NOT:\n${donts}`;
-  out.value = t;
-  $('miss').textContent = missing.length ? 'Still empty: ' + [...new Set(missing)].join(', ') : '';
+  const d = read(), p = buildPrompt(d);
+  out.value = p.text;
+  so.value = buildStory(d);
+  $('miss').textContent = p.missing.length ? 'Still empty: ' + p.missing.join(', ') : '';
+  document.querySelectorAll('#checks span').forEach(s => {
+    const ok = p.letters[s.dataset.k];
+    s.classList.toggle('ok', ok);
+    s.title = s.dataset.k + (ok ? ' has an answer' : ' still needs an answer');
+  });
 }
+function fill(d) { Object.entries(d).forEach(([k, v]) => { if (F[k] && v !== undefined) F[k].value = v; }); build(); }
 ids.forEach(i => F[i].addEventListener('input', build));
 F.donts.value = DONTS;
 build();
 
-$('btn-sample').addEventListener('click', () => {
-  F.user.value = 'plant maintenance technicians';
-  F.goal.value = 'spot air compressors at risk of failure from temperature, vibration and pressure readings, so they can fix them before they break down';
-  F.input.value = 'weekly compressor sensor readings';
-  F.cases.value = 'Normal Operation: temperature, vibration and pressure stay flat across all weeks for every compressor. No readings are missing.\nEarly Warning: 2 to 3 compressors show temperature creeping up week after week, vibration slowly rising, and occasional pressure dips. Nothing has crossed a limit yet.\nCritical Condition: several compressors run well above normal temperature with high, fast-rising vibration and repeated pressure drops. They need inspection now.';
-  F.act.value = 'rank and compare'; F.fmt.value = 'table and cards';
-  F.result.value = 'summary counts (Healthy, Warning, Critical) and a ranking with compressor ID, readings, risk level, reason and recommended inspection';
-  F.role.value = 'maintenance technician'; F.action.value = 'scheduling maintenance or shutting down equipment';
-  F.donts.value = DONTS; build();
-});
+$('btn-sample').addEventListener('click', () => fill(EXAMPLE));
 $('btn-clear').addEventListener('click', () => {
   ids.forEach(i => { if (F[i].tagName !== 'SELECT') F[i].value = ''; });
-  F.donts.value = DONTS; build();
+  fill({ donts: DONTS });
 });
 wireButton($('btn-copy-prompt'), () => out.value);
-
-/* story pad */
-const so = $('out-story');
-function story() {
-  const g = (id, ph) => $(id).value.trim() || '[' + ph + ']';
-  so.value = `As a ${g('s-user', 'user')}, I want to ${g('s-want', 'action')} so that ${g('s-so', 'benefit')}.`;
-}
-['s-user', 's-want', 's-so'].forEach(i => $(i).addEventListener('input', story));
-story();
 wireButton($('btn-copy-story'), () => so.value);
+
+/* 3 stories */
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const sl = $('story-list');
+STORIES.forEach(s => {
+  const card = document.createElement('article');
+  card.className = 'card';
+  card.innerHTML = `<span class="id">${s.id}</span>` +
+    `<p>As ${esc(article(s.user))}, I want to ${esc(s.want)} so that ${esc(s.so)}.</p>` +
+    `<p><span class="lbl">Given:</span> ${esc(s.given)}.</p>` +
+    `<div><span class="lbl">Done when…</span><ul>${lines(s.done).map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>` +
+    `<div class="row"><button class="btn small primary" type="button" data-act="use">Turn into prompt ↑</button>` +
+    `<button class="btn small" type="button" data-act="copy">Copy card</button></div>`;
+  card.querySelector('[data-act="use"]').addEventListener('click', () => {
+    // swap in this card's lines; app-wide boxes keep what is typed, empty ones take the compressor example
+    const keep = {};
+    ['cases', 'rules', 'result', 'role', 'action'].forEach(k => { if (!F[k].value.trim()) keep[k] = EXAMPLE[k]; });
+    fill({ ...keep, user: s.user, want: s.want, so: s.so, given: s.given, done: s.done });
+    $('notepad').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    F.want.focus({ preventScroll: true });
+  });
+  wireButton(card.querySelector('[data-act="copy"]'), () => buildStory(s));
+  sl.appendChild(card);
+});
+wireButton($('btn-copy-all'), () => STORIES.map(s => s.id + '\n' + buildStory(s)).join('\n\n'));
+
+/* 4 fixes */
+const fl = $('fix-list');
+FIXES.forEach(([title, text]) => fl.appendChild(copyBlock(text, title)));
 </script>
 </body>
 </html>
