@@ -252,3 +252,9 @@ button, input, select { font: inherit; color: inherit; }
 
 .joint-strip .joint-legend { margin: 0; }
 .joint-bottom { justify-content: flex-start; }
+
+.joint-header { display: grid; gap: var(--space-xs); padding: var(--space-xs) var(--space-sm); border-bottom: 1px solid var(--color-rule); }
+.joint-header .joint-top { align-items: center; }
+.joint-header .joint-id { background: none; padding: 0; grid-auto-flow: column; align-items: center; gap: var(--space-sm); }
+.joint-header .joint-note { background: none; padding: 0; }
+.joint-overlay { justify-content: flex-end; }

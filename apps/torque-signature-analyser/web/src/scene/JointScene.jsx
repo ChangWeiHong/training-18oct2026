@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import Bolt, { Washer, WASHER } from './Bolt.jsx';
 import Flange, { FLANGE, slotAngle, slotPosition } from './Flange.jsx';
 import CameraRig from './CameraRig.jsx';
-import Overlay, { JointStrip } from './Overlay.jsx';
+import Overlay, { JointHeader, JointStrip } from './Overlay.jsx';
 import { createMaterials, tokenColor } from './materials.js';
 import { boltSlots, jointPose, statusKind } from './kinematics.js';
 
@@ -162,6 +162,15 @@ function JointView({ result, selected, cursor, onSelect }) {
 
   return (
     <div className="joint-wrap">
+    <JointHeader
+      selected={selected}
+      preset={focus == null ? 'flange' : preset}
+      onPreset={setPreset}
+      slots={slots}
+      selectedId={selected?.id}
+      onSelect={onSelect}
+      note={note ?? (overflow.length ? `${overflow.length} extra bolt(s) in this assembly are not drawn. Use the ledger.` : null)}
+    />
     <div className="joint" ref={box}>
       <Canvas
         dpr={[1, 2]}
@@ -182,18 +191,7 @@ function JointView({ result, selected, cursor, onSelect }) {
           onSelect={onSelect}
         />
       </Canvas>
-      <Overlay
-        selected={selected}
-        pose={pose}
-        torqueMax={torqueMax}
-        spec={spec}
-        preset={focus == null ? 'flange' : preset}
-        onPreset={setPreset}
-        slots={slots}
-        selectedId={selected?.id}
-        onSelect={onSelect}
-        note={note ?? (overflow.length ? `${overflow.length} extra bolt(s) in this assembly are not drawn. Use the ledger.` : null)}
-      />
+      <Overlay pose={pose} torqueMax={torqueMax} spec={spec} />
     </div>
     <JointStrip />
     </div>
