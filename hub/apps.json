@@ -6,33 +6,15 @@
     "url": "https://ai-ideation-cheatsheet-271836949821.asia-southeast1.run.app"
   },
   {
-    "slug": "twin",
-    "name": "FORGE / Smart Factory Digital Twin",
-    "summary": "Run a nine-station car assembly line in 3D. Find the bottleneck and test fixes.",
-    "url": "https://smart-factory-twin-271836949821.asia-southeast1.run.app"
+    "slug": "robot-arm",
+    "name": "Robot Arm Sample Data",
+    "summary": "Download the robot arm 3D model and data pack used in the cheatsheet's sample prompts.",
+    "url": "https://storage.googleapis.com/3d-model-sample/robot-arm-data.zip"
   },
   {
-    "slug": "paint",
-    "name": "Automotive Paint Bench",
-    "summary": "Light the same car under two daylight conditions and compare the paint side by side.",
-    "url": "https://automotive-paint-bench-271836949821.asia-southeast1.run.app"
-  },
-  {
-    "slug": "triage",
-    "name": "Asset Maintenance Priority Triage",
-    "summary": "Switch between sample inspection datasets and see which machines need maintenance first, with the rule behind each rank.",
-    "url": "https://air-compressor-argon.ai.studio/"
-  },
-  {
-    "slug": "torque",
-    "name": "Torque Signature Analyser",
-    "summary": "Pick a sample bolt-tightening pack, see which rundowns look unusual against a known-good reference, and replay one in 3D.",
-    "url": "https://torque-signature-analyser-271836949821.asia-southeast1.run.app"
-  },
-  {
-    "slug": "adas",
-    "name": "ADAS 360° Threat Detection Simulator",
-    "summary": "Run simulated traffic around a car, change speed, weather and braking settings, and see when emergency braking stops a collision.",
-    "url": "https://adas-360-simulator-271836949821.asia-southeast1.run.app"
+    "slug": "aistudio",
+    "name": "Google AI Studio",
+    "summary": "Open a new chat in Google AI Studio to try your build prompt.",
+    "url": "https://aistudio.google.com/prompts/new_chat"
   }
 ]
